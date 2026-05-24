@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -69,6 +70,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <button class="tab" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
   <button class="tab" id="tb-c" onclick="go('c')"><i class="ti ti-lock"></i>部室</button>
   <button class="tab" id="tb-f" onclick="go('f')"><i class="ti ti-heart"></i>お気に入り</button>
+  <button class="tab" id="tb-a" onclick="go('a')"><i class="ti ti-shield-lock"></i>安心宣言</button>
 </div>
 
 <div class="content">
@@ -129,7 +131,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <i class="ti ti-photo"></i><span id="alb"></span><i class="ti ti-external-link" style="font-size:11px"></i>
     </a>
   </div>
-  <div style="font-size:12px;color:var(--text-ter);margin-bottom:10px">開設されている部室（15部室）</div>
+  <div style="font-size:12px;color:var(--text-ter);margin-bottom:10px">開設されている部室（18部室）</div>
   <div id="cl"></div>
 </div>
 
@@ -141,11 +143,55 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="fl"></div>
 </div>
 
+<!-- 安心宣言 -->
+<div id="p-a" style="display:none">
+  <div style="background:var(--blue);border-radius:var(--radius);padding:16px;margin-bottom:14px;text-align:center">
+    <i class="ti ti-shield-lock" style="font-size:32px;color:var(--white);display:block;margin-bottom:8px"></i>
+    <div style="font-size:16px;font-weight:500;color:var(--white)">安心宣言</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（8期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
+  </div>
+
+  <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
+    <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
+    <div style="font-size:12px;color:var(--text-sub)">LINE ID：@711epvso</div>
+  </div>
+</div>
+
 </div>
 
 <!-- メンバー詳細モーダル -->
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal">
+<div class="modal-overlay" id="modal">
+  <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="dn"></div>
       <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
@@ -171,7 +217,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <script>
 var M=[
-  {id:1,name:"佐々木 宗明",period:"8期",club:"テニス部",area:"関東",status:"帰省予定",date:"8/13〜8/17",hobby:"ゴルフ・落語",note:"お盆は松山に帰ります。久しぶりに道後で一杯やりたい！",upd:"たった今",fav:false},
+  {id:1,name:"佐々木 宗明",period:"33期",club:"応援団",area:"関東",status:"帰省予定",date:"8/13〜8/17",hobby:"ゴルフ・落語",note:"お盆は松山に帰ります。久しぶりに道後で一杯やりたい！",upd:"たった今",fav:false},
   {id:2,name:"山本 花子",period:"8期",club:"吹奏楽部",area:"関東",status:"在住",date:"",hobby:"旅行・陶芸",note:"先月から横浜で陶芸教室に通い始めました。",upd:"5日前",fav:false},
   {id:3,name:"田中 一郎",period:"9期",club:"野球部",area:"松山",status:"在住",date:"",hobby:"自転車・釣り",note:"毎週末、石手川沿いをサイクリングしています。",upd:"1週間前",fav:false},
   {id:4,name:"伊藤 美咲",period:"8期",club:"バレー部",area:"大阪",status:"帰省予定",date:"8/10〜8/15",hobby:"料理・ヨガ",note:"今年の夏は早めに帰省します。道後温泉で女子会したい！",upd:"昨日",fav:false},
@@ -179,17 +225,17 @@ var M=[
   {id:6,name:"鈴木 健太",period:"10期",club:"野球部",area:"名古屋",status:"在住",date:"",hobby:"ゴルフ・料理",note:"名古屋でゴルフ仲間を探しています。",upd:"3日前",fav:false},
 ];
 var P=[
-  {id:1,author:"佐々木 宗明",period:"8期",content:"8月15日（木）の夜、松山市内で集まりませんか？道後あたりで。参加できる方はコメントで！",cat:"告知",likes:5,time:"2日前"},
+  {id:1,author:"佐々木 宗明",period:"33期",content:"8月15日（木）の夜、松山市内で集まりませんか？道後あたりで。参加できる方はコメントで！",cat:"告知",likes:5,time:"2日前"},
   {id:2,author:"田中 一郎",period:"9期",content:"先週末、松山城に登ってきました。まだまだ元気です笑。帰省の際はぜひ声かけて！",cat:"近況",likes:8,time:"1週間前"},
   {id:3,author:"伊藤 美咲",period:"8期",content:"染太さんの寄席、来月大阪でもあるみたいです！チケットとれた方います？",cat:"告知",likes:12,time:"昨日"},
 ];
 var AL=[
   {name:"テニス部",pass:"テニス",url:"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16",desc:"テニス部の思い出アルバム"},
-  {name:"野球部",pass:"野球",url:"",desc:"野球部の思い出アルバム"},
-  {name:"バスケットボール部",pass:"バスケ",url:"",desc:"バスケットボール部の思い出アルバム"},
-  {name:"応援団",pass:"応援団",url:"",desc:"応援団の思い出アルバム"},
-  {name:"バドミントン部",pass:"バドミントン",url:"",desc:"バドミントン部の思い出アルバム"},
-  {name:"サッカー部",pass:"サッカー",url:"",desc:"サッカー部の思い出アルバム"},
+  {name:"野球部",pass:"野球",url:"https://photos.app.goo.gl/Aphu5ttxy8DHz6ax9",desc:"野球部の思い出アルバム"},
+  {name:"バスケットボール部",pass:"バスケ",url:"https://photos.app.goo.gl/Cn9W59EUYmZ7Wh569",desc:"バスケットボール部の思い出アルバム"},
+  {name:"応援団",pass:"応援団",url:"https://photos.app.goo.gl/Ri8j8KfiBryvDRoM7",desc:"応援団の思い出アルバム"},
+  {name:"バドミントン部",pass:"バドミントン",url:"https://photos.app.goo.gl/sgTpX5sJJfergwGz8",desc:"バドミントン部の思い出アルバム"},
+  {name:"サッカー部",pass:"サッカー",url:"https://photos.app.goo.gl/qe2UiatKYsM48eS16",desc:"サッカー部の思い出アルバム"},
   {name:"吹奏楽部",pass:"吹奏楽",url:"",desc:"吹奏楽部の思い出アルバム"},
   {name:"美術部",pass:"美術",url:"",desc:"美術部の思い出アルバム"},
   {name:"卓球部",pass:"卓球",url:"",desc:"卓球部の思い出アルバム"},
@@ -199,6 +245,9 @@ var AL=[
   {name:"ボート部",pass:"ボート",url:"",desc:"ボート部の思い出アルバム"},
   {name:"弓道部",pass:"弓道",url:"",desc:"弓道部の思い出アルバム"},
   {name:"剣道部",pass:"剣道",url:"",desc:"剣道部の思い出アルバム"},
+  {name:"帰宅部",pass:"帰宅部",url:"",desc:"帰宅部の思い出アルバム"},
+  {name:"写真部",pass:"写真",url:"",desc:"写真部の思い出アルバム"},
+  {name:"生徒会",pass:"生徒会",url:"",desc:"生徒会の思い出アルバム"},
 ];
 var AC=["#0C447C","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
 var selId=null,pf="全";
@@ -281,9 +330,19 @@ function openDet(id){
   document.getElementById("uname").value="";
   document.getElementById("uname-err").style.display="none";
   document.getElementById("modal").classList.add("show");
+  document.getElementById("modal").onclick=function(e){
+    if(e.target===document.getElementById("modal")){
+      document.getElementById("modal").classList.remove("show");
+    }
+  };
 }
 function closeModal(e){
-  if(!e||e.target===document.getElementById("modal")||e.currentTarget===document.getElementById("modal")){
+  if(!e){
+    document.getElementById("modal").classList.remove("show");
+    return;
+  }
+  // オーバーレイ背景そのものをタップした時だけ閉じる
+  if(e.target===document.getElementById("modal")){
     document.getElementById("modal").classList.remove("show");
   }
 }
@@ -333,7 +392,7 @@ function fPost(cat){
 }
 function addPost(){
   var t=document.getElementById("np").value.trim();if(!t)return;
-  P.unshift({id:Date.now(),author:"佐々木 宗明",period:"8期",content:t,cat:document.getElementById("pc").value,likes:0,time:"たった今"});
+  P.unshift({id:Date.now(),author:"佐々木 宗明",period:"33期",content:t,cat:document.getElementById("pc").value,likes:0,time:"たった今"});
   document.getElementById("np").value="";renderP();
 }
 
@@ -365,10 +424,10 @@ function chkPass(){
 }
 
 function go(t){
-  ["r","b","c","f"].forEach(function(x){
+  ["r","b","c","f","a"].forEach(function(x){
     document.getElementById("p-"+x).style.display=x===t?"block":"none";
     var b=document.getElementById("tb-"+x);
-    b.className="tab"+(x===t?" active":"");
+    if(b) b.className="tab"+(x===t?" active":"");
   });
   if(t==="b")renderP();
   if(t==="c")renderClubs();
@@ -376,7 +435,15 @@ function go(t){
 }
 
 populateFilters();
-go("r");
+
+// URLハッシュでタブを指定
+var hash = window.location.hash;
+if(hash === "#board") go("b");
+else if(hash === "#club") go("c");
+else if(hash === "#fav") go("f");
+else if(hash === "#anshin") go("a");
+else go("r");
+
 renderM();
 </script>
 </body>
