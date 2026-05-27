@@ -86,7 +86,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <select class="filter-sel" id="fa" onchange="renderM()"><option>全エリア</option></select>
     <select class="filter-sel" id="fs" onchange="renderM()"><option>全状態</option><option>帰省中</option><option>帰省予定</option><option>在住</option></select>
   </div>
-  <div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
+  <div id="loading-msg" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;display:none">
+  <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
+</div>
+<div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
   <div id="ml"></div>
 </div>
 
@@ -444,7 +447,43 @@ function go(t){
   if(t==="f")renderFav();
 }
 
-populateFilters();
+// スプレッドシートからデータを読み込む
+var API_URL = "https://script.google.com/macros/s/AKfycbz8lXD_g5PV3M6WJuNzsMvnKP26wS-hUfGbeeGLst6zAtRfHdGO2L4tRmqvoZabFvg/exec";
+
+function loadFromAPI(){
+  var loading = document.getElementById("loading-msg");
+  if(loading) loading.style.display = "block";
+  
+  fetch(API_URL)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      M = data.map(function(d, i){
+        return {
+          id: i+1,
+          name: d.name||"",
+          period: d.period||"",
+          club: d.club||"",
+          area: d.area||"",
+          status: (d.status||"在住").replace("在住（松山在住）","在住").replace("帰省予定（帰省予定）","帰省予定").replace("帰省中（帰省中）","帰省中"),
+          date: d.date||"",
+          hobby: d.hobby||"",
+          note: d.note||"",
+          upd: "最新",
+          fav: false
+        };
+      });
+      if(loading) loading.style.display = "none";
+      populateFilters();
+      renderM();
+    })
+    .catch(function(e){
+      if(loading) loading.style.display = "none";
+      document.getElementById("ml").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。しばらくしてから再度お試しください。</div>';
+      // フォールバック：サンプルデータを表示
+      populateFilters();
+      renderM();
+    });
+}
 
 // URLハッシュでタブを指定
 var hash = window.location.hash;
@@ -454,7 +493,7 @@ else if(hash === "#fav") go("f");
 else if(hash === "#anshin") go("a");
 else go("r");
 
-renderM();
+loadFromAPI();
 </script>
 </body>
 </html>
