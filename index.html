@@ -30,7 +30,7 @@ textarea{resize:vertical}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .btn{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;border:1px solid var(--border);background:var(--white);color:var(--text)}
 .btn-primary{background:var(--blue);color:var(--white);border:none}
-.pill{font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--gray);color:var(--text-sub)}
+.pill{font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--gray);color:var(--text-sub);white-space:nowrap}
 .pill.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
 .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
 .search-wrap{position:relative;margin-bottom:10px}
@@ -80,21 +80,29 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <i class="ti ti-search"></i>
     <input type="text" id="kw" placeholder="名前・趣味・ひとことで検索" oninput="renderM()">
   </div>
+  <!-- ★ 期ピル（動的生成） -->
+  <div id="period-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;overflow-x:auto;padding-bottom:2px"></div>
   <div class="filters">
-    <select class="filter-sel" id="fp" onchange="renderM()"><option>全期</option></select>
     <select class="filter-sel" id="fc" onchange="renderM()"><option>全部活</option></select>
     <select class="filter-sel" id="fa" onchange="renderM()"><option>全エリア</option></select>
     <select class="filter-sel" id="fs" onchange="renderM()"><option>全状態</option><option>帰省中</option><option>帰省予定</option><option>在住</option></select>
   </div>
   <div id="loading-msg" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;display:none">
-  <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
-</div>
-<div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
+    <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
+  </div>
+  <div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
   <div id="ml"></div>
 </div>
 
 <!-- コルクボード -->
 <div id="p-b" style="display:none">
+  <div style="background:#FFF9E6;border:1px solid #c9a96e;border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">📸</span>
+    <div style="font-size:12px;color:#7D4F00;line-height:1.6;flex:1">
+      <b>画像付きチラシ・ポスターは写真館（VOOM）へ</b><br>
+      コルクボードはテキスト中心。投稿は管理者のみ可。
+    </div>
+  </div>
   <div class="card" style="margin-bottom:12px">
     <textarea id="np" rows="3" placeholder="近況・告知を書き込む&#10;（自分の名前を必ず署名してください）"></textarea>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
@@ -152,37 +160,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div style="font-size:16px;font-weight:500;color:var(--white)">安心宣言</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
   </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
-  </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
-  </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（8期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
-  </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
-  </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
-  </div>
-
-  <div class="card" style="margin-bottom:10px">
-    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div>
-    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
-  </div>
-
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（8期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div></div>
   <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
     <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
     <div style="font-size:12px;color:var(--text-sub)">LINE ID：@711epvso</div>
@@ -219,17 +202,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <script>
 var M=[
-  {id:1,name:"佐々木 宗明",period:"33期",club:"応援団",area:"松山",status:"在住",date:"",hobby:"ヨガ・落語",note:"松山在住です。久しぶりに帰ってくる人がいたら、ぜひ声をかけてください。写真でも撮って道後で飲みましょう！😊",upd:"たった今",fav:false},
-  {id:2,name:"山本 花子",period:"8期",club:"吹奏楽部",area:"関東",status:"在住",date:"",hobby:"旅行・陶芸",note:"先月から横浜で陶芸教室に通い始めました。",upd:"5日前",fav:false},
-  {id:3,name:"田中 一郎",period:"9期",club:"野球部",area:"松山",status:"在住",date:"",hobby:"自転車・釣り",note:"毎週末、石手川沿いをサイクリングしています。",upd:"1週間前",fav:false},
-  {id:4,name:"伊藤 美咲",period:"8期",club:"バレー部",area:"大阪",status:"帰省予定",date:"8/10〜8/15",hobby:"料理・ヨガ",note:"今年の夏は早めに帰省します。道後温泉で女子会したい！",upd:"昨日",fav:false},
-  {id:5,name:"高橋 由美",period:"9期",club:"テニス部",area:"関東",status:"帰省中",date:"〜8/20",hobby:"テニス・映画",note:"今年は長めに帰省。テニス部OB会できたら嬉しいです！",upd:"3時間前",fav:false},
-  {id:6,name:"鈴木 健太",period:"10期",club:"野球部",area:"名古屋",status:"在住",date:"",hobby:"ゴルフ・料理",note:"名古屋でゴルフ仲間を探しています。",upd:"3日前",fav:false},
+  {id:1,name:"佐々木 宗明",period:"33期",club:"応援団",area:"松山",status:"在住",date:"",hobby:"ヨガ・落語",note:"松山在住です。久しぶりに帰ってくる人がいたら、ぜひ声をかけてください。",birthday:"",upd:"たった今",fav:false},
 ];
 var P=[
-  {id:1,author:"佐々木 宗明",period:"33期",content:"松山在住です。久しぶりに帰ってくる人がいたら、ぜひ声をかけてください。写真でも撮って道後で飲みましょう！😊",cat:"告知",likes:5,time:"2日前"},
-  {id:2,author:"田中 一郎",period:"9期",content:"先週末、松山城に登ってきました。まだまだ元気です笑。帰省の際はぜひ声かけて！",cat:"近況",likes:8,time:"1週間前"},
-  {id:3,author:"伊藤 美咲",period:"8期",content:"染太さんの寄席、来月大阪でもあるみたいです！チケットとれた方います？",cat:"告知",likes:12,time:"昨日"},
+  {id:1,author:"佐々木 宗明",period:"33期",content:"松山在住です。久しぶりに帰ってくる人がいたら、ぜひ声をかけてください。",cat:"告知",likes:5,time:"2日前"},
 ];
 var AL=[
   {name:"テニス部",pass:"テニス",url:"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16",desc:"テニス部の思い出アルバム"},
@@ -263,7 +239,7 @@ var AL=[
   {name:"新聞部",pass:"新聞",url:"",desc:"新聞部の思い出アルバム"},
 ];
 var AC=["#0C447C","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
-var selId=null,pf="全";
+var selId=null,pf="全",selectedPeriod="全期";
 
 function av(n,sz){sz=sz||40;var i=(n||"??").slice(0,2);var c=AC[(i.charCodeAt(0)+(i.charCodeAt(1)||0))%AC.length];
   return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+i+'</div>';}
@@ -274,12 +250,18 @@ function sb(st){
 }
 function hc(){document.getElementById("hc").textContent=M.filter(function(m){return m.status==="帰省中"||m.status==="帰省予定";}).length;}
 
+// ★ 期ピルを動的生成（数字順ソート）
 function populateFilters(){
+  var periods=[...new Set(M.map(function(m){return m.period||"";}).filter(Boolean))];
+  periods.sort(function(a,b){return parseInt(a)-parseInt(b);});
+  document.getElementById("period-pills").innerHTML=["全期"].concat(periods).map(function(p){
+    return '<button class="pill'+(p===selectedPeriod?" active":"")+'" onclick="selectPeriod(\''+p+'\')">'+p+'</button>';
+  }).join("");
   function opts(key,prefix){return[prefix,...new Set(M.map(function(m){return m[key]||"";}).filter(Boolean))].map(function(v){return'<option>'+v+'</option>';}).join("");}
-  document.getElementById("fp").innerHTML=opts("period","全期");
   document.getElementById("fc").innerHTML=opts("club","全部活");
   document.getElementById("fa").innerHTML=opts("area","全エリア");
 }
+function selectPeriod(p){selectedPeriod=p;populateFilters();renderM();}
 
 function memberCardHTML(m){
   return '<div class="card member-card" id="mc'+m.id+'">'
@@ -299,10 +281,10 @@ function memberCardHTML(m){
 
 function renderM(){
   var kw=document.getElementById("kw").value;
-  var fp=document.getElementById("fp").value,fc=document.getElementById("fc").value;
+  var fc=document.getElementById("fc").value;
   var fa=document.getElementById("fa").value,fs=document.getElementById("fs").value;
   var f=M.filter(function(m){
-    if(fp!=="全期"&&m.period!==fp)return false;
+    if(selectedPeriod!=="全期"&&m.period!==selectedPeriod)return false;
     if(fc!=="全部活"&&m.club!==fc)return false;
     if(fa!=="全エリア"&&m.area!==fa)return false;
     if(fs!=="全状態"&&m.status!==fs)return false;
@@ -323,8 +305,7 @@ function toggleFav(id,e){
   e.stopPropagation();
   var m=M.find(function(x){return x.id===id;});
   m.fav=!m.fav;
-  renderM();
-  renderFav();
+  renderM();renderFav();
 }
 
 function openDet(id){
@@ -344,30 +325,15 @@ function openDet(id){
   document.getElementById("uname-err").style.display="none";
   document.getElementById("modal").classList.add("show");
   document.getElementById("modal").onclick=function(e){
-    if(e.target===document.getElementById("modal")){
-      document.getElementById("modal").classList.remove("show");
-    }
+    if(e.target===document.getElementById("modal"))document.getElementById("modal").classList.remove("show");
   };
 }
-function closeModal(e){
-  if(!e){
-    document.getElementById("modal").classList.remove("show");
-    return;
-  }
-  // オーバーレイ背景そのものをタップした時だけ閉じる
-  if(e.target===document.getElementById("modal")){
-    document.getElementById("modal").classList.remove("show");
-  }
-}
+function closeModal(){document.getElementById("modal").classList.remove("show");}
 function doUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var inputName=(document.getElementById("uname").value||"").trim();
   var err=document.getElementById("uname-err");
-  // 入力名前とカードの名前が一致するか確認
-  if(inputName!==m.name){
-    err.style.display="block";
-    return;
-  }
+  if(inputName!==m.name){err.style.display="block";return;}
   err.style.display="none";
   m.status=document.getElementById("us").value;
   m.date=document.getElementById("ud").value;
@@ -447,50 +413,47 @@ function go(t){
   if(t==="f")renderFav();
 }
 
-// スプレッドシートからデータを読み込む
-var API_URL = "https://script.google.com/macros/s/AKfycbz8lXD_g5PV3M6WJuNzsMvnKP26wS-hUfGbeeGLst6zAtRfHdGO2L4tRmqvoZabFvg/exec";
+var API_URL="https://script.google.com/macros/s/AKfycbz8lXD_g5PV3M6WJuNzsMvnKP26wS-hUfGbeeGLst6zAtRfHdGO2L4tRmqvoZabFvg/exec";
 
 function loadFromAPI(){
-  var loading = document.getElementById("loading-msg");
-  if(loading) loading.style.display = "block";
-  
+  var loading=document.getElementById("loading-msg");
+  if(loading)loading.style.display="block";
   fetch(API_URL)
     .then(function(r){return r.json();})
     .then(function(data){
-      M = data.map(function(d, i){
+      M=data.map(function(d,i){
         return {
-          id: i+1,
-          name: d.name||"",
-          period: d.period||"",
-          club: d.club||"",
-          area: d.area||"",
-          status: (d.status||"在住").replace("在住（松山在住）","在住").replace("帰省予定（帰省予定）","帰省予定").replace("帰省中（帰省中）","帰省中"),
-          date: d.date||"",
-          hobby: d.hobby||"",
-          note: d.note||"",
-          upd: "最新",
-          fav: false
+          id:i+1,
+          name:d.name||"",
+          period:d.period||"",
+          club:d.club||"",
+          area:d.area||"",
+          status:(d.status||"在住").replace("在住（松山在住）","在住").replace("帰省予定（帰省予定）","帰省予定").replace("帰省中（帰省中）","帰省中"),
+          date:d.date||"",
+          hobby:d.hobby||"",
+          note:d.note||"",
+          birthday:d.birthday||"",
+          upd:"最新",
+          fav:false
         };
       });
-      if(loading) loading.style.display = "none";
+      if(loading)loading.style.display="none";
       populateFilters();
       renderM();
     })
-    .catch(function(e){
-      if(loading) loading.style.display = "none";
-      document.getElementById("ml").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。しばらくしてから再度お試しください。</div>';
-      // フォールバック：サンプルデータを表示
+    .catch(function(){
+      if(loading)loading.style.display="none";
+      document.getElementById("ml").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。しばらくしてから再度お試しください。</div>';
       populateFilters();
       renderM();
     });
 }
 
-// URLハッシュでタブを指定
-var hash = window.location.hash;
-if(hash === "#board") go("b");
-else if(hash === "#club") go("c");
-else if(hash === "#fav") go("f");
-else if(hash === "#anshin") go("a");
+var hash=window.location.hash;
+if(hash==="#board")go("b");
+else if(hash==="#club")go("c");
+else if(hash==="#fav")go("f");
+else if(hash==="#anshin")go("a");
 else go("r");
 
 loadFromAPI();

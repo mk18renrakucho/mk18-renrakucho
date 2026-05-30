@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メンバー登録フォーム</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --border: #e2ddd6;
+    --text: #2d2620;
+    --text-sub: #7a6f65;
+    --accent: #c9a96e;
+    --accent-dark: #a07840;
+    --accent-light: #f5edd8;
+    --radius: 10px;
+    --shadow: 0 2px 16px rgba(45,38,32,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 16px 80px;
+  }
+
+  .wrapper { max-width: 560px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 40px; }
+  .header .badge {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  .header h1 { font-size: 26px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+  .header p { font-size: 13px; color: var(--text-sub); line-height: 1.7; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: var(--shadow);
+  }
+
+  .field { margin-bottom: 24px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 7px;
+    letter-spacing: 0.03em;
+  }
+  label .req { color: #c0392b; margin-left: 4px; font-size: 12px; }
+  label .hint { font-weight: 400; color: var(--text-sub); font-size: 12px; margin-left: 6px; }
+
+  input[type="text"], select, textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    background: #fff;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.18);
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6f65' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  select:disabled { background-color: #f5f3ef; color: var(--text-sub); cursor: not-allowed; }
+  textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+
+  /* 誕生日 */
+  .birthday-wrap {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #fff;
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .birthday-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.18);
+  }
+  .birthday-wrap select {
+    border: none;
+    border-right: 1.5px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    flex: 1;
+    background-color: transparent;
+    padding-right: 32px;
+  }
+  .birthday-wrap select:last-child { border-right: none; }
+  .birthday-wrap select:focus { border-color: transparent; box-shadow: none; }
+  .birthday-sep { padding: 0 8px; color: var(--text-sub); font-size: 18px; flex-shrink: 0; pointer-events: none; }
+
+  .bd-preview { margin-top: 7px; font-size: 13px; color: var(--text-sub); min-height: 18px; }
+  .bd-preview.valid { color: var(--accent-dark); font-weight: 500; }
+
+  /* ラジオ */
+  .radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .radio-item:hover { border-color: var(--accent); background: var(--accent-light); }
+  .radio-item input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+  .radio-item span { font-size: 14px; color: var(--text); }
+  .radio-item.selected { border-color: var(--accent); background: var(--accent-light); }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* 部活ローディング */
+  .club-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-sub);
+    padding: 11px 0;
+  }
+  .mini-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.1s;
+    margin-top: 32px;
+    letter-spacing: 0.05em;
+  }
+  .submit-btn:hover { background: var(--accent-dark); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: var(--border); color: var(--text-sub); cursor: not-allowed; }
+
+  .error { font-size: 12px; color: #c0392b; margin-top: 5px; display: none; }
+  .field.has-error select, .field.has-error input, .field.has-error .birthday-wrap { border-color: #e74c3c; }
+  .field.has-error .error { display: block; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #2d2620; color: #fff;
+    padding: 13px 24px;
+    border-radius: 30px;
+    font-size: 14px; font-weight: 500;
+    transition: transform 0.35s cubic-bezier(.17,.67,.35,1.1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .loading-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(255,255,255,0.7);
+    z-index: 50; align-items: center; justify-content: center;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    .card { padding: 24px 18px; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="header">
+    <div class="badge">MEMBER REGISTRATION</div>
+    <h1>メンバー登録フォーム</h1>
+    <p>情報を入力して送信してください。<br>登録後、LINEでご確認のご連絡をお送りします。</p>
+  </div>
+
+  <div class="card">
+    <form id="regForm" novalidate>
+
+      <p class="section-label">基本情報</p>
+
+      <div class="field" id="f-name">
+        <label for="name">お名前（漢字）<span class="req">*</span></label>
+        <input type="text" id="name" name="name" placeholder="例：山田 太郎" autocomplete="name">
+        <p class="error">お名前を入力してください</p>
+      </div>
+
+      <div class="field" id="f-period">
+        <label for="period">期<span class="req">*</span><span class="hint">例：33期</span></label>
+        <input type="text" id="period" name="period" placeholder="例：33期">
+        <p class="error">期を入力してください</p>
+      </div>
+
+      <!-- 部活：スプレッドシートから動的取得 -->
+      <div class="field" id="f-club">
+        <label for="club">部活<span class="req">*</span></label>
+        <div class="club-loading" id="club-loading">
+          <div class="mini-spinner"></div>
+          <span>読み込み中...</span>
+        </div>
+        <select id="club" name="club" style="display:none">
+          <option value="">選択してください</option>
+        </select>
+        <p class="error">部活を選択してください</p>
+      </div>
+
+      <!-- 誕生日 -->
+      <div class="field" id="f-birthday">
+        <label>誕生日<span class="req">*</span><span class="hint">月・日を選択</span></label>
+        <div class="birthday-wrap">
+          <select id="bd-month" aria-label="誕生月">
+            <option value="">月</option>
+            <option value="01">1月</option><option value="02">2月</option>
+            <option value="03">3月</option><option value="04">4月</option>
+            <option value="05">5月</option><option value="06">6月</option>
+            <option value="07">7月</option><option value="08">8月</option>
+            <option value="09">9月</option><option value="10">10月</option>
+            <option value="11">11月</option><option value="12">12月</option>
+          </select>
+          <span class="birthday-sep">/</span>
+          <select id="bd-day" aria-label="誕生日">
+            <option value="">日</option>
+          </select>
+        </div>
+        <p class="bd-preview" id="bd-preview"></p>
+        <input type="hidden" id="birthday" name="birthday">
+        <p class="error">誕生日を選択してください</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="section-label">現在の状況</p>
+
+      <!-- エリア：スプレッドシートから動的取得 -->
+      <div class="field" id="f-area">
+        <label for="area">現在のエリア<span class="req">*</span></label>
+        <div class="club-loading" id="area-loading">
+          <div class="mini-spinner"></div>
+          <span>読み込み中...</span>
+        </div>
+        <select id="area" name="area" style="display:none">
+          <option value="">選択してください</option>
+        </select>
+        <p class="error">エリアを選択してください</p>
+      </div>
+
+      <div class="field" id="f-status">
+        <label>現在の状態<span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="status" value="在住（松山在住）">
+            <span>松山に在住</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="status" value="松山以外に在住">
+            <span>松山以外に在住</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="status" value="帰省予定あり">
+            <span>帰省予定あり</span>
+          </label>
+        </div>
+        <p class="error">現在の状態を選択してください</p>
+      </div>
+
+      <div class="field" id="f-homecoming">
+        <label for="homecoming">帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
+        <input type="text" id="homecoming" name="homecoming" placeholder="例：8/13〜8/17">
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="section-label">プロフィール</p>
+
+      <div class="field" id="f-hobby">
+        <label for="hobby">趣味・キーワード<span class="hint">任意</span></label>
+        <input type="text" id="hobby" name="hobby" placeholder="例：ゴルフ・落語・読書">
+      </div>
+
+      <div class="field" id="f-message">
+        <label for="message">ひとこと近況<span class="hint">任意</span></label>
+        <textarea id="message" name="message" placeholder="近況やひとことメッセージをどうぞ"></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">登録する</button>
+
+    </form>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 設定：GASのWebアプリURLをここに入れる =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz8lXD_g5PV3M6WJuNzsMvnKP26wS-hUfGbeeGLst6zAtRfHdGO2L4tRmqvoZabFvg/exec';
+
+// ===== 部活リスト：GASから取得できない場合のフォールバック =====
+const CLUB_FALLBACK = [
+  'テニス部','野球部','バスケットボール部','応援団','バドミントン部',
+  'サッカー部','吹奏楽部','美術部','卓球部','ソフトボール部',
+  '陸上部','ハンドボール部','ボート部','弓道部','剣道部',
+  '帰宅部','写真部','生徒会','ラグビー部','バレーボール部',
+  '水泳部','柔道部','体操部','演劇部','書道部',
+  '合唱部','放送部','茶道部','新聞部','その他'
+];
+
+// ----- 部活をスプレッドシートから動的取得 -----
+async function loadClubs() {
+  const loading = document.getElementById('club-loading');
+  const sel = document.getElementById('club');
+  try {
+    const res = await fetch(GAS_URL + '?action=getClubs');
+    const data = await res.json();
+    const clubs = Array.isArray(data) ? data : CLUB_FALLBACK;
+    fillClubSelect(sel, clubs);
+  } catch(e) {
+    fillClubSelect(sel, CLUB_FALLBACK);
+  } finally {
+    loading.style.display = 'none';
+    sel.style.display = '';
+  }
+}
+
+function fillClubSelect(sel, clubs) {
+  sel.innerHTML = '<option value="">選択してください</option>';
+  clubs.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  // 「その他」が無ければ追加
+  if (!clubs.includes('その他')) {
+    const opt = document.createElement('option');
+    opt.value = 'その他';
+    opt.textContent = 'その他';
+    sel.appendChild(opt);
+  }
+}
+
+// ===== エリアリスト：GASから取得できない場合のフォールバック =====
+const AREA_FALLBACK = ['松山','関東','大阪','名古屋','福岡','広島','東海','九州','北海道・東北','海外','その他'];
+
+async function loadAreas() {
+  const loading = document.getElementById('area-loading');
+  const sel = document.getElementById('area');
+  try {
+    const res = await fetch(GAS_URL + '?action=getAreas');
+    const data = await res.json();
+    const areas = Array.isArray(data) ? data : AREA_FALLBACK;
+    fillSimpleSelect(sel, areas);
+  } catch(e) {
+    fillSimpleSelect(sel, AREA_FALLBACK);
+  } finally {
+    loading.style.display = 'none';
+    sel.style.display = '';
+  }
+}
+
+function fillSimpleSelect(sel, items) {
+  sel.innerHTML = '<option value="">選択してください</option>';
+  items.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+
+// GAS_URLが設定されていればAPI取得、なければフォールバック
+if (true) {
+  loadClubs();
+  loadAreas();
+} else {
+  document.getElementById('club-loading').style.display = 'none';
+  fillClubSelect(document.getElementById('club'), CLUB_FALLBACK);
+  document.getElementById('club').style.display = '';
+  document.getElementById('area-loading').style.display = 'none';
+  fillSimpleSelect(document.getElementById('area'), AREA_FALLBACK);
+  document.getElementById('area').style.display = '';
+}
+
+// ----- 誕生日セレクト -----
+const monthSel = document.getElementById('bd-month');
+const daySel   = document.getElementById('bd-day');
+const bdHidden = document.getElementById('birthday');
+const preview  = document.getElementById('bd-preview');
+
+function populateDays(month) {
+  const daysInMonth = [0,31,29,31,30,31,30,31,31,30,31,30,31];
+  const max = month ? daysInMonth[parseInt(month)] : 31;
+  const cur = daySel.value;
+  daySel.innerHTML = '<option value="">日</option>';
+  for (let d = 1; d <= max; d++) {
+    const v = String(d).padStart(2,'0');
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = d + '日';
+    if (v === cur) opt.selected = true;
+    daySel.appendChild(opt);
+  }
+}
+
+function updateBirthday() {
+  const m = monthSel.value, d = daySel.value;
+  if (m && d) {
+    bdHidden.value = m + d;
+    preview.textContent = parseInt(m) + '月' + parseInt(d) + '日生まれ';
+    preview.className = 'bd-preview valid';
+  } else {
+    bdHidden.value = '';
+    preview.textContent = m ? '日を選択してください' : '';
+    preview.className = 'bd-preview';
+  }
+}
+monthSel.addEventListener('change', () => { populateDays(monthSel.value); updateBirthday(); });
+daySel.addEventListener('change', updateBirthday);
+populateDays('');
+
+// ----- ラジオ -----
+document.querySelectorAll('.radio-item input[type="radio"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.querySelectorAll('.radio-item').forEach(el => el.classList.remove('selected'));
+    r.closest('.radio-item').classList.add('selected');
+  });
+});
+
+// ----- バリデーション -----
+function validate() {
+  let valid = true;
+  const checks = [
+    { id: 'f-name',     val: () => document.getElementById('name').value.trim() },
+    { id: 'f-period',   val: () => document.getElementById('period').value.trim() },
+    { id: 'f-club',     val: () => document.getElementById('club').value },
+    { id: 'f-birthday', val: () => bdHidden.value },
+    { id: 'f-area',     val: () => document.getElementById('area').value },
+    { id: 'f-status',   val: () => document.querySelector('input[name="status"]:checked')?.value || '' },
+  ];
+  checks.forEach(c => {
+    const el = document.getElementById(c.id);
+    if (!c.val()) { el.classList.add('has-error'); valid = false; }
+    else           { el.classList.remove('has-error'); }
+  });
+  return valid;
+}
+
+// ----- 送信 -----
+document.getElementById('regForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!validate()) {
+    document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const btn = document.getElementById('submitBtn');
+  const overlay = document.getElementById('loadingOverlay');
+  btn.disabled = true;
+  overlay.classList.add('show');
+
+  const payload = {
+    name:       document.getElementById('name').value.trim(),
+    period:     document.getElementById('period').value.trim(),
+    club:       document.getElementById('club').value,
+    birthday:   bdHidden.value,
+    area:       document.getElementById('area').value,
+    status:     document.querySelector('input[name="status"]:checked')?.value || '',
+    homecoming: document.getElementById('homecoming').value.trim(),
+    hobby:      document.getElementById('hobby').value.trim(),
+    message:    document.getElementById('message').value.trim(),
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    overlay.classList.remove('show');
+    showToast('✓ 登録が完了しました！');
+    document.getElementById('regForm').reset();
+    document.querySelectorAll('.radio-item').forEach(el => el.classList.remove('selected'));
+    bdHidden.value = ''; preview.textContent = ''; preview.className = 'bd-preview';
+    populateDays('');
+  } catch(err) {
+    overlay.classList.remove('show');
+    showToast('送信に失敗しました。もう一度お試しください。');
+    btn.disabled = false;
+  }
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

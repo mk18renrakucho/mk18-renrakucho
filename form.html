@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>連絡帳に書き込む</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f4;--surface:#fff;--border:#e2ddd6;
+  --accent:#c9a96e;--accent-dark:#a07840;--accent-light:#f5edd8;
+  --text:#2d2620;--sub:#7a6f65;--radius:10px;
+  --shadow:0 2px 16px rgba(45,38,32,.08);
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px 16px 80px}
+.wrapper{max-width:540px;margin:0 auto}
+.header{text-align:center;margin-bottom:32px}
+.badge{display:inline-block;background:var(--accent-light);color:var(--accent-dark);font-size:12px;font-weight:700;letter-spacing:.12em;padding:5px 14px;border-radius:20px;margin-bottom:12px}
+h1{font-size:22px;font-weight:700;margin-bottom:6px}
+.sub{font-size:13px;color:var(--sub);line-height:1.7}
+
+/* 分岐ボタン */
+.branch-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.branch-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px 18px;cursor:pointer;text-align:left;transition:border-color .18s,box-shadow .18s;box-shadow:var(--shadow);width:100%}
+.branch-btn:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(201,169,110,.2)}
+.branch-btn .icon{font-size:28px;margin-bottom:8px}
+.branch-btn .title{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)}
+.branch-btn .desc{font-size:12px;color:var(--sub);line-height:1.6}
+.voom-card{background:#f5f0e8;border:1.5px solid var(--accent);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px}
+.voom-card .icon{font-size:26px;flex-shrink:0}
+.voom-card .info{flex:1}
+.voom-card .title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.voom-card .desc{font-size:12px;color:var(--sub);line-height:1.6}
+.voom-link{font-size:12px;background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:700;white-space:nowrap;flex-shrink:0}
+
+/* フォーム共通 */
+.form-section{display:none}
+.form-section.active{display:block}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0;margin-bottom:20px;font-family:inherit}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 24px;box-shadow:var(--shadow)}
+.section-label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--sub);text-transform:uppercase;margin-bottom:16px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.field{margin-bottom:20px}
+.field:last-of-type{margin-bottom:0}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.req{color:#c0392b;margin-left:4px;font-size:12px}
+.hint{font-weight:400;color:var(--sub);font-size:12px;margin-left:6px}
+input[type=text],select,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:14px;color:var(--text);background:#fff;transition:border-color .18s,box-shadow .18s;outline:none;appearance:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,169,110,.18)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6f65' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;cursor:pointer}
+textarea{resize:vertical;min-height:90px;line-height:1.6}
+.bd-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;transition:border-color .18s,box-shadow .18s}
+.bd-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,169,110,.18)}
+.bd-wrap select{border:none;border-right:1.5px solid var(--border);border-radius:0;box-shadow:none;flex:1;background-color:transparent;padding-right:28px}
+.bd-wrap select:last-child{border-right:none}
+.bd-wrap select:focus{border-color:transparent;box-shadow:none}
+.bd-sep{padding:0 8px;color:var(--sub);font-size:16px;flex-shrink:0;pointer-events:none}
+.bd-preview{margin-top:5px;font-size:12px;color:var(--sub);min-height:16px}
+.bd-preview.valid{color:var(--accent-dark);font-weight:500}
+.radio-group{display:flex;flex-direction:column;gap:7px}
+.radio-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s,background .15s}
+.radio-item:hover,.radio-item.selected{border-color:var(--accent);background:var(--accent-light)}
+.radio-item input{width:17px;height:17px;accent-color:var(--accent);flex-shrink:0}
+.radio-item span{font-size:14px}
+.submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .18s;margin-top:24px;letter-spacing:.05em}
+.submit-btn:hover{background:var(--accent-dark)}
+.submit-btn:disabled{background:var(--border);color:var(--sub);cursor:not-allowed}
+.error-msg{font-size:12px;color:#c0392b;margin-top:4px;display:none}
+.field.has-error input,.field.has-error select,.field.has-error .bd-wrap{border-color:#e74c3c}
+.field.has-error .error-msg{display:block}
+.notice{background:#FFF9E6;border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#7D4F00;line-height:1.6}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#2d2620;color:#fff;padding:12px 22px;border-radius:28px;font-size:14px;font-weight:500;transition:transform .35s cubic-bezier(.17,.67,.35,1.1);z-index:100;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:50;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){.card{padding:20px 16px}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ===== トップ：分岐選択 ===== -->
+<div id="top">
+  <div class="header">
+    <div class="badge">✍️ 連絡帳に書き込む</div>
+    <h1>何をしますか？</h1>
+    <p class="sub">書き込む内容を選んでください</p>
+  </div>
+  <div class="branch-wrap">
+
+    <!-- 出没レーダー更新 -->
+    <button class="branch-btn" onclick="showSection('radar')">
+      <div class="icon">📡</div>
+      <div class="title">近況を更新する（出没レーダー）</div>
+      <div class="desc">エリア・帰省予定・ひとことメッセージを更新する<br>名前＋誕生日で本人確認します</div>
+    </button>
+
+    <!-- コルクボード投稿 -->
+    <button class="branch-btn" onclick="showSection('board')">
+      <div class="icon">📌</div>
+      <div class="title">お知らせを投稿する（コルクボード）</div>
+      <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>※画像付きチラシは写真館（VOOM）へ</div>
+    </button>
+
+    <!-- 写真館（VOOM）案内 -->
+    <div class="voom-card">
+      <div class="icon">📸</div>
+      <div class="info">
+        <div class="title">写真館（LINE VOOM）</div>
+        <div class="desc">チラシ・ポスターなど画像付き告知<br>投稿は管理者のみ・コメントは自由</div>
+      </div>
+      <a class="voom-link" href="https://line.me/ti/p/%40711epvso" target="_blank">VOOMを見る</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 出没レーダー更新フォーム ===== -->
+<div class="form-section" id="radar">
+  <button class="back-btn" onclick="showTop()">← 戻る</button>
+  <div class="header">
+    <div class="badge">📡 出没レーダー</div>
+    <h1>近況を更新する</h1>
+    <p class="sub">名前と誕生日で本人確認してから更新します</p>
+  </div>
+  <div class="card">
+    <div class="notice">🔑 登録時の名前と誕生日を入力してください。本人確認に使用します。</div>
+
+    <p class="section-label">本人確認</p>
+    <div class="field" id="rf-name">
+      <label>お名前（漢字）<span class="req">*</span></label>
+      <input type="text" id="r_name" placeholder="例：佐々木 宗明">
+      <p class="error-msg">お名前を入力してください</p>
+    </div>
+    <div class="field" id="rf-bd">
+      <label>誕生日<span class="req">*</span><span class="hint">登録時と同じ月・日</span></label>
+      <div class="bd-wrap">
+        <select id="r_m" onchange="updateBd('r')">
+          <option value="">月</option>
+          <option value="01">1月</option><option value="02">2月</option><option value="03">3月</option>
+          <option value="04">4月</option><option value="05">5月</option><option value="06">6月</option>
+          <option value="07">7月</option><option value="08">8月</option><option value="09">9月</option>
+          <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+        </select>
+        <span class="bd-sep">/</span>
+        <select id="r_d" onchange="updateBd('r')"><option value="">日</option></select>
+      </div>
+      <p class="bd-preview" id="r_prev"></p>
+      <input type="hidden" id="r_bd">
+      <p class="error-msg">誕生日を選択してください</p>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-label">更新内容</p>
+
+    <div class="field" id="rf-area">
+      <label>現在のエリア<span class="req">*</span></label>
+      <select id="r_area">
+        <option value="">選択してください</option>
+        <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
+        <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
+        <option>北海道・東北</option><option>海外</option><option>その他</option>
+      </select>
+      <p class="error-msg">エリアを選択してください</p>
+    </div>
+    <div class="field" id="rf-status">
+      <label>現在の状態<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="r_st" value="在住（松山在住）"><span>松山に在住</span></label>
+        <label class="radio-item"><input type="radio" name="r_st" value="松山以外に在住"><span>松山以外に在住</span></label>
+        <label class="radio-item"><input type="radio" name="r_st" value="帰省予定"><span>帰省予定あり</span></label>
+        <label class="radio-item"><input type="radio" name="r_st" value="帰省中"><span>帰省中</span></label>
+      </div>
+      <p class="error-msg">状態を選択してください</p>
+    </div>
+    <div class="field">
+      <label>帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
+      <input type="text" id="r_hc" placeholder="例：8/13〜8/17">
+    </div>
+    <div class="field">
+      <label>ひとこと近況<span class="hint">任意</span></label>
+      <textarea id="r_note" placeholder="近況をひとことどうぞ"></textarea>
+    </div>
+    <div id="r_err" style="display:none;background:#fff0f0;border:1px solid #e74c3c;border-radius:8px;padding:10px 12px;font-size:13px;color:#a32d2d;margin-top:12px"></div>
+    <button class="submit-btn" onclick="submitRadar()">近況を更新する</button>
+  </div>
+</div>
+
+<!-- ===== コルクボード投稿フォーム ===== -->
+<div class="form-section" id="board">
+  <button class="back-btn" onclick="showTop()">← 戻る</button>
+  <div class="header">
+    <div class="badge">📌 コルクボード</div>
+    <h1>お知らせを投稿する</h1>
+    <p class="sub">同窓生全体へのテキストお知らせを書き込む</p>
+  </div>
+  <div class="card">
+    <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>写真館（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
+
+    <div class="field" id="bf-name">
+      <label>お名前<span class="req">*</span></label>
+      <input type="text" id="b_name" placeholder="例：佐々木 宗明">
+      <p class="error-msg">お名前を入力してください</p>
+    </div>
+    <div class="field" id="bf-period">
+      <label>期<span class="hint">任意　例：33期</span></label>
+      <input type="text" id="b_period" placeholder="例：33期">
+    </div>
+    <div class="field" id="bf-cat">
+      <label>カテゴリ<span class="req">*</span></label>
+      <select id="b_cat">
+        <option value="告知">📢 告知（イベント・集まり）</option>
+        <option value="近況">💬 近況（ちょっとした報告）</option>
+      </select>
+    </div>
+    <div class="field" id="bf-title">
+      <label>タイトル<span class="req">*</span></label>
+      <input type="text" id="b_title" placeholder="例：関東同窓会 秋の集まり">
+      <p class="error-msg">タイトルを入力してください</p>
+    </div>
+    <div class="field" id="bf-detail">
+      <label>詳細<span class="req">*</span><span class="hint">日時・場所・メッセージなど</span></label>
+      <textarea id="b_detail" placeholder="日時・場所・内容などを書いてください"></textarea>
+      <p class="error-msg">詳細を入力してください</p>
+    </div>
+    <div class="field">
+      <label>参考URL<span class="hint">任意</span></label>
+      <input type="text" id="b_url" placeholder="https://...">
+    </div>
+    <button class="submit-btn" onclick="submitBoard()">投稿する</button>
+  </div>
+</div>
+
+</div><!-- /.wrapper -->
+
+<div class="overlay" id="overlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbz8lXD_g5PV3M6WJuNzsMvnKP26wS-hUfGbeeGLst6zAtRfHdGO2L4tRmqvoZabFvg/exec';
+
+// セクション切替
+function showSection(id) {
+  document.getElementById('top').style.display = 'none';
+  document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='radar') populateDays('r','');
+}
+function showTop() {
+  document.getElementById('top').style.display = '';
+  document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
+  window.scrollTo(0,0);
+}
+
+// 誕生日セレクト
+function populateDays(p, month) {
+  var days=[0,31,29,31,30,31,30,31,31,30,31,30,31];
+  var max=month?days[parseInt(month)]:31;
+  var sel=document.getElementById(p+'_d');
+  var cur=sel.value;
+  sel.innerHTML='<option value="">日</option>';
+  for(var d=1;d<=max;d++){
+    var v=String(d).padStart(2,'0');
+    var o=document.createElement('option');
+    o.value=v; o.textContent=d+'日';
+    if(v===cur) o.selected=true;
+    sel.appendChild(o);
+  }
+}
+function updateBd(p) {
+  var m=document.getElementById(p+'_m').value;
+  populateDays(p,m);
+  var d=document.getElementById(p+'_d').value;
+  var hid=document.getElementById(p+'_bd');
+  var prev=document.getElementById(p+'_prev');
+  if(m&&d){
+    hid.value=m+d;
+    prev.textContent=parseInt(m)+'月'+parseInt(d)+'日';
+    prev.className='bd-preview valid';
+  } else {
+    hid.value='';
+    prev.textContent=m?'日を選択してください':'';
+    prev.className='bd-preview';
+  }
+}
+
+// ラジオスタイル
+document.querySelectorAll('.radio-item input').forEach(function(r){
+  r.addEventListener('change',function(){
+    r.closest('.radio-group').querySelectorAll('.radio-item').forEach(function(el){el.classList.remove('selected');});
+    r.closest('.radio-item').classList.add('selected');
+  });
+});
+
+// バリデーション
+function reqField(fieldId, val) {
+  var el=document.getElementById(fieldId);
+  if(!val){ el.classList.add('has-error'); return false; }
+  el.classList.remove('has-error'); return true;
+}
+
+// 出没レーダー送信
+function submitRadar() {
+  var ok=true;
+  ok=reqField('rf-name', document.getElementById('r_name').value.trim()) && ok;
+  ok=reqField('rf-bd',   document.getElementById('r_bd').value) && ok;
+  ok=reqField('rf-area', document.getElementById('r_area').value) && ok;
+  ok=reqField('rf-status', (document.querySelector('input[name="r_st"]:checked')||{}).value||'') && ok;
+  if(!ok){ document.querySelector('.has-error')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  var errBox=document.getElementById('r_err');
+  errBox.style.display='none';
+
+  send({
+    action:     'updateStatus',
+    name:       document.getElementById('r_name').value.trim(),
+    birthday:   document.getElementById('r_bd').value,
+    area:       document.getElementById('r_area').value,
+    status:     document.querySelector('input[name="r_st"]:checked').value,
+    homecoming: document.getElementById('r_hc').value.trim(),
+    note:       document.getElementById('r_note').value.trim(),
+  }, function(res){
+    if(res && res.success){
+      showToast('✓ 近況を更新しました！');
+      showTop();
+    } else {
+      errBox.textContent = (res && res.error) || '更新に失敗しました。名前と誕生日をご確認ください。';
+      errBox.style.display='block';
+    }
+  });
+}
+
+// コルクボード送信
+function submitBoard() {
+  var ok=true;
+  ok=reqField('bf-name',   document.getElementById('b_name').value.trim()) && ok;
+  ok=reqField('bf-title',  document.getElementById('b_title').value.trim()) && ok;
+  ok=reqField('bf-detail', document.getElementById('b_detail').value.trim()) && ok;
+  if(!ok){ document.querySelector('.has-error')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  send({
+    action:  'postBoard',
+    name:    document.getElementById('b_name').value.trim(),
+    period:  document.getElementById('b_period').value.trim(),
+    cat:     document.getElementById('b_cat').value,
+    title:   document.getElementById('b_title').value.trim(),
+    detail:  document.getElementById('b_detail').value.trim(),
+    url:     document.getElementById('b_url').value.trim(),
+  }, function(res){
+    if(res && res.success){
+      showToast('✓ 投稿しました！');
+      showTop();
+    } else {
+      showToast('送信に失敗しました。もう一度お試しください。');
+    }
+  });
+}
+
+// GAS送信
+function send(payload, callback) {
+  document.getElementById('overlay').classList.add('show');
+  fetch(GAS_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(){
+    document.getElementById('overlay').classList.remove('show');
+    // no-corsのためレスポンスが読めないので成功扱い
+    callback({ success: true });
+  }).catch(function(){
+    document.getElementById('overlay').classList.remove('show');
+    callback({ success: false, error: '通信エラー' });
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3500);
+}
+
+// URLハッシュで直接セクションを開く
+var hash=window.location.hash;
+if(hash==='#radar') showSection('radar');
+else if(hash==='#board') showSection('board');
+</script>
+</body>
+</html>
