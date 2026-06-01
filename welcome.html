@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北高 連絡帳</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1a2e;--surface:#132038;--border:#1e3050;
+  --accent:#c9a96e;--accent-dark:#a07840;
+  --text:#f0ece4;--sub:#8a9ab5;--r:12px;
+}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+}
+.wrap{max-width:400px;width:100%;text-align:center}
+.logo{margin-bottom:32px}
+.logo .icon{font-size:44px;margin-bottom:10px}
+.logo .title{font-size:22px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
+.logo .sub{font-size:12px;color:var(--sub)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;box-shadow:0 4px 32px rgba(0,0,0,.4)}
+
+/* 画面切り替え */
+.screen{display:none}
+.screen.show{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* クイズ画面 */
+.lbl{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:14px}
+.question{font-size:16px;font-weight:700;line-height:1.6;margin-bottom:6px}
+.hint{font-size:12px;color:var(--sub);margin-bottom:22px}
+input[type=text]{
+  width:100%;padding:13px 16px;
+  background:#0c1a2e;border:1.5px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:16px;color:var(--text);outline:none;
+  transition:border-color .15s;margin-bottom:12px;
+}
+input[type=text]:focus{border-color:var(--accent)}
+.btn-primary{
+  width:100%;padding:13px;background:var(--accent);color:#1a1208;
+  border:none;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:pointer;transition:background .15s;letter-spacing:.05em;
+}
+.btn-primary:hover{background:var(--accent-dark);color:#fff}
+.err-msg{font-size:13px;color:#e74c3c;margin-top:10px;min-height:18px}
+.remain{font-size:12px;color:var(--sub);margin-top:6px}
+
+/* 認証完了画面 */
+.big-icon{font-size:52px;margin-bottom:14px}
+.ok-title{font-size:21px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.ok-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:24px}
+.choices{display:flex;flex-direction:column;gap:12px}
+.btn-line{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:15px;background:#06C755;color:#fff;
+  border:none;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:pointer;text-decoration:none;transition:background .15s;
+}
+.btn-line:hover{background:#04a845}
+.btn-web{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:15px;background:transparent;color:var(--text);
+  border:1.5px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:pointer;text-decoration:none;transition:border-color .15s;
+}
+.btn-web:hover{border-color:var(--accent)}
+.choice-note{font-size:11px;color:var(--sub);text-align:center;margin-top:-6px}
+
+/* ブロック画面 */
+.block-icon{font-size:44px;margin-bottom:14px}
+.block-title{font-size:18px;font-weight:700;color:#e74c3c;margin-bottom:8px}
+.block-msg{font-size:13px;color:var(--sub);line-height:1.7}
+
+.footer{font-size:11px;color:var(--sub);margin-top:22px;opacity:.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo">
+    <div class="icon">📋</div>
+    <div class="title">北高 連絡帳</div>
+    <div class="sub">松山北高校 同窓生ネットワーク</div>
+  </div>
+
+  <div class="card">
+
+    <!-- 画面①：クイズ -->
+    <div class="screen show" id="sc-quiz">
+      <p class="lbl">本人確認</p>
+      <p class="question" id="q-text"></p>
+      <p class="hint">北高を知っている人だけが答えられます</p>
+      <input type="text" id="q-input" placeholder="答えを入力"
+        autocomplete="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')check()">
+      <button class="btn-primary" onclick="check()">答える</button>
+      <p class="err-msg" id="err"></p>
+      <p class="remain" id="remain"></p>
+    </div>
+
+    <!-- 画面②：認証完了 -->
+    <div class="screen" id="sc-ok">
+      <div class="big-icon">✅</div>
+      <div class="ok-title">認証完了！</div>
+      <div class="ok-msg">さすが北高卒業生ですね👍<br>どちらで使いますか？</div>
+      <div class="choices">
+        <a class="btn-line" href="https://line.me/ti/p/%40711epvso" target="_blank">
+          📱 LINEで使う（友だち追加）
+        </a>
+        <p class="choice-note">リッチメニューから簡単に操作できます</p>
+        <a class="btn-web" href="https://mk18renrakucho.github.io/mk18-renrakucho/">
+          🌐 そのままWebで使う
+        </a>
+        <p class="choice-note">ブラウザで直接アプリを開きます</p>
+      </div>
+    </div>
+
+    <!-- 画面③：ブロック -->
+    <div class="screen" id="sc-block">
+      <div class="block-icon">🚫</div>
+      <div class="block-title">アクセスできません</div>
+      <div class="block-msg">
+        複数回の認証失敗によりブロックされました。<br><br>
+        心当たりのある方は既存メンバーにご相談ください。
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">Project MK-18 — 北高 連絡帳</div>
+</div>
+
+<script>
+var MAX = 5;
+var QUESTIONS = [
+  { q:'北高の怖い体育の先生のあだ名は？',        a:['ゴリさん','ごりさん','ゴリ','ごり'] },
+  { q:'電停の前にあるお店といえば？',             a:['パール','ぱーる'] },
+  { q:'電停の近くにある写真館といえば？',         a:['松原写真館','松原','まつばら写真館','まつばら'] },
+  { q:'北高の近くにうまい中華料理屋といえば？',   a:['ない','なし','ないよ','そんな店はない','そんなお店はない','ありません','ないです'] }
+];
+
+var tries = 0;
+var current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+document.getElementById('q-text').textContent = current.q;
+
+function norm(s){ return (s||'').replace(/[\s　！!。、？?・]/g,'').toLowerCase(); }
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('show'); });
+  document.getElementById(id).classList.add('show');
+}
+
+function check(){
+  var val = (document.getElementById('q-input').value||'').trim();
+  if(!val) return;
+
+  tries++;
+  var ok = current.a.some(function(a){ return norm(val)===norm(a); });
+
+  if(ok){
+    show('sc-ok');
+    return;
+  }
+
+  var left = MAX - tries;
+  if(left <= 0){
+    show('sc-block');
+    return;
+  }
+
+  document.getElementById('err').textContent = '❌ 違います。';
+  document.getElementById('remain').textContent = 'あと'+left+'回試せます';
+  document.getElementById('q-input').value = '';
+  document.getElementById('q-input').focus();
+
+  if(tries === 3){
+    current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+    document.getElementById('q-text').textContent = current.q;
+    document.getElementById('err').textContent = '❌ 違います。問題を変えました。';
+  }
+}
+</script>
+</body>
+</html>
