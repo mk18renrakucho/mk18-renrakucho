@@ -362,8 +362,12 @@ function submitRegister() {
     note:     document.getElementById('reg_note').value.trim(),
   }, function(res){
     setLoading(false,'reg_btn');
-    showToast('✓ メンバー登録しました！');
-    setTimeout(showTop, 1500);
+    if(res && res.success){
+      showToast('✓ メンバー登録しました！');
+      setTimeout(showTop, 1500);
+    } else {
+      showErr('reg_err', (res && res.error) || '登録に失敗しました。もう一度お試しください。');
+    }
   });
 }
 
@@ -385,8 +389,12 @@ function submitRadar() {
     note:       document.getElementById('r_note').value.trim(),
   }, function(res){
     setLoading(false,'r_btn');
-    showToast('✓ 近況を更新しました！');
-    setTimeout(showTop, 1500);
+    if(res && res.success){
+      showToast('✓ 近況を更新しました！');
+      setTimeout(showTop, 1500);
+    } else {
+      showErr('r_err', (res && res.error) || '名前または誕生日が一致しません。');
+    }
   });
 }
 
@@ -408,8 +416,12 @@ function submitBoard() {
     url:      document.getElementById('b_url').value.trim(),
   }, function(res){
     setLoading(false,'b_btn');
-    showToast('✓ 投稿しました！');
-    setTimeout(showTop, 1500);
+    if(res && res.success){
+      showToast('✓ 投稿しました！');
+      setTimeout(showTop, 1500);
+    } else {
+      showErr('b_err', (res && res.error) || '名前または誕生日が一致しません。');
+    }
   });
 }
 
@@ -433,6 +445,13 @@ function setLoading(on, btnId) {
   var btn = document.getElementById(btnId);
   btn.disabled = on;
   btn.textContent = on ? '送信中...' : btn.textContent;
+}
+
+function showErr(id, msg) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 function showToast(msg){
