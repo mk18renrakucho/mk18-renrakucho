@@ -69,7 +69,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </head>
 <body>
 <div class="wrapper">
-
+ 
 <!-- トップ：3択分岐 -->
 <div id="top">
   <div class="header">
@@ -103,7 +103,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
   </div>
 </div>
-
+ 
 <!-- 登録完了画面 -->
 <div class="form-section" id="done">
   <div class="header">
@@ -130,7 +130,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" onclick="showTop()" style="background:#0C447C">トップに戻る</button>
   </div>
 </div>
-
+ 
 <!-- 【A】新規メンバー登録 -->
 <div class="form-section" id="register">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -142,7 +142,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   <div class="card">
     <div class="notice">🔑 誕生日（月日4桁）は本人確認パスワードになります。忘れずに覚えておいてください。</div>
     <p class="section-label">基本情報</p>
-
+ 
     <div class="field" id="reg-name">
       <label>お名前（漢字）<span class="req">*</span></label>
       <input type="text" id="reg_name" placeholder="例：佐々木 宗明">
@@ -175,10 +175,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       </select>
       <p class="error-msg">部活を選択してください</p>
     </div>
-
+ 
     <div class="divider"></div>
     <p class="section-label">現在の状況</p>
-
+ 
     <div class="field" id="reg-area">
       <label>現在のエリア<span class="req">*</span></label>
       <select id="reg_area">
@@ -199,10 +199,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       </div>
       <p class="error-msg">状態を選択してください</p>
     </div>
-
+ 
     <div class="divider"></div>
     <p class="section-label">プロフィール（任意）</p>
-
+ 
     <div class="field">
       <label>趣味・キーワード<span class="hint">任意</span></label>
       <input type="text" id="reg_hobby" placeholder="例：サイクリング・落語・読書">
@@ -215,7 +215,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" id="reg_btn" onclick="submitRegister()">メンバー登録する</button>
   </div>
 </div>
-
+ 
 <!-- 【B】近況更新 -->
 <div class="form-section" id="radar">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -227,7 +227,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   <div class="card">
     <div class="notice">🔑 登録時の名前と誕生日を入力してください。本人確認に使用します。</div>
     <p class="section-label">本人確認</p>
-
+ 
     <div class="field" id="rf-name">
       <label>お名前（漢字）<span class="req">*</span></label>
       <input type="text" id="r_name" placeholder="例：佐々木 宗明">
@@ -238,10 +238,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <input type="text" id="r_bd" placeholder="0315" maxlength="4" inputmode="numeric">
       <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
     </div>
-
+ 
     <div class="divider"></div>
     <p class="section-label">更新内容</p>
-
+ 
     <div class="field" id="rf-area">
       <label>現在のエリア<span class="req">*</span></label>
       <select id="r_area">
@@ -274,7 +274,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" id="r_btn" onclick="submitRadar()">近況を更新する</button>
   </div>
 </div>
-
+ 
 <!-- 【C】コルクボード投稿 -->
 <div class="form-section" id="board">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -286,7 +286,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   <div class="card">
     <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>写真館（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
     <p class="section-label">本人確認</p>
-
+ 
     <div class="field" id="bf-name">
       <label>お名前<span class="req">*</span></label>
       <input type="text" id="b_name" placeholder="例：佐々木 宗明">
@@ -297,10 +297,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
       <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
     </div>
-
+ 
     <div class="divider"></div>
     <p class="section-label">投稿内容</p>
-
+ 
     <div class="field">
       <label>カテゴリ<span class="req">*</span></label>
       <select id="b_cat">
@@ -326,14 +326,14 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
   </div>
 </div>
-
+ 
 </div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-
+ 
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec';
-
+ 
 function showSection(id) {
   document.getElementById('top').style.display = 'none';
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
@@ -345,20 +345,20 @@ function showTop() {
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
   window.scrollTo(0,0);
 }
-
+ 
 document.querySelectorAll('.radio-item input').forEach(function(r){
   r.addEventListener('change',function(){
     r.closest('.radio-group').querySelectorAll('.radio-item').forEach(function(el){el.classList.remove('selected');});
     r.closest('.radio-item').classList.add('selected');
   });
 });
-
+ 
 function reqField(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val){ el.classList.add('has-error'); return false; }
   el.classList.remove('has-error'); return true;
 }
-
+ 
 function reqBirthday(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val || !/^[0-9]{4}$/.test(val)){
@@ -366,7 +366,7 @@ function reqBirthday(fieldId, val) {
   }
   el.classList.remove('has-error'); return true;
 }
-
+ 
 function submitRegister() {
   var ok = true;
   ok = reqField('reg-name',   document.getElementById('reg_name').value.trim()) && ok;
@@ -398,7 +398,7 @@ function submitRegister() {
     }
   });
 }
-
+ 
 function submitRadar() {
   var ok = true;
   ok = reqField('rf-name',   document.getElementById('r_name').value.trim()) && ok;
@@ -425,7 +425,7 @@ function submitRadar() {
     }
   });
 }
-
+ 
 function submitBoard() {
   var ok = true;
   ok = reqField('bf-name',   document.getElementById('b_name').value.trim()) && ok;
@@ -452,7 +452,7 @@ function submitBoard() {
     }
   });
 }
-
+ 
 function send(payload, callback) {
   document.getElementById('overlay').classList.add('show');
   var params = Object.keys(payload).map(function(k){
@@ -468,27 +468,27 @@ function send(payload, callback) {
       callback({ success: false, error: '通信エラーが発生しました。' });
     });
 }
-
+ 
 function setLoading(on, btnId) {
   var btn = document.getElementById(btnId);
   btn.disabled = on;
   btn.textContent = on ? '送信中...' : btn.textContent;
 }
-
+ 
 function showErr(id, msg) {
   var el = document.getElementById(id);
   el.textContent = msg;
   el.style.display = 'block';
   el.scrollIntoView({behavior:'smooth',block:'center'});
 }
-
+ 
 function showToast(msg){
   var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 3500);
 }
-
+ 
 var hash = window.location.hash;
 if(hash === '#register') showSection('register');
 else if(hash === '#radar') showSection('radar');
