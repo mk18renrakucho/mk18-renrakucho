@@ -104,6 +104,33 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
+<!-- 登録完了画面 -->
+<div class="form-section" id="done">
+  <div class="header">
+    <div class="badge">✅ 登録完了</div>
+    <h1>メンバー登録しました！</h1>
+    <p class="sub">ようこそ、北高 連絡帳へ！</p>
+  </div>
+  <div class="card">
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:20px">登録が完了しました</div>
+    </div>
+    <div style="background:#FFF9E6;border:1px solid #c9a96e;border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;color:#7D4F00;margin-bottom:8px;font-weight:700">🔑 本人確認パスワード（重要）</div>
+      <div style="font-size:13px;color:#7D4F00;line-height:1.7">
+        近況更新・コルクボード投稿時に使用します。<br>
+        忘れずに控えておいてください！
+      </div>
+      <div style="background:#fff;border:2px solid #c9a96e;border-radius:8px;padding:12px;margin-top:10px;text-align:center">
+        <div style="font-size:11px;color:#7a6f65;margin-bottom:4px">登録した誕生日</div>
+        <div style="font-size:28px;font-weight:700;color:#a07840;letter-spacing:.2em" id="done_bd"></div>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="showTop()" style="background:#0C447C">トップに戻る</button>
+  </div>
+</div>
+
 <!-- 【A】新規メンバー登録 -->
 <div class="form-section" id="register">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -364,11 +391,8 @@ function submitRegister() {
     setLoading(false,'reg_btn');
     if(res && res.success){
       var bd = document.getElementById('reg_bd').value.trim();
-      var msg = '✓ メンバー登録しました！\n\n' +
-                '登録した誕生日：' + bd + '\n' +
-                '近況更新時等のパスワードになります。\n忘れずに控えておいてください！';
-      alert(msg);
-      showTop();
+      document.getElementById('done_bd').textContent = bd;
+      showSection('done');
     } else {
       showErr('reg_err', (res && res.error) || '登録に失敗しました。もう一度お試しください。');
     }
