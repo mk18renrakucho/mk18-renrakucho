@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>北高 連絡帳 (MK-18)</title>
+    <style>
+        :root {
+            --primary-color: #00B900; /* LINE Green */
+            --bg-color: #f4f5f7;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #e1e2e5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Arial, Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 70px; /* ナビゲーションバーの余白 */
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        /* タブコンテンツの切り替え設定 */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* カードデザイン */
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+
+        .name {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .badge {
+            background-color: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .status-badge {
+            background-color: #e6f9e6;
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* 検索・フィルターエリア */
+        .filter-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        button.action-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ボトムナビゲーション */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #999;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        /* 読み込み中の表示 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>北高 連絡帳</h1>
+    </header>
+
+    <main class="container">
+
+        <section id="radar" class="tab-content active">
+            <div class="filter-area">
+                <div class="filter-btn active">すべて</div>
+                <div class="filter-btn">在住</div>
+                <div class="filter-btn">帰省予定</div>
+                <div class="filter-btn">帰省中</div>
+            </div>
+            <input type="text" placeholder="名前やキーワードで検索...">
+            
+            <div id="radar-list">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="name">佐々木 宗明</span>
+                            <span class="badge">33期</span>
+                            <span class="badge">○○部</span>
+                        </div>
+                        <span class="status-badge">在住 (松山)</span>
+                    </div>
+                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                        <strong>趣味:</strong> サイクリング, IT<br>
+                        <strong>近況:</strong> デジタル回覧板作ってます！
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="board" class="tab-content">
+            <div class="filter-area">
+                <div class="filter-btn active">すべて</div>
+                <div class="filter-btn">告知</div>
+                <div class="filter-btn">近況</div>
+            </div>
+            
+            <div id="board-list">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="badge" style="background:#ffe5e5; color:#d32f2f;">告知</span>
+                        <span style="font-size: 0.8rem; color:#888;">2026/06/04</span>
+                    </div>
+                    <div style="font-weight: bold; margin-bottom: 8px;">33期 同窓会のお知らせ</div>
+                    <div style="font-size: 0.9rem; margin-bottom: 10px;">
+                        お盆の期間に集まりませんか？詳細は追って連絡します。
+                    </div>
+                    <div style="font-size: 0.8rem; text-align: right; color:#555;">投稿者: 佐々木</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="club" class="tab-content">
+            <div class="card">
+                <h2 style="font-size: 1.1rem; margin-top: 0;">📸 部室（写真館）へようこそ</h2>
+                <p style="font-size: 0.9rem; color: #555;">
+                    部活の思い出が詰まったアルバムへご案内します。<br>
+                    アクセスするには、ご自身の所属していた「部活名」を合言葉として入力してください。
+                </p>
+                <input type="text" id="club-keyword" placeholder="例：テニス、吹奏楽">
+                <button class="action-btn" onclick="checkClub()">アルバムの鍵を開ける</button>
+            </div>
+        </section>
+
+        <section id="safety" class="tab-content">
+            <div class="card">
+                <h2 style="font-size: 1.1rem; margin-top: 0;">🔰 安心宣言</h2>
+                <ul style="font-size: 0.9rem; color: #555; padding-left: 20px;">
+                    <li style="margin-bottom: 10px;"><strong>住所・電話番号は集めません</strong><br>個人情報を最小限にとどめ、安全に運用します。</li>
+                    <li style="margin-bottom: 10px;"><strong>有志によるボランティア運営</strong><br>維持費ゼロのシステムで、次世代へ無理なく引き継げる設計にしています。</li>
+                    <li><strong>LINE公式アカウントが起点</strong><br>新しいアプリを入れる必要はありません。</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('radar', this)">
+            <span class="nav-icon">📡</span>
+            レーダー
+        </div>
+        <div class="nav-item" onclick="switchTab('board', this)">
+            <span class="nav-icon">📌</span>
+            ボード
+        </div>
+        <div class="nav-item" onclick="switchTab('club', this)">
+            <span class="nav-icon">🏫</span>
+            部室
+        </div>
+        <div class="nav-item" onclick="switchTab('safety', this)">
+            <span class="nav-icon">🔰</span>
+            安心宣言
+        </div>
+    </nav>
+
+    <script>
+        // タブ切り替え機能
+        function switchTab(tabId, element) {
+            // すべてのタブコンテンツを非表示
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 選択されたタブコンテンツを表示
+            document.getElementById(tabId).classList.add('active');
+
+            // ナビゲーションの見た目を更新
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // URLハッシュを更新 (例: index.html#board)
+            window.location.hash = tabId;
+        }
+
+        // 初期表示時にURLのハッシュをチェックして該当タブを開く
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const targetNav = document.querySelector(`.nav-item[onclick="switchTab('${hash}', this)"]`);
+                if (targetNav) switchTab(hash, targetNav);
+            }
+        });
+
+        // 部室合言葉のモック処理（本来はGAS側で判定、またはLINE BOTへリダイレクト）
+        function checkClub() {
+            const keyword = document.getElementById('club-keyword').value;
+            if(!keyword) {
+                alert("部活名を入力してください。");
+                return;
+            }
+            // ここにアルバムURLへの遷移ロジックが入ります
+            alert(`「${keyword}部」のアルバムを探しています...\n※本番環境ではGoogleフォトのURLへ遷移します。`);
+        }
+
+        /* =========================================
+        GAS連携用 関数の枠組み (Phase 1 接続用)
+        =========================================
+        */
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby8.../exec"; // 仕様書記載のURL
+
+        // 出没レーダーのデータをGASから取得する関数
+        async function fetchRadarData() {
+            document.getElementById('radar-list').innerHTML = '<div class="loading">データを読み込み中...</div>';
+            try {
+                // 本番用のフェッチ処理
+                // const response = await fetch(GAS_WEBAPP_URL);
+                // const data = await response.json();
+                // renderRadarList(data);
+            } catch (error) {
+                console.error("データ取得エラー:", error);
+            }
+        }
+        
+        // ページ読み込み時にデータ取得を開始
+        // fetchRadarData();
+    </script>
+</body>
+</html>
