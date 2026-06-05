@@ -6,304 +6,352 @@
     <title>北高 連絡帳 (MK-18)</title>
     <style>
         :root {
-            --primary-color: #00B900; /* LINE Green */
-            --bg-color: #f4f5f7;
-            --text-color: #333333;
+            --primary: #06C755; /* LINE Green */
+            --bg-color: #f8f9fa;
+            --text-main: #111111;
+            --text-sub: #666666;
             --card-bg: #ffffff;
-            --border-color: #e1e2e5;
+            --border: #eaeaec;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Arial, Meiryo, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
-            padding-bottom: 70px; /* ナビゲーションバーの余白 */
+            padding-bottom: 80px;
+            -webkit-tap-highlight-color: transparent;
         }
 
+        /* ヘッダー */
         header {
             background-color: var(--card-bg);
-            padding: 15px;
+            padding: 16px;
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
-
         header h1 {
             margin: 0;
-            font-size: 1.2rem;
-            color: var(--primary-color);
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .container {
-            padding: 15px;
-        }
+        .container { padding: 16px; }
 
-        /* タブコンテンツの切り替え設定 */
+        /* タブ切り替えアニメーション */
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .tab-content.active {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* 検索窓 */
+        .search-box {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            background-color: #f0f1f3;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: background-color 0.2s;
+        }
+        .search-box input:focus { background-color: #e4e5e7; }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
         }
 
-        /* カードデザイン */
+        /* ピル型フィルター */
+        .filter-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        
+        .filter-chip {
+            padding: 8px 16px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-chip.active {
+            background-color: var(--text-main);
+            color: #fff;
+            border-color: var(--text-main);
+        }
+
+        /* モダンカードデザイン */
         .card {
             background: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s;
+            animation: slideUp 0.3s ease forwards;
+        }
+        .card:active { transform: scale(0.98); }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
         }
-
-        .name {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
+        .user-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
+        .name { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
         .badge {
-            background-color: var(--bg-color);
+            background-color: #f0f1f3;
             padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            color: #555;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            font-weight: 600;
         }
-
         .status-badge {
-            background-color: #e6f9e6;
-            color: var(--primary-color);
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
+        /* ステータス別の色 */
+        .status-zaiju { background-color: #e8f5e9; color: #2e7d32; }
+        .status-yotei { background-color: #fff3e0; color: #e65100; }
+        .status-kisei { background-color: #ffebee; color: #c62828; }
 
-        /* 検索・フィルターエリア */
-        .filter-area {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
+        .card-body { font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; }
+        .card-body strong { color: var(--text-main); font-weight: 600; }
 
-        .filter-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 20px;
-            white-space: nowrap;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .filter-btn.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        button.action-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* ボトムナビゲーション */
+        /* ボトムナビゲーション (iOS風) */
         .bottom-nav {
             position: fixed;
             bottom: 0;
-            left: 0;
             width: 100%;
-            background-color: var(--card-bg);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-around;
-            border-top: 1px solid var(--border-color);
-            padding: 10px 0;
+            border-top: 1px solid var(--border);
+            padding: 10px 0 20px 0; /* iPhoneのホームバー考慮 */
             z-index: 1000;
         }
-
         .nav-item {
-            text-align: center;
-            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
             color: #999;
+            font-weight: 600;
+            width: 25%;
             cursor: pointer;
-            flex: 1;
+            transition: color 0.2s;
         }
-
-        .nav-item.active {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .nav-icon {
-            font-size: 1.5rem;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        /* 読み込み中の表示 */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
+        .nav-item.active { color: var(--text-main); }
+        .nav-icon { font-size: 1.4rem; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sub); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>北高 連絡帳</h1>
+        <h1>MK-18 連絡帳</h1>
     </header>
 
     <main class="container">
-
+        <!-- ① 出没レーダー -->
         <section id="radar" class="tab-content active">
-            <div class="filter-area">
-                <div class="filter-btn active">すべて</div>
-                <div class="filter-btn">在住</div>
-                <div class="filter-btn">帰省予定</div>
-                <div class="filter-btn">帰省中</div>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="名前・趣味・ひとことで検索..." oninput="filterData()">
             </div>
-            <input type="text" placeholder="名前やキーワードで検索...">
+
+            <div class="filter-scroll" id="statusFilters">
+                <div class="filter-chip active" onclick="setFilter('すべて', this)">すべて</div>
+                <div class="filter-chip" onclick="setFilter('在住', this)">在住</div>
+                <div class="filter-chip" onclick="setFilter('帰省予定', this)">帰省予定</div>
+                <div class="filter-chip" onclick="setFilter('帰省中', this)">帰省中</div>
+            </div>
             
-            <div id="radar-list">
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <span class="name">佐々木 宗明</span>
-                            <span class="badge">33期</span>
-                            <span class="badge">○○部</span>
-                        </div>
-                        <span class="status-badge">在住 (松山)</span>
-                    </div>
-                    <div style="font-size: 0.9rem; margin-top: 5px;">
-                        <strong>趣味:</strong> サイクリング, IT<br>
-                        <strong>近況:</strong> デジタル回覧板作ってます！
-                    </div>
-                </div>
-            </div>
+            <!-- カードが表示されるエリア -->
+            <div id="radar-list"></div>
         </section>
 
+        <!-- ② コルクボード (表示枠のみ) -->
         <section id="board" class="tab-content">
-            <div class="filter-area">
-                <div class="filter-btn active">すべて</div>
-                <div class="filter-btn">告知</div>
-                <div class="filter-btn">近況</div>
-            </div>
-            
-            <div id="board-list">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="badge" style="background:#ffe5e5; color:#d32f2f;">告知</span>
-                        <span style="font-size: 0.8rem; color:#888;">2026/06/04</span>
-                    </div>
-                    <div style="font-weight: bold; margin-bottom: 8px;">33期 同窓会のお知らせ</div>
-                    <div style="font-size: 0.9rem; margin-bottom: 10px;">
-                        お盆の期間に集まりませんか？詳細は追って連絡します。
-                    </div>
-                    <div style="font-size: 0.8rem; text-align: right; color:#555;">投稿者: 佐々木</div>
-                </div>
+            <div class="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 10px;">📌</div>
+                <h3>コルクボード</h3>
+                <p>現在地からの絞り込みは実装済みです。<br>GASと連携後、ここに投稿が並びます。</p>
             </div>
         </section>
 
+        <!-- ③ 部室 (表示枠のみ) -->
         <section id="club" class="tab-content">
-            <div class="card">
-                <h2 style="font-size: 1.1rem; margin-top: 0;">📸 部室（写真館）へようこそ</h2>
-                <p style="font-size: 0.9rem; color: #555;">
-                    部活の思い出が詰まったアルバムへご案内します。<br>
-                    アクセスするには、ご自身の所属していた「部活名」を合言葉として入力してください。
-                </p>
-                <input type="text" id="club-keyword" placeholder="例：テニス、吹奏楽">
-                <button class="action-btn" onclick="checkClub()">アルバムの鍵を開ける</button>
+            <div class="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🏫</div>
+                <h3>部室（写真館）</h3>
+                <p>合言葉機能の実装予定地です。</p>
             </div>
         </section>
 
+        <!-- ④ 安心宣言 (表示枠のみ) -->
         <section id="safety" class="tab-content">
-            <div class="card">
-                <h2 style="font-size: 1.1rem; margin-top: 0;">🔰 安心宣言</h2>
-                <ul style="font-size: 0.9rem; color: #555; padding-left: 20px;">
-                    <li style="margin-bottom: 10px;"><strong>住所・電話番号は集めません</strong><br>個人情報を最小限にとどめ、安全に運用します。</li>
-                    <li style="margin-bottom: 10px;"><strong>有志によるボランティア運営</strong><br>維持費ゼロのシステムで、次世代へ無理なく引き継げる設計にしています。</li>
-                    <li><strong>LINE公式アカウントが起点</strong><br>新しいアプリを入れる必要はありません。</li>
-                </ul>
+            <div class="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔰</div>
+                <h3>安心宣言</h3>
+                <p>個人情報保護のポリシーが入ります。</p>
             </div>
         </section>
-
     </main>
 
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('radar', this)">
-            <span class="nav-icon">📡</span>
-            レーダー
+            <span class="nav-icon">📡</span>レーダー
         </div>
         <div class="nav-item" onclick="switchTab('board', this)">
-            <span class="nav-icon">📌</span>
-            ボード
+            <span class="nav-icon">📌</span>ボード
         </div>
         <div class="nav-item" onclick="switchTab('club', this)">
-            <span class="nav-icon">🏫</span>
-            部室
+            <span class="nav-icon">🏫</span>部室
         </div>
         <div class="nav-item" onclick="switchTab('safety', this)">
-            <span class="nav-icon">🔰</span>
-            安心宣言
+            <span class="nav-icon">🔰</span>安心宣言
         </div>
     </nav>
 
     <script>
-        // タブ切り替え機能
+        // --- タブ切り替えロジック ---
         function switchTab(tabId, element) {
-            // すべてのタブコンテンツを非表示
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
+                // アニメーションのリセット
+                tab.style.display = 'none'; 
             });
-            // 選択されたタブコンテンツを表示
-            document.getElementById(tabId).classList.add('active');
-
-            // ナビゲーションの見た目を更新
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            element.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             
-            // URLハッシュを更新 (例: index.html#board)
+            const target = document.getElementById(tabId);
+            target.style.display = 'block';
+            setTimeout(() => target.classList.add('active'), 10); // 描画遅延を入れてアニメをトリガー
+            
+            element.classList.add('active');
             window.location.hash = tabId;
         }
 
-        // 初期表示時にURLのハッシュをチェックして該当タブを開く
+        // --- データ処理ロジック ---
+        // ※GASから取得するデータのシミュレーション（ダミーデータ）
+        const membersData = [
+            { id: 1, name: "佐々木 宗明", period: "33期", club: "情報処理部", area: "松山市", status: "在住", hobby: "サイクリング, RPA, Apple", comment: "デジタル回覧板作ってます！" },
+            { id: 2, name: "石垣 陽太", period: "35期", club: "テニス部", area: "東京都", status: "帰省予定", hobby: "カメラ, カフェ巡り", comment: "お盆に帰ります。テニスしましょう。" },
+            { id: 3, name: "林家 染太", period: "33期", club: "落語研究会", area: "大阪府", status: "帰省中", hobby: "落語, 舞台", comment: "松山で寄席やります！遊びに来てやー" },
+            { id: 4, name: "亀岡 浩菊", period: "33期", club: "吹奏楽部", area: "松山市", status: "在住", hobby: "音楽鑑賞", comment: "LINEの登録手伝ってます。" }
+        ];
+
+        let currentFilter = 'すべて';
+
+        // フィルターボタンを押した時の処理
+        function setFilter(status, element) {
+            currentFilter = status;
+            // ボタンの見た目切り替え
+            document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            // データ再描画
+            filterData();
+        }
+
+        // 検索とフィルターを掛け合わせて表示する処理
+        function filterData() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const listContainer = document.getElementById('radar-list');
+            listContainer.innerHTML = ''; // 一旦クリア
+
+            // データの絞り込み
+            const filteredData = membersData.filter(member => {
+                // 1. ステータスフィルターの判定
+                const matchStatus = (currentFilter === 'すべて' || member.status === currentFilter);
+                // 2. 検索キーワードの判定（名前、趣味、ひとことで部分一致）
+                const matchSearch = member.name.toLowerCase().includes(searchText) || 
+                                    member.hobby.toLowerCase().includes(searchText) || 
+                                    member.comment.toLowerCase().includes(searchText);
+                return matchStatus && matchSearch;
+            });
+
+            // HTMLの生成（レンダリング）
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">該当するメンバーが見つかりません。</div>';
+                return;
+            }
+
+            filteredData.forEach(member => {
+                // ステータスに応じた色クラスを決定
+                let statusClass = 'status-zaiju';
+                if(member.status === '帰省予定') statusClass = 'status-yotei';
+                if(member.status === '帰省中') statusClass = 'status-kisei';
+
+                const cardHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="user-info">
+                                <span class="name">${member.name}</span>
+                                <span class="badge">${member.period}</span>
+                                <span class="badge">${member.club}</span>
+                            </div>
+                            <span class="status-badge ${statusClass}">${member.status}</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 6px;"><strong>エリア:</strong> ${member.area}</div>
+                            <div style="margin-bottom: 6px;"><strong>趣味:</strong> ${member.hobby}</div>
+                            <div><strong>近況:</strong> ${member.comment}</div>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // 初期表示で全データを描画
+        filterData();
+
+        // 初期ハッシュチェック
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.substring(1);
             if (hash) {
@@ -311,39 +359,6 @@
                 if (targetNav) switchTab(hash, targetNav);
             }
         });
-
-        // 部室合言葉のモック処理（本来はGAS側で判定、またはLINE BOTへリダイレクト）
-        function checkClub() {
-            const keyword = document.getElementById('club-keyword').value;
-            if(!keyword) {
-                alert("部活名を入力してください。");
-                return;
-            }
-            // ここにアルバムURLへの遷移ロジックが入ります
-            alert(`「${keyword}部」のアルバムを探しています...\n※本番環境ではGoogleフォトのURLへ遷移します。`);
-        }
-
-        /* =========================================
-        GAS連携用 関数の枠組み (Phase 1 接続用)
-        =========================================
-        */
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby8.../exec"; // 仕様書記載のURL
-
-        // 出没レーダーのデータをGASから取得する関数
-        async function fetchRadarData() {
-            document.getElementById('radar-list').innerHTML = '<div class="loading">データを読み込み中...</div>';
-            try {
-                // 本番用のフェッチ処理
-                // const response = await fetch(GAS_WEBAPP_URL);
-                // const data = await response.json();
-                // renderRadarList(data);
-            } catch (error) {
-                console.error("データ取得エラー:", error);
-            }
-        }
-        
-        // ページ読み込み時にデータ取得を開始
-        // fetchRadarData();
     </script>
 </body>
 </html>
