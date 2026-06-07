@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>北高 連絡帳 (MK-18)</title>
+    <!-- アイコン用フォント -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/iconfont/tabler-icons.min.css">
     <style>
         :root {
             --primary: #06C755;
@@ -182,13 +184,55 @@
 
         <!-- ④ 安心宣言 -->
         <section id="safety" class="tab-content">
-            <div class="card">
-                <h2 style="font-size: 1.1rem; margin-top: 0;">🔰 安心宣言</h2>
-                <ul style="font-size: 0.9rem; color: #555; padding-left: 20px;">
-                    <li style="margin-bottom: 10px;"><strong>住所・電話番号は集めません</strong><br>個人情報を最小限にとどめ、安全に運用します。</li>
-                    <li style="margin-bottom: 10px;"><strong>ボランティア運営</strong><br>維持費ゼロで次世代へ引き継げる設計です。</li>
-                    <li><strong>LINEが起点</strong><br>新しいアプリのインストールは不要です。</li>
-                </ul>
+            <style>
+                :root {--blue:#0C447C;--blue-mid:#185FA5;--blue-light:#E6F1FB;--border:#E0E0E0;--text:#222;--text-sub:#666;--white:#fff;--radius:12px;--radius-sm:8px;}
+                .app-safety {max-width:480px;margin:0 auto;background:var(--white);font-family:'Hiragino Sans','Yu Gothic',sans-serif;}
+                .card-safety {background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+            </style>
+
+            <div class="app-safety" style="padding:12px">
+
+                <div style="background:var(--blue);border-radius:var(--radius);padding:16px;margin-bottom:14px;text-align:center">
+                    <i class="ti ti-shield-lock" style="font-size:32px;color:#fff;display:block;margin-bottom:8px"></i>
+                    <div style="font-size:16px;font-weight:500;color:#fff">安心宣言</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
+                </div>
+
+                <div class="card-safety">
+                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div>
+                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
+                </div>
+
+                <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
+                    <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
+                    <div style="font-size:12px;color:var(--text-sub)">LINE ID：@711epvso</div>
+                </div>
+
             </div>
         </section>
     </main>
@@ -253,7 +297,7 @@
                 <h3 id="boardModalTitle">お知らせを投稿する</h3>
                 <button class="close-btn" onclick="closeModal('modal-board')">×</button>
             </div>
-            <input type="hidden" id="bdId"> <!-- 新規は空、修正時はID -->
+            <input type="hidden" id="bdId"> 
             
             <div class="form-group">
                 <label>お名前 <span style="color:#e65100;">*</span></label>
@@ -291,7 +335,6 @@
         let radarFilter = 'すべて';
         let boardFilter = 'すべて';
 
-        // --- タブ制御 ---
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -300,11 +343,9 @@
             window.scrollTo(0,0);
         }
 
-        // --- ローディング制御 ---
         function showLoad() { document.getElementById('loader').style.display = 'flex'; }
         function hideLoad() { document.getElementById('loader').style.display = 'none'; }
 
-        // --- GAS API 通信ラッパー ---
         async function gasApi(params) {
             showLoad();
             const url = new URL(GAS_URL);
@@ -321,9 +362,7 @@
             }
         }
 
-        // ==========================================
-        // 出没レーダー処理
-        // ==========================================
+        // --- 出没レーダー ---
         async function loadRadar() {
             membersData = await gasApi({action: 'getMembers'});
             renderRadar();
@@ -353,7 +392,6 @@
 
             filtered.forEach(m => {
                 let sClass = m.status === '帰省予定' ? 'status-yotei' : m.status === '帰省中' ? 'status-kisei' : 'status-zaiju';
-                // ★カードをタップで修正モーダルを開く
                 const html = `
                     <div class="card" onclick="openStatusModal('${m.name}', '${m.area}', '${m.status}', '${m.note}')">
                         <div class="card-header">
@@ -372,14 +410,12 @@
             });
         }
 
-        // --- レーダー修正モーダル ---
         function openStatusModal(name, area, status, note) {
             document.getElementById('stName').value = name;
-            document.getElementById('stBday').value = ""; // セキュリティのため毎回入力
+            document.getElementById('stBday').value = ""; 
             document.getElementById('stArea').value = area || "松山市";
             document.getElementById('stNote').value = note === 'undefined' ? '' : note;
             document.querySelectorAll('input[name="stStatus"]').forEach(r => r.checked = (r.value === status));
-            
             document.getElementById('modal-status').classList.add('active');
         }
 
@@ -397,15 +433,13 @@
             if(res.success) {
                 alert("近況を更新しました！");
                 closeModal('modal-status');
-                loadRadar(); // 再読み込み
+                loadRadar(); 
             } else {
                 alert("エラー: " + (res.error || "本人確認に失敗しました"));
             }
         }
 
-        // ==========================================
-        // コルクボード処理
-        // ==========================================
+        // --- コルクボード ---
         async function loadBoard() {
             boardData = await gasApi({action: 'getBoard'});
             renderBoard();
@@ -435,7 +469,6 @@
 
             filtered.forEach(b => {
                 let cClass = b.cat === '告知' ? 'board-cat-info' : 'board-cat-news';
-                // ★タップで修正モーダル（誤字脱字）
                 const html = `
                     <div class="card" onclick="openEditBoardModal(${b.id})">
                         <div class="card-header">
@@ -450,11 +483,10 @@
             });
         }
 
-        // --- ボード投稿・修正モーダル ---
         function openPostModal() {
             document.getElementById('boardModalTitle').innerText = "お知らせを投稿する";
             document.getElementById('bdSubmitBtn').innerText = "投稿する";
-            document.getElementById('bdId').value = ""; // 新規
+            document.getElementById('bdId').value = ""; 
             document.getElementById('bdName').value = "";
             document.getElementById('bdBday').value = "";
             document.getElementById('bdTitle').value = "";
@@ -470,7 +502,7 @@
             document.getElementById('bdSubmitBtn').innerText = "修正を保存";
             document.getElementById('bdId').value = target.id;
             document.getElementById('bdName').value = target.author;
-            document.getElementById('bdBday').value = ""; // 毎回入力
+            document.getElementById('bdBday').value = ""; 
             document.getElementById('bdCat').value = target.cat;
             document.getElementById('bdTitle').value = target.title;
             document.getElementById('bdDetail').value = target.detail;
@@ -487,7 +519,6 @@
 
             if(!name || !bday || !title || !detail) return alert("必須項目をすべて入力してください");
 
-            // idが空なら新規投稿、あれば修正
             const actionStr = id ? 'updateBoard' : 'postBoard';
             
             const res = await gasApi({ action: actionStr, id: id, name: name, birthday: bday, cat: cat, title: title, detail: detail });
@@ -495,21 +526,17 @@
             if(res.success) {
                 alert(id ? "修正しました！" : "投稿しました！");
                 closeModal('modal-board');
-                loadBoard(); // 再読み込み
+                loadBoard(); 
             } else {
                 alert("エラー: " + (res.error || "本人確認に失敗しました"));
             }
         }
 
-        // ==========================================
-        // 共通ロジック
-        // ==========================================
         function closeModal(modalId, event) {
             if(event && event.target !== document.getElementById(modalId) && !event.target.classList.contains('close-btn')) return;
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // 初期読み込み（両方のデータをフェッチしておく）
         window.onload = () => {
             loadRadar();
             loadBoard();
