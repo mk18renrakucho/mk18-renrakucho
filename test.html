@@ -8,89 +8,123 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/iconfont/tabler-icons.min.css">
     <style>
         :root {
-            --primary: #06C755;
-            --bg-color: #f8f9fa;
-            --text-main: #111111;
+            /* 画像に合わせたプロフェッショナルな青色テーマ */
+            --primary: #0C447C;
+            --primary-light: #E6F1FB;
+            --bg-color: #F5F6F8;
+            --text-main: #222222;
             --text-sub: #666666;
-            --card-bg: #ffffff;
-            --border: #eaeaec;
+            --border: #E0E0E0;
+            --white: #ffffff;
+            --radius: 12px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Helvetica Neue", "Segoe UI", sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            margin: 0; padding: 0; padding-bottom: 80px;
+            margin: 0; padding: 0;
             -webkit-tap-highlight-color: transparent;
         }
 
-        header {
-            background-color: var(--card-bg);
-            padding: 16px; text-align: center;
-            border-bottom: 1px solid var(--border);
+        /* ========= ヘッダー＆上部タブ ========= */
+        .app-header-container {
             position: sticky; top: 0; z-index: 100;
+            background: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        header h1 { margin: 0; font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+        .app-header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 16px 16px 12px 16px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .app-title-group h1 { margin: 0; font-size: 1.25rem; font-weight: bold; letter-spacing: 0.5px; }
+        .app-title-group p { margin: 4px 0 0 0; font-size: 0.75rem; color: rgba(255,255,255,0.8); }
+        
+        .top-tabs {
+            display: flex; overflow-x: auto; scrollbar-width: none;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+        }
+        .top-tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            padding: 14px 16px; font-size: 0.9rem; font-weight: bold; color: var(--text-sub);
+            white-space: nowrap; cursor: pointer; border-bottom: 3px solid transparent;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-        .container { padding: 16px; }
-
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
         .tab-content { display: none; opacity: 0; }
         .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 検索・フィルター */
-        .search-box { position: relative; margin-bottom: 16px; }
-        .search-box input { width: 100%; padding: 12px 16px 12px 40px; background-color: #f0f1f3; border: none; border-radius: 12px; font-size: 1rem; box-sizing: border-box; }
+        /* ========= 検索・フィルターUI ========= */
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box input { 
+            width: 100%; padding: 12px 16px 12px 40px; background-color: var(--white); 
+            border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; 
+        }
         .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #999; }
         
-        .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
-        .filter-scroll::-webkit-scrollbar { display: none; }
-        .filter-chip { padding: 8px 16px; background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: var(--text-sub); white-space: nowrap; cursor: pointer; }
-        .filter-chip.active { background-color: var(--text-main); color: #fff; border-color: var(--text-main); }
+        /* セレクトボックス風のフィルター群 */
+        .filter-select-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .filter-select {
+            width: 100%; padding: 12px 16px; background-color: var(--white);
+            border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
+            color: var(--text-main); appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;
+        }
+        
+        .list-meta { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
 
-        /* カードデザイン */
+        /* ========= プロ風の洗練されたカードデザイン ========= */
         .card {
-            background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s; cursor: pointer;
+            background: var(--white); border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+            border: 1px solid var(--border);
+            display: flex; gap: 16px; align-items: flex-start;
         }
-        .card:active { transform: scale(0.96); background-color: #f9f9f9; }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .user-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
-        .name { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-        .badge { background-color: #f0f1f3; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-sub); font-weight: 600; }
-        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
-        .status-zaiju { background-color: #e8f5e9; color: #2e7d32; }
-        .status-yotei { background-color: #fff3e0; color: #e65100; }
-        .status-kisei { background-color: #ffebee; color: #c62828; }
+        /* 丸いアイコン */
+        .avatar {
+            width: 44px; height: 44px; border-radius: 50%; background-color: #8D6E63;
+            color: white; display: flex; justify-content: center; align-items: center;
+            font-size: 1rem; font-weight: bold; flex-shrink: 0;
+        }
+        .card-content { flex: 1; min-width: 0; }
+        .card-header-flex { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+        .name { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
         
-        /* ボード用バッジ */
-        .board-cat-info { background-color: #e3f2fd; color: #1565c0; }
-        .board-cat-news { background-color: #fff3e0; color: #ef6c00; }
+        /* ピルシェイプのバッジ */
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .status-zaiju { background-color: #F0F0F0; color: #555; }
+        .status-yotei { background-color: #E3F2FD; color: #1565C0; }
+        .status-kisei { background-color: #FFEBEE; color: #C62828; }
         
-        .card-body { font-size: 0.9rem; color: var(--text-sub); line-height: 1.5; }
-        .card-body strong { color: var(--text-main); font-weight: 600; }
-        .board-title { font-size: 1.05rem; font-weight: bold; color: var(--text-main); margin-bottom: 8px; }
-        .board-meta { font-size: 0.75rem; color: #999; text-align: right; margin-top: 8px; }
+        .board-cat-info { background-color: #E3F2FD; color: #1565C0; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold;}
+        .board-cat-news { background-color: #FFF3E0; color: #EF6C00; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold;}
+        
+        .card-subtext { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; }
+        .card-note { font-size: 0.95rem; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; word-wrap: break-word;}
+        
+        /* 洗練されたアクションボタン */
+        .btn-action-pill {
+            display: inline-block; background-color: var(--primary-light); color: var(--primary);
+            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+            border: none; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-action-pill:active { background-color: #D0E4F7; }
 
-        /* ボトムナビ */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-            display: flex; justify-content: space-around; border-top: 1px solid var(--border);
-            padding: 10px 0 20px 0; z-index: 1000;
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.7rem; color: #999; font-weight: 600; width: 25%; cursor: pointer; }
-        .nav-item.active { color: var(--text-main); }
-        .nav-icon { font-size: 1.4rem; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sub); }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 0.9rem; }
 
         /* ========= FAB (フローティング・アクション・ボタン) ========= */
         .fab {
-            position: fixed; bottom: 90px; right: 20px;
+            position: fixed; bottom: 30px; right: 20px;
             width: 56px; height: 56px; border-radius: 50%;
             background-color: var(--primary); color: white;
             display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 12px rgba(6, 199, 85, 0.4);
+            box-shadow: 0 4px 12px rgba(12, 68, 124, 0.4);
             font-size: 1.5rem; cursor: pointer; z-index: 900;
             transition: transform 0.2s;
         }
@@ -99,19 +133,19 @@
         /* ========= モーダル ========= */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; transition: opacity 0.3s;
+            background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; transition: opacity 0.3s;
         }
         .modal-overlay.active { display: block; opacity: 1; }
         .modal-content {
             position: absolute; bottom: -100%; left: 0; width: 100%;
-            background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 24px; box-sizing: border-box;
+            background: var(--white); border-radius: 20px 20px 0 0; padding: 24px; box-sizing: border-box;
             transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             max-height: 90vh; overflow-y: auto;
         }
         .modal-overlay.active .modal-content { bottom: 0; }
         
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { margin: 0; font-size: 1.2rem; }
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: var(--primary); }
         .close-btn { font-size: 1.8rem; color: #999; border: none; background: none; cursor: pointer; padding: 0; line-height: 1; }
         
         .form-group { margin-bottom: 16px; }
@@ -135,11 +169,29 @@
         }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 安心宣言用スタイル調整 */
+        .card-safety { background:var(--white); border: 1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
     </style>
 </head>
 <body>
 
-    <header><h1>MK-18 連絡帳</h1></header>
+    <!-- ヘッダー＆上部タブ -->
+    <div class="app-header-container">
+        <header class="app-header">
+            <div class="app-title-group">
+                <h1>北高 連絡帳</h1>
+                <p>松山北高校 同窓会ネットワーク</p>
+            </div>
+            <!-- 右上の「1」のようなアクセントはあえて外してスッキリさせています -->
+        </header>
+        <div class="top-tabs">
+            <div class="tab active" onclick="switchTab('radar', this)">出没レーダー</div>
+            <div class="tab" onclick="switchTab('board', this)">コルクボード</div>
+            <div class="tab" onclick="switchTab('club', this)">部室</div>
+            <div class="tab" onclick="switchTab('safety', this)">安心宣言</div>
+        </div>
+    </div>
 
     <main class="container">
         <!-- ① 出没レーダー -->
@@ -148,12 +200,25 @@
                 <span class="search-icon">🔍</span>
                 <input type="text" id="radarSearch" placeholder="名前・趣味・ひとことで検索..." oninput="renderRadar()">
             </div>
-            <div class="filter-scroll">
-                <div class="filter-chip active" onclick="setRadarFilter('すべて', this)">すべて</div>
-                <div class="filter-chip" onclick="setRadarFilter('在住', this)">在住</div>
-                <div class="filter-chip" onclick="setRadarFilter('帰省予定', this)">帰省予定</div>
-                <div class="filter-chip" onclick="setRadarFilter('帰省中', this)">帰省中</div>
+            
+            <div class="filter-select-group">
+                <select class="filter-select" id="radarFilterArea" onchange="renderRadar()">
+                    <option value="すべて">全エリア</option>
+                    <option value="松山市">松山市</option>
+                    <option value="愛媛県(松山以外)">愛媛県(松山以外)</option>
+                    <option value="東京都">東京都</option>
+                    <option value="関東地方">関東地方</option>
+                    <option value="関西地方">関西地方</option>
+                </select>
+                <select class="filter-select" id="radarFilterStatus" onchange="renderRadar()">
+                    <option value="すべて">全状態</option>
+                    <option value="在住">在住</option>
+                    <option value="帰省予定">帰省予定</option>
+                    <option value="帰省中">帰省中</option>
+                </select>
             </div>
+
+            <div class="list-meta" id="radarCount">表示中</div>
             <div id="radar-list"><div class="empty-state">データ読込中...</div></div>
         </section>
 
@@ -163,11 +228,15 @@
                 <span class="search-icon">🔍</span>
                 <input type="text" id="boardSearch" placeholder="タイトルや内容で検索..." oninput="renderBoard()">
             </div>
-            <div class="filter-scroll">
-                <div class="filter-chip active" onclick="setBoardFilter('すべて', this)">すべて</div>
-                <div class="filter-chip" onclick="setBoardFilter('告知', this)">告知</div>
-                <div class="filter-chip" onclick="setBoardFilter('近況', this)">近況</div>
+            
+            <div class="filter-select-group" style="margin-bottom: 20px;">
+                <select class="filter-select" id="boardFilterCat" onchange="renderBoard()">
+                    <option value="すべて">全カテゴリ</option>
+                    <option value="告知">告知</option>
+                    <option value="近況">近況</option>
+                </select>
             </div>
+
             <div id="board-list"><div class="empty-state">データ読込中...</div></div>
             
             <!-- FAB 新規投稿ボタン -->
@@ -176,74 +245,58 @@
 
         <!-- ③ 部室 -->
         <section id="club" class="tab-content">
-            <div class="card">
-                <h2 style="font-size: 1.1rem; margin-top: 0;">📸 部室（写真館）</h2>
-                <p style="font-size: 0.9rem; color: #555;">LINEのトーク画面で、所属していた「部活名」を送信してください。<br>自動でアルバムURLが返信されます。</p>
+            <div class="card" style="display: block;">
+                <h2 style="font-size: 1.2rem; margin-top: 0; color: var(--primary);">📸 部室（写真館）</h2>
+                <p style="font-size: 0.95rem; color: var(--text-sub); line-height: 1.6;">
+                    LINEのトーク画面で、所属していた「部活名」を送信してください。<br>自動でアルバムのURLが返信されます。
+                </p>
             </div>
         </section>
 
-        <!-- ④ 安心宣言 -->
+        <!-- ④ 安心宣言（一字一句変えない完全版を新デザインに適合） -->
         <section id="safety" class="tab-content">
-            <style>
-                :root {--blue:#0C447C;--blue-mid:#185FA5;--blue-light:#E6F1FB;--border:#E0E0E0;--text:#222;--text-sub:#666;--white:#fff;--radius:12px;--radius-sm:8px;}
-                .app-safety {max-width:480px;margin:0 auto;background:var(--white);font-family:'Hiragino Sans','Yu Gothic',sans-serif;}
-                .card-safety {background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-            </style>
-
-            <div class="app-safety" style="padding:12px">
-
-                <div style="background:var(--blue);border-radius:var(--radius);padding:16px;margin-bottom:14px;text-align:center">
-                    <i class="ti ti-shield-lock" style="font-size:32px;color:#fff;display:block;margin-bottom:8px"></i>
-                    <div style="font-size:16px;font-weight:500;color:#fff">安心宣言</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
-                </div>
-
-                <div class="card-safety">
-                    <div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div>
-                    <div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
-                </div>
-
-                <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
-                    <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
-                    <div style="font-size:12px;color:var(--text-sub)">LINE ID：@711epvso</div>
-                </div>
-
+            <div style="background:var(--primary);border-radius:var(--radius);padding:20px;margin-bottom:16px;text-align:center">
+                <i class="ti ti-shield-lock" style="font-size:36px;color:#fff;display:block;margin-bottom:8px"></i>
+                <div style="font-size:18px;font-weight:bold;color:#fff">安心宣言</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【1】過去の名簿は使っていません</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【4】写真アルバムについて</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【5】データはいつでも消せます</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【6】このシステムの限界について</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
+            </div>
+            
+            <div style="background:var(--primary-light);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:10px;">
+                <div style="font-size:14px;color:var(--primary);font-weight:bold;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
+                <div style="font-size:13px;color:var(--text-sub)">LINE ID：@711epvso</div>
             </div>
         </section>
     </main>
-
-    <!-- ボトムナビ -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('radar', this)"><span class="nav-icon">📡</span>レーダー</div>
-        <div class="nav-item" onclick="switchTab('board', this)"><span class="nav-icon">📌</span>ボード</div>
-        <div class="nav-item" onclick="switchTab('club', this)"><span class="nav-icon">🏫</span>部室</div>
-        <div class="nav-item" onclick="switchTab('safety', this)"><span class="nav-icon">🔰</span>宣言</div>
-    </nav>
 
     <!-- ========= ローディング ========= -->
     <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
@@ -332,12 +385,10 @@
 
         let membersData = [];
         let boardData = [];
-        let radarFilter = 'すべて';
-        let boardFilter = 'すべて';
 
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
             window.scrollTo(0,0);
@@ -368,22 +419,20 @@
             renderRadar();
         }
 
-        function setRadarFilter(status, el) {
-            radarFilter = status;
-            el.parentElement.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            renderRadar();
-        }
-
         function renderRadar() {
             const search = document.getElementById('radarSearch').value.toLowerCase();
+            const areaFilter = document.getElementById('radarFilterArea').value;
+            const statusFilter = document.getElementById('radarFilterStatus').value;
             const container = document.getElementById('radar-list');
             container.innerHTML = '';
             
             const filtered = membersData.filter(m => 
-                (radarFilter === 'すべて' || m.status === radarFilter) &&
+                (areaFilter === 'すべて' || m.area === areaFilter) &&
+                (statusFilter === 'すべて' || m.status === statusFilter) &&
                 ((m.name||'').toLowerCase().includes(search) || (m.hobby||'').toLowerCase().includes(search) || (m.note||'').toLowerCase().includes(search))
             );
+
+            document.getElementById('radarCount').innerText = `${filtered.length}名 表示中 (全${membersData.length}名)`;
 
             if(filtered.length === 0) {
                 container.innerHTML = '<div class="empty-state">該当なし</div>';
@@ -392,18 +441,20 @@
 
             filtered.forEach(m => {
                 let sClass = m.status === '帰省予定' ? 'status-yotei' : m.status === '帰省中' ? 'status-kisei' : 'status-zaiju';
+                // 名前の最初の2文字をアイコンに（画像デザインを再現）
+                let initial = m.name ? m.name.substring(0, 2) : "名無";
+                
                 const html = `
-                    <div class="card" onclick="openStatusModal('${m.name}', '${m.area}', '${m.status}', '${m.note}')">
-                        <div class="card-header">
-                            <div class="user-info">
+                    <div class="card">
+                        <div class="avatar">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex">
                                 <span class="name">${m.name}</span>
-                                <span class="badge">${m.period}</span>
+                                <span class="status-badge ${sClass}">${m.status}</span>
                             </div>
-                            <span class="status-badge ${sClass}">${m.status}</span>
-                        </div>
-                        <div class="card-body">
-                            <div style="margin-bottom:4px;"><strong>エリア:</strong> ${m.area||'未設定'}</div>
-                            <div><strong>近況:</strong> ${m.note||'なし'}</div>
+                            <div class="card-subtext">${m.period || ''}・${m.area || '未設定'}</div>
+                            ${(m.note && m.note !== 'undefined') ? `<div class="card-note">${m.note}</div>` : ''}
+                            <button class="btn-action-pill" onclick="openStatusModal('${m.name}', '${m.area}', '${m.status}', '${m.note}')">近況を更新する</button>
                         </div>
                     </div>`;
                 container.insertAdjacentHTML('beforeend', html);
@@ -445,20 +496,14 @@
             renderBoard();
         }
 
-        function setBoardFilter(cat, el) {
-            boardFilter = cat;
-            el.parentElement.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            renderBoard();
-        }
-
         function renderBoard() {
             const search = document.getElementById('boardSearch').value.toLowerCase();
+            const catFilter = document.getElementById('boardFilterCat').value;
             const container = document.getElementById('board-list');
             container.innerHTML = '';
             
             const filtered = boardData.filter(b => 
-                (boardFilter === 'すべて' || b.cat === boardFilter) &&
+                (catFilter === 'すべて' || b.cat === catFilter) &&
                 ((b.title||'').toLowerCase().includes(search) || (b.detail||'').toLowerCase().includes(search))
             );
 
@@ -469,15 +514,21 @@
 
             filtered.forEach(b => {
                 let cClass = b.cat === '告知' ? 'board-cat-info' : 'board-cat-news';
+                let initial = b.author ? b.author.substring(0, 2) : "名無";
+                
                 const html = `
-                    <div class="card" onclick="openEditBoardModal(${b.id})">
-                        <div class="card-header">
-                            <span class="badge ${cClass}">${b.cat}</span>
-                            <span style="font-size:0.8rem; color:#888;">${b.time}</span>
+                    <div class="card">
+                        <div class="avatar" style="background-color: #607D8B;">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex" style="justify-content: space-between;">
+                                <span class="${cClass}">${b.cat}</span>
+                                <span style="font-size:0.75rem; color:#999;">${b.time}</span>
+                            </div>
+                            <div style="font-size: 1.05rem; font-weight: bold; margin: 8px 0; color: var(--text-main);">${b.title}</div>
+                            <div class="card-note">${(b.detail||'').replace(/\n/g, '<br>')}</div>
+                            <div class="card-subtext" style="margin-bottom: 12px;">✍️ ${b.author} (${b.period})</div>
+                            <button class="btn-action-pill" onclick="openEditBoardModal(${b.id})">投稿を修正する</button>
                         </div>
-                        <div class="board-title">${b.title}</div>
-                        <div class="card-body">${(b.detail||'').replace(/\n/g, '<br>')}</div>
-                        <div class="board-meta">✍️ ${b.author} (${b.period})</div>
                     </div>`;
                 container.insertAdjacentHTML('beforeend', html);
             });
