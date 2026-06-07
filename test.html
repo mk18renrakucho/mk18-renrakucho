@@ -182,3 +182,418 @@
             <div class="tab" onclick="switchTab('board', this)">コルクボード</div>
             <div class="tab" onclick="switchTab('club', this)">部室</div>
             <div class="tab" onclick="switchTab('favorite', this)">お気に入り</div>
+            <div class="tab" onclick="switchTab('safety', this)">安心宣言</div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section id="radar" class="tab-content active">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="radarSearch" placeholder="名前・趣味・ひとことで検索..." oninput="renderRadar()">
+            </div>
+            
+            <div class="filter-select-group">
+                <select class="filter-select" id="radarFilterArea" onchange="renderRadar()">
+                    <option value="すべて">全エリア</option>
+                    <option value="松山市">松山市</option>
+                    <option value="愛媛県(松山以外)">愛媛県(松山以外)</option>
+                    <option value="東京都">東京都</option>
+                    <option value="関東地方">関東地方</option>
+                    <option value="関西地方">関西地方</option>
+                </select>
+                <select class="filter-select" id="radarFilterStatus" onchange="renderRadar()">
+                    <option value="すべて">全状態</option>
+                    <option value="在住">在住</option>
+                    <option value="帰省予定">帰省予定</option>
+                    <option value="帰省中">帰省中</option>
+                </select>
+            </div>
+
+            <div class="list-meta" id="radarCount">表示中</div>
+            <div id="radar-list"><div class="empty-state">データ読込中...</div></div>
+        </section>
+
+        <section id="board" class="tab-content">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="boardSearch" placeholder="タイトルや内容で検索..." oninput="renderBoard()">
+            </div>
+            
+            <div class="filter-select-group" style="margin-bottom: 20px;">
+                <select class="filter-select" id="boardFilterCat" onchange="renderBoard()">
+                    <option value="すべて">全カテゴリ</option>
+                    <option value="告知">告知</option>
+                    <option value="近況">近況</option>
+                </select>
+            </div>
+
+            <div id="board-list"><div class="empty-state">データ読込中...</div></div>
+            
+            <div class="fab" onclick="openPostModal()">📝</div>
+        </section>
+
+        <section id="club" class="tab-content">
+            <div class="card" style="display: block;">
+                <h2 style="font-size: 1.2rem; margin-top: 0; color: var(--primary);">📸 部室（写真館）</h2>
+                <p style="font-size: 0.95rem; color: var(--text-sub); line-height: 1.6;">
+                    LINEのトーク画面で、所属していた「部活名」を送信してください。<br>自動でアルバムのURLが返信されます。
+                </p>
+            </div>
+        </section>
+
+        <section id="favorite" class="tab-content">
+            <div class="card" style="display: block;">
+                <h2 style="font-size: 1.2rem; margin-top: 0; color: var(--primary);">⭐️ お気に入り（構想中）</h2>
+                <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; margin-bottom: 12px;">
+                    「あの同窓生の近況をすぐ見たい！」<br>
+                    そんな声にお応えする機能を検討しています。
+                </p>
+                <div style="background-color: #f0f1f3; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px;">
+                    ※この連絡帳は個人情報を守るため「ログイン機能」をあえて作っていません。そのため、皆さんのスマホにどうやってお気に入りデータを安全に記憶させるか、現在管理者が頭を悩ませています（笑）
+                </div>
+                <p style="font-size: 0.95rem; font-weight: bold; color: var(--primary); text-align: center; margin-bottom: 0;">
+                    「こんな機能が欲しい！」「こうすれば？」<br>
+                    といったご要望やアイデアがありましたら、<br>ぜひLINEからお気軽にお聞かせください！
+                </p>
+            </div>
+        </section>
+
+        <section id="safety" class="tab-content">
+            <div style="background:var(--primary);border-radius:var(--radius);padding:20px;margin-bottom:16px;text-align:center">
+                <i class="ti ti-shield-lock" style="font-size:36px;color:#fff;display:block;margin-bottom:8px"></i>
+                <div style="font-size:18px;font-weight:bold;color:#fff">安心宣言</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【1】過去の名簿は使っていません</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【4】写真アルバムについて</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【5】データはいつでも消せます</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
+            </div>
+            
+            <div class="card-safety">
+                <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【6】このシステムの限界について</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
+            </div>
+            
+            <div style="background:var(--primary-light);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:10px;">
+                <div style="font-size:14px;color:var(--primary);font-weight:bold;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
+                <div style="font-size:13px;color:var(--text-sub)">LINE ID：@711epvso</div>
+            </div>
+        </section>
+    </main>
+
+    <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
+
+    <div id="modal-status" class="modal-overlay" onclick="closeModal('modal-status', event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>近況を更新する</h3>
+                <button class="close-btn" onclick="closeModal('modal-status')">×</button>
+            </div>
+            <div class="form-group">
+                <label>お名前（変更不可）</label>
+                <input type="text" id="stName" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>誕生日4桁（本人確認用） <span style="color:#e65100;">*</span></label>
+                <input type="number" id="stBday" class="form-control" placeholder="例: 0825">
+            </div>
+            <div class="form-group">
+                <label>現在のエリア</label>
+                <select id="stArea" class="form-control">
+                    <option value="松山市">松山市</option>
+                    <option value="愛媛県(松山以外)">愛媛県(松山以外)</option>
+                    <option value="東京都">東京都</option>
+                    <option value="関東地方">関東地方</option>
+                    <option value="関西地方">関西地方</option>
+                    <option value="その他">その他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>現在の状態</label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="stStatus" value="在住">在住</label>
+                    <label class="radio-label"><input type="radio" name="stStatus" value="帰省予定">帰省予定</label>
+                    <label class="radio-label"><input type="radio" name="stStatus" value="帰省中">帰省中</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>ひとこと近況</label>
+                <textarea id="stNote" class="form-control" rows="2"></textarea>
+            </div>
+            <button class="btn-submit" onclick="submitStatus()">更新する</button>
+        </div>
+    </div>
+
+    <div id="modal-board" class="modal-overlay" onclick="closeModal('modal-board', event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="boardModalTitle">お知らせを投稿する</h3>
+                <button class="close-btn" onclick="closeModal('modal-board')">×</button>
+            </div>
+            <input type="hidden" id="bdId"> 
+            
+            <div class="form-group">
+                <label>お名前 <span style="color:#e65100;">*</span></label>
+                <input type="text" id="bdName" class="form-control" placeholder="フルネーム">
+            </div>
+            <div class="form-group">
+                <label>誕生日4桁（本人確認用） <span style="color:#e65100;">*</span></label>
+                <input type="number" id="bdBday" class="form-control" placeholder="例: 0825">
+            </div>
+            <div class="form-group">
+                <label>カテゴリ</label>
+                <select id="bdCat" class="form-control">
+                    <option value="告知">告知（イベント・同窓会など）</option>
+                    <option value="近況">近況（ニュース・報告など）</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>タイトル <span style="color:#e65100;">*</span></label>
+                <input type="text" id="bdTitle" class="form-control" placeholder="件名を入力">
+            </div>
+            <div class="form-group">
+                <label>詳細 <span style="color:#e65100;">*</span></label>
+                <textarea id="bdDetail" class="form-control" rows="4"></textarea>
+            </div>
+            <button class="btn-submit" onclick="submitBoard()" id="bdSubmitBtn">投稿する</button>
+        </div>
+    </div>
+
+    <script>
+        // ★GASのURL★
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
+
+        let membersData = [];
+        let boardData = [];
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function showLoad() { document.getElementById('loader').style.display = 'flex'; }
+        function hideLoad() { document.getElementById('loader').style.display = 'none'; }
+
+        async function gasApi(params) {
+            showLoad();
+            const url = new URL(GAS_URL);
+            Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                hideLoad();
+                return data;
+            } catch(e) {
+                hideLoad();
+                alert("通信エラーが発生しました。");
+                return {success: false};
+            }
+        }
+
+        // --- 出没レーダー ---
+        async function loadRadar() {
+            membersData = await gasApi({action: 'getMembers'});
+            renderRadar();
+        }
+
+        function renderRadar() {
+            const search = document.getElementById('radarSearch').value.toLowerCase();
+            const areaFilter = document.getElementById('radarFilterArea').value;
+            const statusFilter = document.getElementById('radarFilterStatus').value;
+            const container = document.getElementById('radar-list');
+            container.innerHTML = '';
+            
+            const filtered = membersData.filter(m => 
+                (areaFilter === 'すべて' || m.area === areaFilter) &&
+                (statusFilter === 'すべて' || m.status === statusFilter) &&
+                ((m.name||'').toLowerCase().includes(search) || (m.hobby||'').toLowerCase().includes(search) || (m.note||'').toLowerCase().includes(search))
+            );
+
+            document.getElementById('radarCount').innerText = `${filtered.length}名 表示中 (全${membersData.length}名)`;
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">該当なし</div>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                let sClass = m.status === '帰省予定' ? 'status-yotei' : m.status === '帰省中' ? 'status-kisei' : 'status-zaiju';
+                // 名前の最初の2文字をアイコンに（画像デザインを再現）
+                let initial = m.name ? m.name.substring(0, 2) : "名無";
+                
+                const html = `
+                    <div class="card">
+                        <div class="avatar">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex">
+                                <span class="name">${m.name}</span>
+                                <span class="status-badge ${sClass}">${m.status}</span>
+                            </div>
+                            <div class="card-subtext">${m.period || ''}・${m.area || '未設定'}</div>
+                            ${(m.note && m.note !== 'undefined') ? `<div class="card-note">${m.note}</div>` : ''}
+                            <button class="btn-action-pill" onclick="openStatusModal('${m.name}', '${m.area}', '${m.status}', '${m.note}')">近況を更新する</button>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function openStatusModal(name, area, status, note) {
+            document.getElementById('stName').value = name;
+            document.getElementById('stBday').value = ""; 
+            document.getElementById('stArea').value = area || "松山市";
+            document.getElementById('stNote').value = note === 'undefined' ? '' : note;
+            document.querySelectorAll('input[name="stStatus"]').forEach(r => r.checked = (r.value === status));
+            document.getElementById('modal-status').classList.add('active');
+        }
+
+        async function submitStatus() {
+            const name = document.getElementById('stName').value;
+            const bday = document.getElementById('stBday').value;
+            if(!bday) return alert("誕生日を入力してください");
+            
+            const area = document.getElementById('stArea').value;
+            const note = document.getElementById('stNote').value;
+            const status = document.querySelector('input[name="stStatus"]:checked').value;
+
+            const res = await gasApi({ action: 'updateStatus', name: name, birthday: bday, area: area, status: status, note: note });
+            
+            if(res.success) {
+                alert("近況を更新しました！");
+                closeModal('modal-status');
+                loadRadar(); 
+            } else {
+                alert("エラー: " + (res.error || "本人確認に失敗しました"));
+            }
+        }
+
+        // --- コルクボード ---
+        async function loadBoard() {
+            boardData = await gasApi({action: 'getBoard'});
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const search = document.getElementById('boardSearch').value.toLowerCase();
+            const catFilter = document.getElementById('boardFilterCat').value;
+            const container = document.getElementById('board-list');
+            container.innerHTML = '';
+            
+            const filtered = boardData.filter(b => 
+                (catFilter === 'すべて' || b.cat === catFilter) &&
+                ((b.title||'').toLowerCase().includes(search) || (b.detail||'').toLowerCase().includes(search))
+            );
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">投稿がありません</div>';
+                return;
+            }
+
+            filtered.forEach(b => {
+                let cClass = b.cat === '告知' ? 'board-cat-info' : 'board-cat-news';
+                let initial = b.author ? b.author.substring(0, 2) : "名無";
+                
+                const html = `
+                    <div class="card">
+                        <div class="avatar" style="background-color: #607D8B;">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex" style="justify-content: space-between;">
+                                <span class="${cClass}">${b.cat}</span>
+                                <span style="font-size:0.75rem; color:#999;">${b.time}</span>
+                            </div>
+                            <div style="font-size: 1.05rem; font-weight: bold; margin: 8px 0; color: var(--text-main);">${b.title}</div>
+                            <div class="card-note">${(b.detail||'').replace(/\n/g, '<br>')}</div>
+                            <div class="card-subtext" style="margin-bottom: 12px;">✍️ ${b.author} (${b.period})</div>
+                            <button class="btn-action-pill" onclick="openEditBoardModal(${b.id})">投稿を修正する</button>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function openPostModal() {
+            document.getElementById('boardModalTitle').innerText = "お知らせを投稿する";
+            document.getElementById('bdSubmitBtn').innerText = "投稿する";
+            document.getElementById('bdId').value = ""; 
+            document.getElementById('bdName').value = "";
+            document.getElementById('bdBday').value = "";
+            document.getElementById('bdTitle').value = "";
+            document.getElementById('bdDetail').value = "";
+            document.getElementById('modal-board').classList.add('active');
+        }
+
+        function openEditBoardModal(id) {
+            const target = boardData.find(b => b.id === id);
+            if(!target) return;
+            
+            document.getElementById('boardModalTitle').innerText = "投稿を修正する";
+            document.getElementById('bdSubmitBtn').innerText = "修正を保存";
+            document.getElementById('bdId').value = target.id;
+            document.getElementById('bdName').value = target.author;
+            document.getElementById('bdBday').value = ""; 
+            document.getElementById('bdCat').value = target.cat;
+            document.getElementById('bdTitle').value = target.title;
+            document.getElementById('bdDetail').value = target.detail;
+            document.getElementById('modal-board').classList.add('active');
+        }
+
+        async function submitBoard() {
+            const id = document.getElementById('bdId').value;
+            const name = document.getElementById('bdName').value;
+            const bday = document.getElementById('bdBday').value;
+            const cat = document.getElementById('bdCat').value;
+            const title = document.getElementById('bdTitle').value;
+            const detail = document.getElementById('bdDetail').value;
+
+            if(!name || !bday || !title || !detail) return alert("必須項目をすべて入力してください");
+
+            const actionStr = id ? 'updateBoard' : 'postBoard';
+            
+            const res = await gasApi({ action: actionStr, id: id, name: name, birthday: bday, cat: cat, title: title, detail: detail });
+            
+            if(res.success) {
+                alert(id ? "修正しました！" : "投稿しました！");
+                closeModal('modal-board');
+                loadBoard(); 
+            } else {
+                alert("エラー: " + (res.error || "本人確認に失敗しました"));
+            }
+        }
+
+        function closeModal(modalId, event) {
+            if(event && event.target !== document.getElementById(modalId) && !event.target.classList.contains('close-btn')) return;
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        window.onload = () => {
+            loadRadar();
+            loadBoard();
+        };
+    </script>
+</body>
+</html>
