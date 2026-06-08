@@ -332,4 +332,214 @@
             <input type="hidden" id="bdId">
             <div class="form-group"><label>お名前 <span style="color:#e65100;">*</span></label><input type="text" id="bdName" class="form-control"></div>
             <div class="form-group"><label>誕生日4桁 <span style="color:#e65100;">*</span></label><input type="number" id="bdBday" class="form-control"></div>
-            <div class="form-group"><label>カテゴリ</label><select id="bd
+            <div class="form-group"><label>カテゴリ</label><select id="bdCat" class="form-control"><option value="告知">告知</option><option value="近況">近況</option></select></div>
+            <div class="form-group"><label>タイトル <span style="color:#e65100;">*</span></label><input type="text" id="bdTitle" class="form-control"></div>
+            <div class="form-group"><label>詳細 <span style="color:#e65100;">*</span></label><textarea id="bdDetail" class="form-control" rows="4"></textarea></div>
+            <button class="btn-submit" onclick="submitBoard()" id="bdSubmitBtn">投稿する</button>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
+
+        let membersData = [];
+        let boardData = [];
+        let radarTermFilter = '全期';
+        let boardFilter = 'すべて'; 
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function showLoad() { document.getElementById('loader').style.display = 'flex'; }
+        function hideLoad() { document.getElementById('loader').style.display = 'none'; }
+
+        async function gasApi(params) {
+            showLoad();
+            const url = new URL(GAS_URL);
+            Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                hideLoad();
+                return data;
+            } catch(e) {
+                hideLoad();
+                alert("通信エラーが発生しました。");
+                return {success: false};
+            }
+        }
+
+        // --- ヘッダーの数字バッジ更新 ---
+        function updateHeaderStat() {
+            const count = membersData.filter(m => m.status === '帰省中' || m.status === '帰省予定').length;
+            document.getElementById('header-stat-num').innerText = count;
+        }
+
+        // --- 出没レーダー ---
+        async function loadRadar() {
+            membersData = await gasApi({action: 'getMembers'});
+            updateHeaderStat(); // ★データを読み込んだら数字を更新
+            renderRadar();
+        }
+
+        function setRadarTermFilter(term, el) {
+            radarTermFilter = term;
+            document.getElementById('radar-term-all').classList.remove('active');
+            document.getElementById('radar-term-33').classList.remove('active');
+            el.classList.add('active');
+            renderRadar();
+        }
+
+        function renderRadar() {
+            const search = document.getElementById('radarSearch').value.toLowerCase();
+            const clubFilter = document.getElementById('radarFilterClub').value;
+            const areaFilter = document.getElementById('radarFilterArea').value;
+            const statusFilter = document.getElementById('radarFilterStatus').value;
+            const container = document.getElementById('radar-list');
+            container.innerHTML = '';
+            
+            const filtered = membersData.filter(m => 
+                (radarTermFilter === '全期' || m.period === radarTermFilter) &&
+                (clubFilter === 'すべて' || m.club === clubFilter) &&
+                (areaFilter === 'すべて' || m.area === areaFilter) &&
+                (statusFilter === 'すべて' || m.status === statusFilter) &&
+                ((m.name||'').toLowerCase().includes(search) || (m.hobby||'').toLowerCase().includes(search) || (m.note||'').toLowerCase().includes(search))
+            );
+
+            document.getElementById('radarCount').innerText = `${filtered.length}名 表示中 (全${membersData.length}名)`;
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">該当なし</div>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                let sClass = m.status === '帰省予定' ? 'status-yotei' : m.status === '帰省中' ? 'status-kisei' : 'status-zaiju';
+                let initial = m.name ? m.name.substring(0, 2) : "名無";
+                const html = `
+                    <div class="card">
+                        <div class="avatar">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex">
+                                <span class="name">${m.name}</span>
+                                <span class="status-badge ${sClass}">${m.status}</span>
+                            </div>
+                            <div class="card-subtext">${m.period || ''}・${m.club || '未設定'}・${m.area || '未設定'}</div>
+                            ${(m.note && m.note !== 'undefined') ? `<div class="card-note">${m.note}</div>` : ''}
+                            <button class="btn-action-pill" onclick="openStatusModal('${m.name}', '${m.area}', '${m.status}', '${m.note}')">近況を更新する</button>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function openStatusModal(name, area, status, note) {
+            document.getElementById('stName').value = name;
+            document.getElementById('stBday').value = ""; 
+            document.getElementById('stArea').value = area || "松山市";
+            document.getElementById('stNote').value = note === 'undefined' ? '' : note;
+            document.querySelectorAll('input[name="stStatus"]').forEach(r => r.checked = (r.value === status));
+            document.getElementById('modal-status').classList.add('active');
+        }
+
+        async function submitStatus() {
+            const name = document.getElementById('stName').value;
+            const bday = document.getElementById('stBday').value;
+            if(!bday) return alert("誕生日を入力してください");
+            const area = document.getElementById('stArea').value;
+            const note = document.getElementById('stNote').value;
+            const status = document.querySelector('input[name="stStatus"]:checked').value;
+            const res = await gasApi({ action: 'updateStatus', name: name, birthday: bday, area: area, status: status, note: note });
+            if(res.success) {
+                alert("近況を更新しました！");
+                closeModal('modal-status');
+                loadRadar(); 
+            } else {
+                alert("エラー: " + (res.error || "本人確認に失敗しました"));
+            }
+        }
+
+        // --- コルクボード ---
+        async function loadBoard() {
+            boardData = await gasApi({action: 'getBoard'});
+            renderBoard();
+        }
+
+        function setBoardFilter(cat, el) {
+            boardFilter = cat;
+            document.querySelectorAll('#board .filter-pill').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const search = document.getElementById('boardSearch').value.toLowerCase();
+            const container = document.getElementById('board-list');
+            container.innerHTML = '';
+            const filtered = boardData.filter(b => 
+                (boardFilter === 'すべて' || b.cat === boardFilter) &&
+                ((b.title||'').toLowerCase().includes(search) || (b.detail||'').toLowerCase().includes(search))
+            );
+            if(filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">投稿がありません</div>';
+                return;
+            }
+            filtered.forEach(b => {
+                let cClass = b.cat === '告知' ? 'board-cat-info' : 'board-cat-news';
+                let initial = b.author ? b.author.substring(0, 2) : "名無";
+                const html = `
+                    <div class="card">
+                        <div class="avatar" style="background-color: #607D8B;">${initial}</div>
+                        <div class="card-content">
+                            <div class="card-header-flex" style="justify-content: space-between;">
+                                <span class="${cClass}">${b.cat}</span>
+                                <span style="font-size:0.75rem; color:#999;">${b.time}</span>
+                            </div>
+                            <div style="font-size: 1.05rem; font-weight: bold; margin: 8px 0; color: var(--text-main);">${b.title}</div>
+                            <div class="card-note">${(b.detail||'').replace(/\n/g, '<br>')}</div>
+                            <div class="card-subtext" style="margin-bottom: 12px;">✍️ ${b.author} (${b.period})</div>
+                            <button class="btn-action-pill" onclick="openEditBoardModal(${b.id})">投稿を修正する</button>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function openPostModal() {
+            document.getElementById('boardModalTitle').innerText = "お知らせを投稿する";
+            document.getElementById('bdSubmitBtn').innerText = "投稿する";
+            document.getElementById('bdId').value = ""; document.getElementById('bdName').value = ""; document.getElementById('bdBday').value = ""; document.getElementById('bdTitle').value = ""; document.getElementById('bdDetail').value = "";
+            document.getElementById('modal-board').classList.add('active');
+        }
+
+        function openEditBoardModal(id) {
+            const target = boardData.find(b => b.id === id);
+            if(!target) return;
+            document.getElementById('boardModalTitle').innerText = "投稿を修正する";
+            document.getElementById('bdSubmitBtn').innerText = "修正を保存";
+            document.getElementById('bdId').value = target.id; document.getElementById('bdName').value = target.author; document.getElementById('bdBday').value = ""; document.getElementById('bdCat').value = target.cat; document.getElementById('bdTitle').value = target.title; document.getElementById('bdDetail').value = target.detail;
+            document.getElementById('modal-board').classList.add('active');
+        }
+
+        async function submitBoard() {
+            const id = document.getElementById('bdId').value; const name = document.getElementById('bdName').value; const bday = document.getElementById('bdBday').value; const cat = document.getElementById('bdCat').value; const title = document.getElementById('bdTitle').value; const detail = document.getElementById('bdDetail').value;
+            if(!name || !bday || !title || !detail) return alert("必須項目をすべて入力してください");
+            const actionStr = id ? 'updateBoard' : 'postBoard';
+            const res = await gasApi({ action: actionStr, id: id, name: name, birthday: bday, cat: cat, title: title, detail: detail });
+            if(res.success) { alert(id ? "修正しました！" : "投稿しました！"); closeModal('modal-board'); loadBoard(); } else { alert("エラー: " + (res.error || "本人確認に失敗しました")); }
+        }
+
+        function closeModal(modalId, event) {
+            if(event && event.target !== document.getElementById(modalId) && !event.target.classList.contains('close-btn')) return;
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        window.onload = () => { loadRadar(); loadBoard(); };
+    </script>
+</body>
+</html>
