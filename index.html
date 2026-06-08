@@ -66,6 +66,7 @@
         }
         .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #999; }
         
+        /* レーダー用：縦並びセレクトボックス */
         .filter-select-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
         .filter-select {
             width: 100%; padding: 12px 16px; background-color: var(--white);
@@ -75,13 +76,22 @@
             background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;
         }
         
+        /* コルクボード用：横並びボタン */
+        .filter-pills { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+        .filter-pills::-webkit-scrollbar { display: none; }
+        .filter-pill {
+            padding: 8px 16px; background-color: var(--white); border: 1px solid var(--border);
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold; color: var(--text-sub);
+            white-space: nowrap; cursor: pointer; transition: all 0.2s;
+        }
+        .filter-pill.active { background-color: var(--primary); color: var(--white); border-color: var(--primary); }
+
         .list-meta { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
 
-        /* ========= プロ風の洗練されたカードデザイン ========= */
+        /* ========= カードデザイン ========= */
         .card {
             background: var(--white); border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
-            border: 1px solid var(--border);
-            display: flex; gap: 16px; align-items: flex-start;
+            border: 1px solid var(--border); display: flex; gap: 16px; align-items: flex-start;
         }
         .avatar {
             width: 44px; height: 44px; border-radius: 50%; background-color: #8D6E63;
@@ -108,7 +118,6 @@
             padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
             border: none; cursor: pointer; transition: background 0.2s;
         }
-        .btn-action-pill:active { background-color: #D0E4F7; }
 
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 0.9rem; }
 
@@ -120,9 +129,7 @@
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 4px 12px rgba(12, 68, 124, 0.4);
             font-size: 1.5rem; cursor: pointer; z-index: 900;
-            transition: transform 0.2s;
         }
-        .fab:active { transform: scale(0.9); }
 
         /* ========= モーダル ========= */
         .modal-overlay {
@@ -137,7 +144,6 @@
             max-height: 90vh; overflow-y: auto;
         }
         .modal-overlay.active .modal-content { bottom: 0; }
-        
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { margin: 0; font-size: 1.2rem; color: var(--primary); }
         .close-btn { font-size: 1.8rem; color: #999; border: none; background: none; cursor: pointer; padding: 0; line-height: 1; }
@@ -194,6 +200,9 @@
             </div>
             
             <div class="filter-select-group">
+                <select class="filter-select" id="radarFilterClub" onchange="renderRadar()">
+                    <option value="すべて">全部活</option>
+                </select>
                 <select class="filter-select" id="radarFilterArea" onchange="renderRadar()">
                     <option value="すべて">全エリア</option>
                     <option value="松山市">松山市</option>
@@ -220,12 +229,10 @@
                 <input type="text" id="boardSearch" placeholder="タイトルや内容で検索..." oninput="renderBoard()">
             </div>
             
-            <div class="filter-select-group" style="margin-bottom: 20px;">
-                <select class="filter-select" id="boardFilterCat" onchange="renderBoard()">
-                    <option value="すべて">全カテゴリ</option>
-                    <option value="告知">告知</option>
-                    <option value="近況">近況</option>
-                </select>
+            <div class="filter-pills">
+                <button class="filter-pill active" onclick="setBoardFilter('すべて', this)">すべて</button>
+                <button class="filter-pill" onclick="setBoardFilter('告知', this)">告知</button>
+                <button class="filter-pill" onclick="setBoardFilter('近況', this)">近況</button>
             </div>
 
             <div id="board-list"><div class="empty-state">データ読込中...</div></div>
@@ -270,32 +277,26 @@
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【1】過去の名簿は使っていません</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div>
             </div>
-            
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【2】住所・電話番号は聞きません</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア（大まかな地域）・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div>
             </div>
-            
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【3】管理者について正直にお伝えします</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。無理強いは一切しません。</div>
             </div>
-            
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【4】写真アルバムについて</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。URLを知っているだけです。</div>
             </div>
-            
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【5】データはいつでも消せます</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div>
             </div>
-            
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【6】このシステムの限界について</div>
                 <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。「永遠に続く保証」はありませんが、できる限り長く続けていく気持ちでいます。</div>
             </div>
-            
             <div style="background:var(--primary-light);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:10px;">
                 <div style="font-size:14px;color:var(--primary);font-weight:bold;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
                 <div style="font-size:13px;color:var(--text-sub)">LINE ID：@711epvso</div>
@@ -353,7 +354,6 @@
                 <button class="close-btn" onclick="closeModal('modal-board')">×</button>
             </div>
             <input type="hidden" id="bdId"> 
-            
             <div class="form-group">
                 <label>お名前 <span style="color:#e65100;">*</span></label>
                 <input type="text" id="bdName" class="form-control" placeholder="フルネーム">
@@ -387,6 +387,7 @@
 
         let membersData = [];
         let boardData = [];
+        let boardFilter = 'すべて'; // コルクボードの初期フィルター
 
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -423,12 +424,14 @@
 
         function renderRadar() {
             const search = document.getElementById('radarSearch').value.toLowerCase();
+            const clubFilter = document.getElementById('radarFilterClub').value;
             const areaFilter = document.getElementById('radarFilterArea').value;
             const statusFilter = document.getElementById('radarFilterStatus').value;
             const container = document.getElementById('radar-list');
             container.innerHTML = '';
             
             const filtered = membersData.filter(m => 
+                (clubFilter === 'すべて' || m.club === clubFilter) &&
                 (areaFilter === 'すべて' || m.area === areaFilter) &&
                 (statusFilter === 'すべて' || m.status === statusFilter) &&
                 ((m.name||'').toLowerCase().includes(search) || (m.hobby||'').toLowerCase().includes(search) || (m.note||'').toLowerCase().includes(search))
@@ -443,7 +446,6 @@
 
             filtered.forEach(m => {
                 let sClass = m.status === '帰省予定' ? 'status-yotei' : m.status === '帰省中' ? 'status-kisei' : 'status-zaiju';
-                // 名前の最初の2文字をアイコンに（画像デザインを再現）
                 let initial = m.name ? m.name.substring(0, 2) : "名無";
                 
                 const html = `
@@ -498,14 +500,20 @@
             renderBoard();
         }
 
+        function setBoardFilter(cat, el) {
+            boardFilter = cat;
+            document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderBoard();
+        }
+
         function renderBoard() {
             const search = document.getElementById('boardSearch').value.toLowerCase();
-            const catFilter = document.getElementById('boardFilterCat').value;
             const container = document.getElementById('board-list');
             container.innerHTML = '';
             
             const filtered = boardData.filter(b => 
-                (catFilter === 'すべて' || b.cat === catFilter) &&
+                (boardFilter === 'すべて' || b.cat === boardFilter) &&
                 ((b.title||'').toLowerCase().includes(search) || (b.detail||'').toLowerCase().includes(search))
             );
 
