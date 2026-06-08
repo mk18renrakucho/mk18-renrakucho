@@ -59,7 +59,15 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ========= 検索・フィルターUI ========= */
+        /* ========= 検索・フィルターUI（角丸カード内にグループ化） ========= */
+        .control-card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
         .search-box { position: relative; margin-bottom: 12px; }
         .search-box input { 
             width: 100%; padding: 12px 16px; background-color: var(--white); 
@@ -78,7 +86,7 @@
         .filter-pill.active { background-color: var(--primary); color: var(--white); }
 
         /* セレクトボックス縦並び */
-        .filter-select-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .filter-select-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; }
         .filter-select {
             width: 100%; padding: 12px 16px; background-color: var(--white);
             border: 1.5px solid #111111; border-radius: 8px; font-size: 0.95rem;
@@ -195,36 +203,38 @@
 
     <main class="container">
         <section id="radar" class="tab-content active">
-            <div class="search-box">
-                <input type="text" id="radarSearch" placeholder="名前・趣味・ひとことで検索" oninput="renderRadar()">
-            </div>
-            
-            <div class="filter-pills">
-                <button class="filter-pill active" id="radar-term-all" onclick="setRadarTermFilter('全期', this)">全期</button>
-                <button class="filter-pill" id="radar-term-33" onclick="setRadarTermFilter('33期', this)">33期</button>
-            </div>
-            
-            <div class="filter-select-group">
-                <select class="filter-select" id="radarFilterClub" onchange="renderRadar()">
-                    <option value="すべて">全部活</option>
-                    <option value="野球部">野球部</option>
-                    <option value="美術部">美術部</option>
-                    <option value="応援団">応援団</option>
-                </select>
-                <select class="filter-select" id="radarFilterArea" onchange="renderRadar()">
-                    <option value="すべて">全エリア</option>
-                    <option value="松山市">松山市</option>
-                    <option value="愛媛県(松山以外)">愛媛県(松山以外)</option>
-                    <option value="東京都">東京都</option>
-                    <option value="関東地方">関東地方</option>
-                    <option value="関西地方">関西地方</option>
-                </select>
-                <select class="filter-select" id="radarFilterStatus" onchange="renderRadar()">
-                    <option value="すべて">全状態</option>
-                    <option value="在住">在住</option>
-                    <option value="帰省予定">帰省予定</option>
-                    <option value="帰省中">帰省中</option>
-                </select>
+            <div class="control-card">
+                <div class="search-box">
+                    <input type="text" id="radarSearch" placeholder="名前・趣味・ひとことで検索" oninput="renderRadar()">
+                </div>
+                
+                <div class="filter-pills">
+                    <button class="filter-pill active" id="radar-term-all" onclick="setRadarTermFilter('全期', this)">全期</button>
+                    <button class="filter-pill" id="radar-term-33" onclick="setRadarTermFilter('33期', this)">33期</button>
+                </div>
+                
+                <div class="filter-select-group">
+                    <select class="filter-select" id="radarFilterClub" onchange="renderRadar()">
+                        <option value="すべて">全部活</option>
+                        <option value="野球部">野球部</option>
+                        <option value="美術部">美術部</option>
+                        <option value="応援団">応援団</option>
+                    </select>
+                    <select class="filter-select" id="radarFilterArea" onchange="renderRadar()">
+                        <option value="すべて">全エリア</option>
+                        <option value="松山市">松山市</option>
+                        <option value="愛媛県(松山以外)">愛媛県(松山以外)</option>
+                        <option value="東京都">東京都</option>
+                        <option value="関東地方">関東地方</option>
+                        <option value="関西地方">関西地方</option>
+                    </select>
+                    <select class="filter-select" id="radarFilterStatus" onchange="renderRadar()">
+                        <option value="すべて">全状態</option>
+                        <option value="在住">在住</option>
+                        <option value="帰省予定">帰省予定</option>
+                        <option value="帰省中">帰省中</option>
+                    </select>
+                </div>
             </div>
 
             <div class="list-meta" id="radarCount">表示中</div>
@@ -232,14 +242,16 @@
         </section>
 
         <section id="board" class="tab-content">
-            <div class="search-box">
-                <input type="text" id="boardSearch" placeholder="タイトルや内容で検索..." oninput="renderBoard()">
-            </div>
-            
-            <div class="filter-pills">
-                <button class="filter-pill active" onclick="setBoardFilter('すべて', this)">すべて</button>
-                <button class="filter-pill" onclick="setBoardFilter('告知', this)">告知</button>
-                <button class="filter-pill" onclick="setBoardFilter('近況', this)">近況</button>
+            <div class="control-card">
+                <div class="search-box">
+                    <input type="text" id="boardSearch" placeholder="タイトルや内容で検索..." oninput="renderBoard()">
+                </div>
+                
+                <div class="filter-pills" style="margin-bottom: 0;">
+                    <button class="filter-pill active" onclick="setBoardFilter('すべて', this)">すべて</button>
+                    <button class="filter-pill" onclick="setBoardFilter('告知', this)">告知</button>
+                    <button class="filter-pill" onclick="setBoardFilter('近況', this)">近況</button>
+                </div>
             </div>
 
             <div id="board-list"><div class="empty-state">データ読込中...</div></div>
@@ -292,7 +304,7 @@
             </div>
             <div class="card-safety">
                 <div style="font-size:14px;font-weight:bold;color:var(--primary);margin-bottom:8px">【6】このシステムの限界について</div>
-                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。できる限り長く続けてしていく気持ちでいます。</div>
+                <div style="font-size:14px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。できる限り長く続けていく気持ちでいます。</div>
             </div>
             <div style="background:var(--primary-light);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:10px;">
                 <div style="font-size:14px;color:var(--primary);font-weight:bold;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
@@ -447,7 +459,6 @@
             });
         }
 
-        // ★ openStatusModalにhobbyの受け取りロジックを追加 ★
         function openStatusModal(name, area, status, note, hobby) {
             document.getElementById('stName').value = name;
             document.getElementById('stBday').value = ""; 
@@ -458,7 +469,6 @@
             document.getElementById('modal-status').classList.add('active');
         }
 
-        // ★ submitStatusにhobbyをGASへ送信するロジックを追加 ★
         async function submitStatus() {
             const name = document.getElementById('stName').value;
             const bday = document.getElementById('stBday').value;
