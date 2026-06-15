@@ -24,9 +24,9 @@ body{
 }
 .inner{max-width:400px;width:100%;text-align:center;padding:24px 16px 0;}
 .logo{margin-bottom:32px}
-.logo .icon{font-size:44px;margin-bottom:10px}
-.logo .title{font-size:22px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
-.logo .sub{font-size:12px;color:var(--sub)}
+.logo .icon{font-size:52px;margin-bottom:12px}
+.logo .title{font-size:26px;font-weight:700;letter-spacing:.06em;margin-bottom:6px}
+.logo .sub{font-size:14px;color:var(--sub)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;box-shadow:0 4px 32px rgba(0,0,0,.4)}
 .screen{display:none}
 .screen.show{display:block;animation:fadeIn .3s ease}
@@ -50,38 +50,39 @@ input[type=text]:focus{border-color:var(--accent)}
 .err-msg{font-size:13px;color:#e74c3c;margin-top:10px;min-height:18px}
 .remain{font-size:12px;color:var(--sub);margin-top:6px}
 .big-icon{font-size:52px;margin-bottom:14px}
-.ok-title{font-size:21px;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ok-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:20px}
+.ok-title{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.ok-msg{font-size:14px;color:#fff;line-height:1.8;margin-bottom:20px;background:var(--accent);border-radius:var(--r);padding:12px 14px;}
 .terms-box{
-  background:#0c1a2e;border:1px solid var(--border);border-radius:var(--r);
-  padding:14px;margin-bottom:16px;text-align:left;max-height:200px;overflow-y:auto;
+  background:#fff;border:1px solid #ddd;border-radius:var(--r);
+  padding:16px;margin-bottom:16px;text-align:left;max-height:240px;overflow-y:auto;
 }
-.terms-box p{font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:6px}
-.terms-box p:last-child{margin-bottom:0}
+.terms-box p{font-size:13px;color:#333;line-height:2.0;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
+.terms-box p:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0}
 .terms-check{
-  display:flex;align-items:flex-start;gap:10px;
-  background:#132038;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:12px;margin-bottom:16px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  background:#fff;border:2px solid var(--accent);border-radius:var(--r);
+  padding:14px;margin-bottom:20px;text-align:left;cursor:pointer;
 }
 .terms-check input[type=checkbox]{
-  width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;margin-top:1px;cursor:pointer;
+  width:22px;height:22px;accent-color:var(--accent);flex-shrink:0;cursor:pointer;
 }
-.terms-check span{font-size:13px;color:var(--text);line-height:1.6}
-.choices{display:flex;flex-direction:column;gap:12px}
+.terms-check span{font-size:14px;color:#222;line-height:1.6;font-weight:500}
+.choices{display:flex;flex-direction:column;gap:14px}
 .btn-line{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:15px;background:#06C755;color:#fff;
-  border:none;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;background:#06C755;color:#fff;
+  border:none;border-radius:var(--r);font-family:inherit;font-size:16px;font-weight:700;
   cursor:pointer;text-decoration:none;transition:background .15s;
+  box-shadow:0 4px 12px rgba(6,199,85,0.3);
 }
 .btn-line:hover{background:#04a845}
 .btn-web-disabled{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:15px;background:transparent;color:#4a5568;
-  border:1.5px solid #2d3748;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
-  cursor:not-allowed;text-decoration:none;opacity:0.5;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;background:#2a3a4a;color:#6a7a8a;
+  border:1.5px solid #3a4a5a;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:not-allowed;text-decoration:none;
 }
-.choice-note{font-size:11px;color:var(--sub);text-align:center;margin-top:-6px}
+.choice-note{font-size:12px;color:var(--sub);text-align:center;margin-top:-8px}
 .block-icon{font-size:44px;margin-bottom:14px}
 .block-title{font-size:18px;font-weight:700;color:#e74c3c;margin-bottom:8px}
 .block-msg{font-size:13px;color:var(--sub);line-height:1.7}
@@ -113,7 +114,7 @@ input[type=text]:focus{border-color:var(--accent)}
       <p class="remain" id="remain"></p>
     </div>
     <!-- 画面②：認証完了＋利用規約 -->
-    <div class="screen" id="sc-ok">
+    <div class="screen" id="sc-ok" style="background:#fff;border-radius:12px;padding:4px 0">
       <div class="big-icon">✅</div>
       <div class="ok-title">認証完了！</div>
       <div class="ok-msg">さすが北高卒業生ですね👍<br>ご利用前に以下をご確認ください。</div>
@@ -132,14 +133,16 @@ input[type=text]:focus{border-color:var(--accent)}
       <div class="choices">
         <a class="btn-line" id="line-btn" href="https://line.me/ti/p/%40711epvso" target="_blank"
           style="pointer-events:none;opacity:0.4;" onclick="return false;">
-          📱 LINEで使う（友だち追加）
+          📱 LINEで友だち追加する
         </a>
         <p class="choice-note">リッチメニューから簡単に操作できます</p>
         <a class="btn-web-disabled" href="javascript:void(0)">
           📲 アプリ版は近日公開予定
         </a>
         <p class="choice-note">現在準備中です。</p>
-        <p class="choice-note" style="font-weight:700;color:var(--accent)">📋 <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:var(--accent)">フォームで管理者にお問い合わせください。</a></p>
+        <p class="choice-note" style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">
+          📋 <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:var(--accent)">フォームで管理者にお問い合わせ</a>
+        </p>
       </div>
     </div>
     <!-- 画面③：ブロック -->
