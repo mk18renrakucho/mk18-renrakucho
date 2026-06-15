@@ -4,10 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>北高 連絡帳</title>
+
+<!-- PWA設定 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#813100">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="北高連絡帳">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<!-- OneSignal SDK -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "9a1e6979-9af4-4943-97d1-2e39afcc072b",
+      safari_web_id: "",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+</script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/iconfont/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--blue:#0C447C;--blue-mid:#185FA5;--blue-light:#E6F1FB;--green:#06C755;--gray:#F5F5F5;--border:#E0E0E0;--text:#222;--text-sub:#666;--text-ter:#999;--white:#fff;--radius:12px;--radius-sm:8px;}
+:root{--blue:#813100;--blue-mid:#A84400;--blue-light:#FAEEDA;--green:#06C755;--gray:#F5F5F5;--border:#E0E0E0;--text:#222;--text-sub:#666;--text-ter:#999;--white:#fff;--radius:12px;--radius-sm:8px;}
 body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#F0F2F5;min-height:100vh}
 .app{max-width:480px;margin:0 auto;background:var(--white);min-height:100vh;display:flex;flex-direction:column;box-shadow:0 0 20px rgba(0,0,0,0.1)}
 .header{background:var(--blue);color:var(--white);padding:16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
@@ -22,7 +46,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#F0F2F5;min-h
 .card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
 .badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .badge-home{background:#E7F8EE;color:#27500A}
-.badge-plan{background:#E6F1FB;color:#0C447C}
+.badge-plan{background:#FAEEDA;color:#813100}
 .badge-live{background:#F1EFE8;color:#444}
 input,select,textarea{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:14px;font-family:inherit;color:var(--text);background:var(--white)}
 textarea{resize:vertical}
@@ -53,10 +77,37 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .overlay.show{display:flex}
 .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:#c9a96e;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.fav-login{background:var(--gray);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.fav-login-title{font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.fav-login-sub{font-size:12px;color:var(--text-sub);margin-bottom:12px;line-height:1.6}
+.fav-login input,.fav-login select{margin-bottom:8px}
+.fav-user-badge{display:flex;align-items:center;gap:10px;background:var(--blue-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
+.fav-user-badge .fav-user-info{flex:1;font-size:13px;color:var(--blue);font-weight:500}
+.fav-user-badge .fav-logout-btn{font-size:11px;color:var(--text-ter);background:none;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit}
+
+/* PWAインストールバナー */
+.pwa-banner{background:linear-gradient(135deg,#813100,#A84400);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none}
+.pwa-banner-icon{font-size:24px;flex-shrink:0}
+.pwa-banner-text{flex:1}
+.pwa-banner-btn{background:#fff;color:#813100;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.pwa-banner-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
 </style>
 </head>
 <body>
 <div class="app">
+
+<!-- PWAインストールバナー -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-icon">📱</div>
+  <div class="pwa-banner-text">ホーム画面に追加するとアプリとして使えます</div>
+  <button class="pwa-banner-btn" id="pwa-install-btn">追加する</button>
+  <button class="pwa-banner-close" onclick="hidePwaBanner()">✕</button>
+</div>
+
+<div style="background:#1a3a5c;color:#fff;text-align:center;padding:8px 12px;font-size:12px;line-height:1.8">
+  北高 連絡帳は、同窓生の近況共有を目的としたデジタル回覧板です。<br>
+  個人間の連絡・取引・仲介を行うサービスではありません。
+</div>
 
 <div class="header">
   <div>
@@ -70,8 +121,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <div class="tabs">
-  <button class="tab active" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
-  <button class="tab" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
+  <button class="tab active" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
+  <button class="tab" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
   <button class="tab" id="tb-c" onclick="go('c')"><i class="ti ti-lock"></i>部室</button>
   <button class="tab" id="tb-f" onclick="go('f')"><i class="ti ti-heart"></i>お気に入り</button>
   <button class="tab" id="tb-a" onclick="go('a')"><i class="ti ti-shield-lock"></i>安心宣言</button>
@@ -80,7 +131,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div class="content">
 
 <!-- 出没レーダー -->
-<div id="p-r">
+<div id="p-r" style="display:none">
   <div class="search-wrap">
     <i class="ti ti-search"></i>
     <input type="text" id="kw" placeholder="名前・趣味・ひとことで検索" oninput="renderM()">
@@ -99,7 +150,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- コルクボード -->
-<div id="p-b" style="display:none">
+<div id="p-b">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="display:flex;gap:6px">
       <button class="pill active" id="pa" onclick="fPost('全')">全て</button>
@@ -140,8 +191,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <!-- お気に入り -->
 <div id="p-f" style="display:none">
-  <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
-    <i class="ti ti-heart" style="margin-right:4px;color:#e74c3c"></i>メンバーカードのハートをタップするとここに追加されます。
+  <div id="fav-login-area" class="fav-login">
+    <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
+    <div class="fav-login-sub">名前と誕生日を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
+    <input type="text" id="fv_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
+    <input type="text" id="fv_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
+    <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
+  </div>
+  <div id="fav-user-area" class="fav-user-badge" style="display:none">
+    <i class="ti ti-user-check" style="font-size:22px;color:var(--blue);flex-shrink:0"></i>
+    <div class="fav-user-info" id="fav-user-label"></div>
+    <button class="fav-logout-btn" onclick="favLogout()">ログアウト</button>
+  </div>
+  <div id="fav-hint" style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6;display:none">
+    <i class="ti ti-heart" style="margin-right:4px;color:#e74c3c"></i>メンバーカードのハートをタップするとお気に入り登録されます。
   </div>
   <div id="fl"></div>
 </div>
@@ -203,7 +267,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
     <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
-      🔑 名前と誕生日で本人確認します。画像付きは写真館（VOOM）へ。
+      🔑 名前と誕生日で本人確認します。
     </div>
     <div style="margin-bottom:6px"><input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()"></div>
     <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
@@ -224,11 +288,109 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">Project MK-18 — 北高 連絡帳</div>
+<div class="footer">© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
+var favUser = null;
+
+// ===================================================
+// PWA：Service Worker登録 & インストールバナー
+// ===================================================
+var deferredPrompt = null;
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js')
+      .then(function(reg){ console.log('SW登録完了:', reg.scope); })
+      .catch(function(err){ console.log('SW登録失敗:', err); });
+  });
+}
+
+// Androidのインストールバナー
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwa-banner').style.display = 'flex';
+});
+
+document.getElementById('pwa-install-btn').addEventListener('click', function(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result){
+    if(result.outcome === 'accepted'){
+      showToast('📱 ホーム画面に追加しました！');
+    }
+    deferredPrompt = null;
+    hidePwaBanner();
+  });
+});
+
+// インストール完了時にバナーを隠す
+window.addEventListener('appinstalled', function(){
+  hidePwaBanner();
+  showToast('✓ アプリとしてインストールされました');
+});
+
+function hidePwaBanner(){
+  document.getElementById('pwa-banner').style.display = 'none';
+}
+
+// ===================================================
+// お気に入りログイン状態
+// ===================================================
+function favLogin(){
+  var name=(document.getElementById("fv_name").value||"").trim();
+  var bd=(document.getElementById("fv_bd").value||"").trim();
+  var errEl=document.getElementById("fv_err");
+  errEl.style.display="none";
+  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  document.getElementById("overlay").classList.add("show");
+  gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
+    document.getElementById("overlay").classList.remove("show");
+    if(res && res.success){
+      favUser = {name:name, birthday:bd};
+      var favNames = res.favorites || [];
+      M.forEach(function(m){ m.fav = favNames.indexOf(m.name) >= 0; });
+      showFavLoggedIn();
+      renderFav();
+      renderM();
+    } else {
+      errEl.textContent="名前または誕生日が一致しません。もう一度確認してください。";
+      errEl.style.display="block";
+      document.getElementById("fv_bd").value="";
+    }
+  });
+}
+
+function favLogout(){
+  favUser = null;
+  M.forEach(function(m){ m.fav = false; });
+  showFavLoggedOut();
+  renderFav();
+  renderM();
+}
+
+function showFavLoggedIn(){
+  document.getElementById("fav-login-area").style.display="none";
+  document.getElementById("fav-user-area").style.display="flex";
+  document.getElementById("fav-hint").style.display="block";
+  document.getElementById("fav-user-label").textContent=favUser.name + "さんでログイン中";
+}
+
+function showFavLoggedOut(){
+  document.getElementById("fav-login-area").style.display="block";
+  document.getElementById("fav-user-area").style.display="none";
+  document.getElementById("fav-hint").style.display="none";
+  document.getElementById("fv_bd").value="";
+  document.getElementById("fv_err").style.display="none";
+}
+
+// ===================================================
+// 部室アルバムリスト
+// ===================================================
 var AL=[
   {name:"テニス部",pass:"テニス",url:"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16",desc:"テニス部の思い出アルバム"},
   {name:"野球部",pass:"野球",url:"https://photos.app.goo.gl/Aphu5ttxy8DHz6ax9",desc:"野球部の思い出アルバム"},
@@ -260,7 +422,7 @@ var AL=[
   {name:"茶道部",pass:"茶道",url:"",desc:"茶道部の思い出アルバム"},
   {name:"新聞部",pass:"新聞",url:"",desc:"新聞部の思い出アルバム"},
 ];
-var AC=["#0C447C","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
+var AC=["#813100","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
 var API_URL="https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
 
 function gasGet(params,cb){
@@ -302,13 +464,15 @@ function populateFilters(){
 function selectPeriod(p){selectedPeriod=p;populateFilters();renderM();}
 
 function memberCardHTML(m){
+  var favBtnClass = favUser ? "fav-btn"+(m.fav?" active":"") : "fav-btn";
+  var favBtnTitle = favUser ? "" : ' title="お気に入りタブでログインすると保存できます"';
   return '<div class="card member-card" id="mc'+m.id+'">'
     +'<div style="display:flex;gap:12px;align-items:flex-start">'+av(m.name)
     +'<div style="flex:1;min-width:0">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
     +'<span style="font-weight:500;font-size:15px">'+m.name+'</span>'
     +sb(m.status)
-    +'<button class="fav-btn'+(m.fav?" active":"")+'" onclick="toggleFav('+m.id+',event)"><i class="ti ti-heart"></i></button>'
+    +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'><i class="ti ti-heart"></i></button>'
     +'</div>'
     +'<div style="font-size:12px;color:var(--text-sub)">'+m.period+' · '+m.club+' · '+m.area+'</div>'
     +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+m.date+'</div>':"")
@@ -336,14 +500,24 @@ function renderM(){
 
 function renderFav(){
   var f=M.filter(function(m){return m.fav;});
-  document.getElementById("fl").innerHTML=f.length?f.map(memberCardHTML).join(""):'<div style="text-align:center;padding:40px 0;color:var(--text-ter)"><i class="ti ti-heart" style="font-size:32px;display:block;margin-bottom:8px"></i>まだお気に入りがいません</div>';
+  document.getElementById("fl").innerHTML=f.length?f.map(memberCardHTML).join(""):'<div style="text-align:center;padding:40px 0;color:var(--text-ter)"><i class="ti ti-heart" style="font-size:32px;display:block;margin-bottom:8px"></i>'+(favUser?"まだお気に入りがいません":"ログインするとお気に入りが表示されます")+'</div>';
 }
 
 function toggleFav(id,e){
   e.stopPropagation();
+  if(!favUser){showToast("💡 お気に入りタブでログインすると保存できます");return;}
   var m=M.find(function(x){return x.id===id;});
-  m.fav=!m.fav;
+  var newFav=!m.fav;
+  m.fav=newFav;
   renderM();renderFav();
+  gasGet({action:"saveFavorite",name:favUser.name,birthday:favUser.birthday,target:m.name},function(res){
+    if(res&&res.success){
+      showToast(newFav?"❤ お気に入りに追加しました":"💔 お気に入りから削除しました");
+    } else {
+      m.fav=!newFav;renderM();renderFav();
+      showToast("⚠ 保存に失敗しました。もう一度お試しください。");
+    }
+  });
 }
 
 function openDet(id){
@@ -376,16 +550,11 @@ function doUpdate(){
   var bd=(document.getElementById("u_bd").value||"").trim();
   var errEl=document.getElementById("u_err");
   errEl.style.display="none";
-  if(!bd||!/^[0-9]{4}$/.test(bd)){
-    errEl.textContent="誕生日を4桁で入力してください（例：0315）";
-    errEl.style.display="block";return;
-  }
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください（例：0315）";errEl.style.display="block";return;}
   var btn=document.getElementById("u_btn");
   btn.disabled=true;btn.textContent="更新中...";
   gasGet({
-    action:"updateStatus",
-    name:m.name,
-    birthday:bd,
+    action:"updateStatus",name:m.name,birthday:bd,
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
     homecoming:document.getElementById("ud").value.trim(),
@@ -447,19 +616,14 @@ function addPost(){
   var btn=document.getElementById("b_btn");
   btn.disabled=true;btn.textContent="送信中...";
   gasGet({
-    action:"postBoard",
-    name:name,
-    birthday:bd,
+    action:"postBoard",name:name,birthday:bd,
     cat:document.getElementById("b_cat").value,
-    title:title,
-    detail:detail,
+    title:title,detail:detail,
     url:(document.getElementById("b_url").value||"").trim()
   },function(res){
     btn.disabled=false;btn.textContent="投稿する";
     if(res&&res.success){
-      closeBoardModal();
-      showToast("✓ 投稿しました！");
-      loadBoardFromAPI();
+      closeBoardModal();showToast("✓ 投稿しました！");loadBoardFromAPI();
     } else {
       errEl.textContent=(res&&res.error)||"名前または誕生日が一致しません。";
       errEl.style.display="block";
@@ -541,22 +705,13 @@ function loadFromAPI(){
     .then(function(data){
       M=data.filter(function(d){return d.name;}).map(function(d,i){
         return {
-          id:i+1,
-          name:d.name||"",
-          period:d.period||"",
-          club:d.club||"",
-          area:d.area||"",
+          id:i+1,name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
           status:(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
-          date:d.date||"",
-          hobby:d.hobby||"",
-          note:d.note||"",
-          upd:"最新",
-          fav:false
+          date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false
         };
       });
       if(loading)loading.style.display="none";
-      populateFilters();
-      renderM();
+      populateFilters();renderM();
     })
     .catch(function(){
       if(loading)loading.style.display="none";
@@ -578,7 +733,8 @@ if(hash==="#board")go("b");
 else if(hash==="#club")go("c");
 else if(hash==="#fav")go("f");
 else if(hash==="#anshin")go("a");
-else go("r");
+else if(hash==="#radar")go("r");
+else go("b");
 
 loadFromAPI();
 </script>
