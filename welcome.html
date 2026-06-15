@@ -9,28 +9,28 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0c1a2e;--surface:#132038;--border:#1e3050;
-  --accent:#c9a96e;--accent-dark:#a07840;
+  --accent:#813100;--accent-dark:#5a2200;
   --text:#f0ece4;--sub:#8a9ab5;--r:12px;
 }
 body{
   font-family:'Noto Sans JP',sans-serif;
   background:var(--bg);color:var(--text);
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:24px 16px;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:0 0 40px;
 }
-.wrap{max-width:400px;width:100%;text-align:center}
+.banner{
+  width:100%;background:#1a3a5c;color:#fff;
+  text-align:center;padding:8px 12px;font-size:12px;line-height:1.8;
+}
+.inner{max-width:400px;width:100%;text-align:center;padding:24px 16px 0;}
 .logo{margin-bottom:32px}
 .logo .icon{font-size:44px;margin-bottom:10px}
 .logo .title{font-size:22px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
 .logo .sub{font-size:12px;color:var(--sub)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;box-shadow:0 4px 32px rgba(0,0,0,.4)}
-
-/* 画面切り替え */
 .screen{display:none}
 .screen.show{display:block;animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* クイズ画面 */
 .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:14px}
 .question{font-size:16px;font-weight:700;line-height:1.6;margin-bottom:6px}
 .hint{font-size:12px;color:var(--sub);margin-bottom:22px}
@@ -42,18 +42,31 @@ input[type=text]{
 }
 input[type=text]:focus{border-color:var(--accent)}
 .btn-primary{
-  width:100%;padding:13px;background:var(--accent);color:#1a1208;
+  width:100%;padding:13px;background:var(--accent);color:#fff;
   border:none;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
   cursor:pointer;transition:background .15s;letter-spacing:.05em;
 }
-.btn-primary:hover{background:var(--accent-dark);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
 .err-msg{font-size:13px;color:#e74c3c;margin-top:10px;min-height:18px}
 .remain{font-size:12px;color:var(--sub);margin-top:6px}
-
-/* 認証完了画面 */
 .big-icon{font-size:52px;margin-bottom:14px}
 .ok-title{font-size:21px;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ok-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:24px}
+.ok-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:20px}
+.terms-box{
+  background:#0c1a2e;border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;margin-bottom:16px;text-align:left;max-height:200px;overflow-y:auto;
+}
+.terms-box p{font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:6px}
+.terms-box p:last-child{margin-bottom:0}
+.terms-check{
+  display:flex;align-items:flex-start;gap:10px;
+  background:#132038;border:1.5px solid var(--border);border-radius:var(--r);
+  padding:12px;margin-bottom:16px;text-align:left;cursor:pointer;
+}
+.terms-check input[type=checkbox]{
+  width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;margin-top:1px;cursor:pointer;
+}
+.terms-check span{font-size:13px;color:var(--text);line-height:1.6}
 .choices{display:flex;flex-direction:column;gap:12px}
 .btn-line{
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -62,34 +75,31 @@ input[type=text]:focus{border-color:var(--accent)}
   cursor:pointer;text-decoration:none;transition:background .15s;
 }
 .btn-line:hover{background:#04a845}
-.btn-web{
+.btn-web-disabled{
   display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:15px;background:transparent;color:var(--text);
-  border:1.5px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
-  cursor:pointer;text-decoration:none;transition:border-color .15s;
+  width:100%;padding:15px;background:transparent;color:#4a5568;
+  border:1.5px solid #2d3748;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:not-allowed;text-decoration:none;opacity:0.5;
 }
-.btn-web:hover{border-color:var(--accent)}
 .choice-note{font-size:11px;color:var(--sub);text-align:center;margin-top:-6px}
-
-/* ブロック画面 */
 .block-icon{font-size:44px;margin-bottom:14px}
 .block-title{font-size:18px;font-weight:700;color:#e74c3c;margin-bottom:8px}
 .block-msg{font-size:13px;color:var(--sub);line-height:1.7}
-
 .footer{font-size:11px;color:var(--sub);margin-top:22px;opacity:.5}
 </style>
 </head>
 <body>
-<div class="wrap">
-
+<div class="banner">
+  北高 連絡帳は、同窓生の近況共有を目的としたデジタル回覧板です。<br>
+  個人間の連絡・取引・仲介を行うサービスではありません。
+</div>
+<div class="inner">
   <div class="logo">
     <div class="icon">📋</div>
     <div class="title">北高 連絡帳</div>
     <div class="sub">松山北高校 同窓生ネットワーク</div>
   </div>
-
   <div class="card">
-
     <!-- 画面①：クイズ -->
     <div class="screen show" id="sc-quiz">
       <p class="lbl">本人確認</p>
@@ -102,24 +112,36 @@ input[type=text]:focus{border-color:var(--accent)}
       <p class="err-msg" id="err"></p>
       <p class="remain" id="remain"></p>
     </div>
-
-    <!-- 画面②：認証完了 -->
+    <!-- 画面②：認証完了＋利用規約 -->
     <div class="screen" id="sc-ok">
       <div class="big-icon">✅</div>
       <div class="ok-title">認証完了！</div>
-      <div class="ok-msg">さすが北高卒業生ですね👍<br>どちらで使いますか？</div>
+      <div class="ok-msg">さすが北高卒業生ですね👍<br>ご利用前に以下をご確認ください。</div>
+      <div class="terms-box">
+        <p>①本サービスは佐々木宗明（33期・個人）が運営するボランティアサービスです。</p>
+        <p>②登録情報（名前・期・部活・エリア・近況）は同窓生間で共有されます。</p>
+        <p>③住所・電話番号・メールアドレスは収集しません。</p>
+        <p>④本サービスは同窓生の近況共有を目的としており、個人間の連絡・取引・仲介には使用できません。</p>
+        <p>⑤退会したい場合は下記のフォームより管理者にお問い合わせください。</p>
+        <p>⑥運営者の判断によりサービスを終了する場合があります。</p>
+      </div>
+      <label class="terms-check">
+        <input type="checkbox" id="agree-check" onchange="toggleLineBtn()">
+        <span>上記6項目の利用規約に同意します</span>
+      </label>
       <div class="choices">
-        <a class="btn-line" href="https://line.me/ti/p/%40711epvso" target="_blank">
+        <a class="btn-line" id="line-btn" href="https://line.me/ti/p/%40711epvso" target="_blank"
+          style="pointer-events:none;opacity:0.4;" onclick="return false;">
           📱 LINEで使う（友だち追加）
         </a>
         <p class="choice-note">リッチメニューから簡単に操作できます</p>
-        <a class="btn-web" href="https://mk18renrakucho.github.io/mk18-renrakucho/">
-          🌐 そのままWebで使う
+        <a class="btn-web-disabled" href="javascript:void(0)">
+          📲 アプリ版は近日公開予定
         </a>
-        <p class="choice-note">ブラウザで直接アプリを開きます</p>
+        <p class="choice-note">現在準備中です。</p>
+        <p class="choice-note" style="font-weight:700;color:var(--accent)">📋 <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:var(--accent)">フォームで管理者にお問い合わせください。</a></p>
       </div>
     </div>
-
     <!-- 画面③：ブロック -->
     <div class="screen" id="sc-block">
       <div class="block-icon">🚫</div>
@@ -129,55 +151,50 @@ input[type=text]:focus{border-color:var(--accent)}
         心当たりのある方は既存メンバーにご相談ください。
       </div>
     </div>
-
   </div>
-
-  <div class="footer">Project MK-18 — 北高 連絡帳</div>
+  <div class="footer">© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
-
 <script>
 var MAX = 5;
 var QUESTIONS = [
   { q:'北高の怖い体育の先生のあだ名は？',        a:['ゴリさん','ごりさん','ゴリ','ごり'] },
   { q:'電停の前にあるお店といえば？',             a:['パール','ぱーる'] },
-  { q:'卒業アルバムでおなじみの写真館の名前は？',         a:['松原写真館','松原','まつばら写真館','まつばら'] },
+  { q:'卒業アルバムでおなじみの写真館の名前は？', a:['松原写真館','松原','まつばら写真館','まつばら'] },
   { q:'北高の近くにうまい中華料理屋といえば？',   a:['ない','なし','ないよ','そんな店はない','そんなお店はない','ありません','ないです'] }
 ];
-
 var tries = 0;
 var current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
 document.getElementById('q-text').textContent = current.q;
-
 function norm(s){ return (s||'').replace(/[\s　！!。、？?・]/g,'').toLowerCase(); }
-
 function show(id){
   document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('show'); });
   document.getElementById(id).classList.add('show');
 }
-
+function toggleLineBtn(){
+  var checked = document.getElementById('agree-check').checked;
+  var btn = document.getElementById('line-btn');
+  if(checked){
+    btn.style.pointerEvents = 'auto';
+    btn.style.opacity = '1';
+    btn.onclick = null;
+  } else {
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.4';
+    btn.onclick = function(){ return false; };
+  }
+}
 function check(){
   var val = (document.getElementById('q-input').value||'').trim();
   if(!val) return;
-
   tries++;
   var ok = current.a.some(function(a){ return norm(val)===norm(a); });
-
-  if(ok){
-    show('sc-ok');
-    return;
-  }
-
+  if(ok){ show('sc-ok'); return; }
   var left = MAX - tries;
-  if(left <= 0){
-    show('sc-block');
-    return;
-  }
-
+  if(left <= 0){ show('sc-block'); return; }
   document.getElementById('err').textContent = '❌ 違います。';
   document.getElementById('remain').textContent = 'あと'+left+'回試せます';
   document.getElementById('q-input').value = '';
   document.getElementById('q-input').focus();
-
   if(tries === 3){
     current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
     document.getElementById('q-text').textContent = current.q;
