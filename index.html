@@ -472,7 +472,7 @@ function memberCardHTML(m){
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
     +'<span style="font-weight:500;font-size:15px">'+m.name+'</span>'
     +sb(m.status)
-    +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'><i class="ti ti-heart"></i></button>'
+    +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'>'+(m.fav?'❤️':'🤍')+'</button>'
     +'</div>'
     +'<div style="font-size:12px;color:var(--text-sub)">'+m.period+' · '+m.club+' · '+m.area+'</div>'
     +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+m.date+'</div>':"")
