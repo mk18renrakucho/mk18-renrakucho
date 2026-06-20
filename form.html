@@ -156,7 +156,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <div class="field" id="reg-period">
       <label>期<span class="req">*</span><span class="hint">例：33期</span></label>
-      <input type="text" id="reg_period" placeholder="例：33期">
+      <input type="text" id="reg_period" placeholder="例：33期" oninput="this.dataset.fromCalc=''">
       <p class="error-msg">期を入力してください</p>
       <div style="margin-top:8px;background:var(--accent-light);border-radius:8px;padding:10px 12px">
         <div style="font-size:12px;color:#5a2200;font-weight:700;margin-bottom:6px">🎂 生まれた年から期を調べる</div>
@@ -369,24 +369,28 @@ function calcPeriodFromBirth(){
   var y = parseInt(document.getElementById('birth_year_calc').value, 10);
   var early = document.getElementById('birth_month_calc').value === 'early';
   var resEl = document.getElementById('calc_result2');
+  var pInput = document.getElementById('reg_period');
   if(!y || y < 1900 || y > 2020){
     resEl.style.color = '#c0392b';
     resEl.textContent = '西暦4桁で生まれた年を入力してください（例：1963）';
+    if(pInput.dataset.fromCalc === '1'){ pInput.value = ''; pInput.dataset.fromCalc = ''; }
     return;
   }
   var cohort = early ? y - 1 : y;
-  var gradYear = cohort + 18; // 高校卒業＝学年度+18（小6+中3+高3）
+  var gradYear = cohort + 19; // 高校卒業＝学年度+19（小学校入学が学年度+7、+6年+3年+3年）
   // 1950年（松山北高1期）より前は、男子校「北予中→北予高」と女子校「城北高女→城北高」で
   // 期の数え方が別系統だったため、生年だけでは自動計算できない
   if(gradYear < 1950){
     resEl.style.color = '#c0392b';
     resEl.textContent = '1950年（松山北高1期）より前のご卒業は、男子（北予中・北予高）と女子（城北高女・城北高）で期の数え方が異なるため自動計算できません。お手数ですが北斗会の早見表で直接ご確認ください。';
+    if(pInput.dataset.fromCalc === '1'){ pInput.value = ''; pInput.dataset.fromCalc = ''; }
     return;
   }
   var period = gradYear - 1949; // 北高1期＝1950年卒
   resEl.style.color = '#5a2200';
   resEl.textContent = '→ ' + period + '期です（卒業年は約' + gradYear + '年。上の入力欄に自動反映しました。前後でズレてたら教えてください）';
-  document.getElementById('reg_period').value = period + '期';
+  pInput.value = period + '期';
+  pInput.dataset.fromCalc = '1';
   document.getElementById('reg-period').classList.remove('has-error');
 }
 function submitRegister() {
