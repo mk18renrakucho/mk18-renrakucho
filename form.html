@@ -158,6 +158,19 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>期<span class="req">*</span><span class="hint">例：33期</span></label>
       <input type="text" id="reg_period" placeholder="例：33期">
       <p class="error-msg">期を入力してください</p>
+      <div style="margin-top:8px;background:var(--accent-light);border-radius:8px;padding:10px 12px">
+        <div style="font-size:12px;color:#5a2200;font-weight:700;margin-bottom:6px">🎂 生まれた年から期を調べる</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="birth_year_calc" placeholder="例：1963" inputmode="numeric" maxlength="4" style="flex:1;padding:8px 10px;font-size:13px">
+          <select id="birth_month_calc" style="flex-shrink:0;padding:8px 6px;font-size:12px;width:auto">
+            <option value="late">4〜12月生まれ</option>
+            <option value="early">1〜3月生まれ（早生まれ）</option>
+          </select>
+        </div>
+        <button type="button" onclick="calcPeriodFromBirth()" style="width:100%;margin-top:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">計算</button>
+        <div id="calc_result2" style="font-size:12px;color:#5a2200;margin-top:6px;min-height:16px"></div>
+        <p style="font-size:11px;color:#5a2200;margin-top:6px;opacity:.75">※卒業年から直接知りたい方は<a href="http://www.matsuyamakita.com/aboutus/yearofgrad/index.html" target="_blank" style="color:#5a2200">北斗会の早見表</a>もどうぞ</p>
+      </div>
     </div>
     <div class="field" id="reg-club">
       <label>部活<span class="req">*</span></label>
@@ -351,6 +364,30 @@ function reqBirthday(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val || !/^[0-9]{4}$/.test(val)){ el.classList.add('has-error'); return false; }
   el.classList.remove('has-error'); return true;
+}
+function calcPeriodFromBirth(){
+  var y = parseInt(document.getElementById('birth_year_calc').value, 10);
+  var early = document.getElementById('birth_month_calc').value === 'early';
+  var resEl = document.getElementById('calc_result2');
+  if(!y || y < 1900 || y > 2020){
+    resEl.style.color = '#c0392b';
+    resEl.textContent = '西暦4桁で生まれた年を入力してください（例：1963）';
+    return;
+  }
+  var cohort = early ? y - 1 : y;
+  var gradYear = cohort + 18; // 高校卒業＝学年度+18（小6+中3+高3）
+  // 1950年（松山北高1期）より前は、男子校「北予中→北予高」と女子校「城北高女→城北高」で
+  // 期の数え方が別系統だったため、生年だけでは自動計算できない
+  if(gradYear < 1950){
+    resEl.style.color = '#c0392b';
+    resEl.textContent = '1950年（松山北高1期）より前のご卒業は、男子（北予中・北予高）と女子（城北高女・城北高）で期の数え方が異なるため自動計算できません。お手数ですが北斗会の早見表で直接ご確認ください。';
+    return;
+  }
+  var period = gradYear - 1949; // 北高1期＝1950年卒
+  resEl.style.color = '#5a2200';
+  resEl.textContent = '→ ' + period + '期です（卒業年は約' + gradYear + '年。上の入力欄に自動反映しました。前後でズレてたら教えてください）';
+  document.getElementById('reg_period').value = period + '期';
+  document.getElementById('reg-period').classList.remove('has-error');
 }
 function submitRegister() {
   if(!document.getElementById('reg_agree').checked){
