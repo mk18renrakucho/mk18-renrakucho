@@ -54,6 +54,8 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .18s;margin-top:24px;letter-spacing:.05em}
 .submit-btn:hover{background:var(--accent-dark)}
 .submit-btn:disabled{background:var(--border);color:var(--sub);cursor:not-allowed}
+.submit-btn-sub{width:100%;padding:14px;background:#fff;color:var(--accent);border:2px solid var(--accent);border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .18s;margin-top:10px;letter-spacing:.05em}
+.submit-btn-sub:hover{background:var(--accent-light)}
 .error-msg{font-size:12px;color:#c0392b;margin-top:4px;display:none}
 .field.has-error input,.field.has-error select{border-color:#e74c3c}
 .field.has-error .error-msg{display:block}
@@ -66,6 +68,17 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .footer{background:#813100;color:rgba(255,255,255,0.5);text-align:center;padding:10px;font-size:11px;margin-top:40px;}
+.dup-box{background:#FAEEDA;border:2px solid var(--accent);border-radius:12px;padding:20px;margin-top:16px;display:none}
+.dup-box .dup-title{font-size:14px;font-weight:700;color:var(--accent-dark);margin-bottom:10px}
+.dup-box .dup-desc{font-size:12px;color:#5a2200;line-height:1.7;margin-bottom:14px}
+/* 近況更新：確認ステップ / 更新フォームステップ */
+.radar-step{display:none}
+.radar-step.active{display:block}
+.current-info-card{background:#f5f0e8;border:1px solid var(--accent);border-radius:10px;padding:16px;margin-bottom:20px}
+.current-info-card .ci-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--sub);margin-bottom:10px}
+.current-info-row{display:flex;gap:8px;font-size:13px;margin-bottom:6px}
+.current-info-row .ci-label{color:var(--sub);flex-shrink:0;width:70px}
+.current-info-row .ci-val{color:var(--text);font-weight:700}
 @media(max-width:480px){.card{padding:20px 16px}}
 </style>
 </head>
@@ -75,7 +88,8 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   個人間の連絡・取引・仲介を行うサービスではありません。
 </div>
 <div class="wrapper">
-<!-- トップ：3択分岐 -->
+
+<!-- トップ -->
 <div id="top">
   <div class="header">
     <div class="badge">✍️ 連絡帳に書き込む</div>
@@ -96,7 +110,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="branch-btn" onclick="showSection('radar')">
       <div class="icon">📡</div>
       <div class="title">近況を更新する</div>
-      <div class="desc">エリア・帰省予定・ひとことを更新する<br>名前＋誕生日で本人確認します</div>
+      <div class="desc">登録情報を確認してから変更できます<br>名前＋誕生日で本人確認します</div>
     </button>
     <div class="voom-card">
       <div class="icon">📢</div>
@@ -108,6 +122,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
   </div>
 </div>
+
 <!-- 登録完了画面 -->
 <div class="form-section" id="done">
   <div class="header">
@@ -133,6 +148,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" onclick="showTop()">トップに戻る</button>
   </div>
 </div>
+
 <!-- 【A】新規メンバー登録 -->
 <div class="form-section" id="register">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -221,6 +237,13 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>ひとこと近況<span class="hint">任意</span></label>
       <textarea id="reg_note" placeholder="近況をひとことどうぞ"></textarea>
     </div>
+    <!-- 重複確認ボックス -->
+    <div class="dup-box" id="dup_box">
+      <div class="dup-title">⚠️ 同じ名前・誕生日のメンバーがすでに登録されています</div>
+      <div class="dup-desc">以前ご自身で登録された可能性があります。どちらですか？</div>
+      <button class="submit-btn" onclick="submitRegisterForce(true)">自分の情報を上書き更新する</button>
+      <button class="submit-btn-sub" onclick="submitRegisterForce(false)">別人です・新規で登録する</button>
+    </div>
     <div class="err-box" id="reg_err"></div>
     <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--sub);margin-top:16px;cursor:pointer">
       <input type="checkbox" id="reg_agree" style="width:17px;height:17px;margin-top:2px;flex-shrink:0;accent-color:var(--accent)">
@@ -229,6 +252,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" id="reg_btn" onclick="submitRegister()">メンバー登録する</button>
   </div>
 </div>
+
 <!-- 【B】コルクボード投稿 -->
 <div class="form-section" id="board">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
@@ -249,6 +273,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
       <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
       <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+    </div>
+    <div class="field">
+      <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
+      <input type="text" id="b_period" placeholder="例：33期">
     </div>
     <div class="divider"></div>
     <p class="section-label">投稿内容</p>
@@ -277,67 +305,119 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
   </div>
 </div>
-<!-- 【C】近況更新 -->
+
+<!-- 【C】近況更新（2ステップ） -->
 <div class="form-section" id="radar">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
   <div class="header">
     <div class="badge">📡 出没レーダー</div>
     <h1>近況を更新する</h1>
-    <p class="sub">名前と誕生日で本人確認してから更新します</p>
+    <p class="sub">まず本人確認をしてから更新します</p>
   </div>
-  <div class="card">
-    <div class="notice">🔑 登録時の名前と誕生日を入力してください。本人確認に使用します。</div>
-    <p class="section-label">本人確認</p>
-    <div class="field" id="rf-name">
-      <label>お名前（漢字）<span class="req">*</span></label>
-      <input type="text" id="r_name" placeholder="例：佐々木 宗明">
-      <p class="error-msg">お名前を入力してください</p>
-    </div>
-    <div class="field" id="rf-bd">
-      <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
-      <input type="text" id="r_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-      <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
-    </div>
-    <div class="divider"></div>
-    <p class="section-label">更新内容</p>
-    <div class="field" id="rf-area">
-      <label>現在のエリア<span class="req">*</span></label>
-      <select id="r_area">
-        <option value="">選択してください</option>
-        <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
-        <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
-        <option>北海道・東北</option><option>海外</option><option>その他</option>
-      </select>
-      <p class="error-msg">エリアを選択してください</p>
-    </div>
-    <div class="field" id="rf-status">
-      <label>現在の状態<span class="req">*</span></label>
-      <div class="radio-group">
-        <label class="radio-item"><input type="radio" name="r_st" value="在住（松山在住）"><span>松山に在住</span></label>
-        <label class="radio-item"><input type="radio" name="r_st" value="松山以外に在住"><span>松山以外に在住</span></label>
-        <label class="radio-item"><input type="radio" name="r_st" value="帰省予定"><span>帰省予定あり</span></label>
-        <label class="radio-item"><input type="radio" name="r_st" value="帰省中"><span>帰省中</span></label>
+
+  <!-- ステップ1：本人確認 -->
+  <div class="radar-step active" id="radar-step1">
+    <div class="card">
+      <div class="notice">🔑 登録時の名前と誕生日を入力してください。現在の登録情報を表示します。</div>
+      <div class="field" id="rf-name">
+        <label>お名前（漢字）<span class="req">*</span></label>
+        <input type="text" id="r_name" placeholder="例：佐々木 宗明">
+        <p class="error-msg">お名前を入力してください</p>
       </div>
-      <p class="error-msg">状態を選択してください</p>
+      <div class="field" id="rf-bd">
+        <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
+        <input type="text" id="r_bd" placeholder="0315" maxlength="4" inputmode="numeric">
+        <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+      </div>
+      <div class="field">
+        <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
+        <input type="text" id="r_period_check" placeholder="例：33期">
+      </div>
+      <div class="err-box" id="r_check_err"></div>
+      <button class="submit-btn" id="r_check_btn" onclick="checkRadar()">確認する</button>
     </div>
-    <div class="field">
-      <label>帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
-      <input type="text" id="r_hc" placeholder="例：8/13〜8/17">
+  </div>
+
+  <!-- ステップ2：現在の情報を表示して更新 -->
+  <div class="radar-step" id="radar-step2">
+    <div class="card">
+      <!-- 現在の登録情報 -->
+      <div class="current-info-card">
+        <div class="ci-title">📋 現在の登録情報</div>
+        <div class="current-info-row"><span class="ci-label">期</span><span class="ci-val" id="ci_period">-</span></div>
+        <div class="current-info-row"><span class="ci-label">部活</span><span class="ci-val" id="ci_club">-</span></div>
+        <div class="current-info-row"><span class="ci-label">エリア</span><span class="ci-val" id="ci_area">-</span></div>
+        <div class="current-info-row"><span class="ci-label">状態</span><span class="ci-val" id="ci_status">-</span></div>
+        <div class="current-info-row"><span class="ci-label">帰省期間</span><span class="ci-val" id="ci_homecoming">-</span></div>
+        <div class="current-info-row"><span class="ci-label">趣味</span><span class="ci-val" id="ci_hobby">-</span></div>
+        <div class="current-info-row"><span class="ci-label">ひとこと</span><span class="ci-val" id="ci_note">-</span></div>
+      </div>
+      <p class="section-label">変更する内容</p>
+      <div class="field" id="rf-area">
+        <label>現在のエリア<span class="req">*</span></label>
+        <select id="r_area">
+          <option value="">選択してください</option>
+          <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
+          <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
+          <option>北海道・東北</option><option>海外</option><option>その他</option>
+        </select>
+        <p class="error-msg">エリアを選択してください</p>
+      </div>
+      <div class="field" id="rf-status">
+        <label>現在の状態<span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-item"><input type="radio" name="r_st" value="在住（松山在住）"><span>松山に在住</span></label>
+          <label class="radio-item"><input type="radio" name="r_st" value="松山以外に在住"><span>松山以外に在住</span></label>
+          <label class="radio-item"><input type="radio" name="r_st" value="帰省予定"><span>帰省予定あり</span></label>
+          <label class="radio-item"><input type="radio" name="r_st" value="帰省中"><span>帰省中</span></label>
+        </div>
+        <p class="error-msg">状態を選択してください</p>
+      </div>
+      <div class="field">
+        <label>帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
+        <input type="text" id="r_hc" placeholder="例：8/13〜8/17">
+      </div>
+      <div class="divider"></div>
+      <p class="section-label">プロフィール変更（任意）</p>
+      <div class="field">
+        <label>部活<span class="hint">変更したい場合のみ選択</span></label>
+        <select id="r_club">
+          <option value="">変更しない</option>
+          <option>テニス部</option><option>野球部</option><option>バスケットボール部</option>
+          <option>応援団</option><option>バドミントン部</option><option>サッカー部</option>
+          <option>吹奏楽部</option><option>美術部</option><option>卓球部</option>
+          <option>ソフトボール部</option><option>陸上部</option><option>ハンドボール部</option>
+          <option>ボート部</option><option>弓道部</option><option>剣道部</option>
+          <option>帰宅部</option><option>写真部</option><option>生徒会</option>
+          <option>ラグビー部</option><option>バレーボール部</option><option>水泳部</option>
+          <option>柔道部</option><option>体操部</option><option>演劇部</option>
+          <option>書道部</option><option>合唱部</option><option>放送部</option>
+          <option>茶道部</option><option>新聞部</option><option>その他</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>趣味・キーワード<span class="hint">任意</span></label>
+        <input type="text" id="r_hobby" placeholder="例：サイクリング・落語・読書">
+      </div>
+      <div class="field">
+        <label>ひとこと近況<span class="hint">任意</span></label>
+        <textarea id="r_note" placeholder="近況をひとことどうぞ"></textarea>
+      </div>
+      <div class="err-box" id="r_err"></div>
+      <button class="submit-btn" id="r_btn" onclick="submitRadar()">近況を更新する</button>
+      <button class="submit-btn-sub" onclick="backToStep1()">← 入力し直す</button>
     </div>
-    <div class="field">
-      <label>ひとこと近況<span class="hint">任意</span></label>
-      <textarea id="r_note" placeholder="近況をひとことどうぞ"></textarea>
-    </div>
-    <div class="err-box" id="r_err"></div>
-    <button class="submit-btn" id="r_btn" onclick="submitRadar()">近況を更新する</button>
   </div>
 </div>
+
 </div>
 <div class="footer">© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
+
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec';
+
 function showSection(id) {
   document.getElementById('top').style.display = 'none';
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
@@ -347,14 +427,18 @@ function showSection(id) {
 function showTop() {
   document.getElementById('top').style.display = '';
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
+  // 近況更新をリセット
+  backToStep1();
   window.scrollTo(0,0);
 }
+
 document.querySelectorAll('.radio-item input').forEach(function(r){
   r.addEventListener('change',function(){
     r.closest('.radio-group').querySelectorAll('.radio-item').forEach(function(el){el.classList.remove('selected');});
     r.closest('.radio-item').classList.add('selected');
   });
 });
+
 function reqField(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val){ el.classList.add('has-error'); return false; }
@@ -365,6 +449,7 @@ function reqBirthday(fieldId, val) {
   if(!val || !/^[0-9]{4}$/.test(val)){ el.classList.add('has-error'); return false; }
   el.classList.remove('has-error'); return true;
 }
+
 function calcPeriodFromBirth(){
   var y = parseInt(document.getElementById('birth_year_calc').value, 10);
   var early = document.getElementById('birth_month_calc').value === 'early';
@@ -377,22 +462,22 @@ function calcPeriodFromBirth(){
     return;
   }
   var cohort = early ? y - 1 : y;
-  var gradYear = cohort + 19; // 高校卒業＝学年度+19（小学校入学が学年度+7、+6年+3年+3年）
-  // 1950年（松山北高1期）より前は、男子校「北予中→北予高」と女子校「城北高女→城北高」で
-  // 期の数え方が別系統だったため、生年だけでは自動計算できない
+  var gradYear = cohort + 19;
   if(gradYear < 1950){
     resEl.style.color = '#c0392b';
-    resEl.textContent = '1950年（松山北高1期）より前のご卒業は、男子（北予中・北予高）と女子（城北高女・城北高）で期の数え方が異なるため自動計算できません。お手数ですが北斗会の早見表で直接ご確認ください。';
+    resEl.textContent = '1950年（松山北高1期）より前のご卒業は自動計算できません。北斗会の早見表でご確認ください。';
     if(pInput.dataset.fromCalc === '1'){ pInput.value = ''; pInput.dataset.fromCalc = ''; }
     return;
   }
-  var period = gradYear - 1949; // 北高1期＝1950年卒
+  var period = gradYear - 1949;
   resEl.style.color = '#5a2200';
-  resEl.textContent = '→ ' + period + '期です（卒業年は約' + gradYear + '年。上の入力欄に自動反映しました。前後でズレてたら教えてください）';
+  resEl.textContent = '→ ' + period + '期です（卒業年は約' + gradYear + '年。上の入力欄に自動反映しました）';
   pInput.value = period + '期';
   pInput.dataset.fromCalc = '1';
   document.getElementById('reg-period').classList.remove('has-error');
 }
+
+// ===== 登録 =====
 function submitRegister() {
   if(!document.getElementById('reg_agree').checked){
     showErr('reg_err','登録情報の自己申告に同意してください。');
@@ -406,6 +491,10 @@ function submitRegister() {
   ok = reqField('reg-area',   document.getElementById('reg_area').value) && ok;
   ok = reqField('reg-status', (document.querySelector('input[name="reg_st"]:checked')||{}).value||'') && ok;
   if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  document.getElementById('dup_box').style.display = 'none';
+  document.getElementById('reg_err').style.display = 'none';
+
   setLoading(true,'reg_btn');
   send({
     action:'register',
@@ -422,33 +511,140 @@ function submitRegister() {
     if(res && res.success){
       document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
       showSection('done');
+    } else if(res && res.duplicate){
+      document.getElementById('dup_box').style.display = 'block';
+      document.getElementById('dup_box').scrollIntoView({behavior:'smooth',block:'center'});
     } else {
       showErr('reg_err', (res && res.error) || '登録に失敗しました。もう一度お試しください。');
     }
   });
 }
+
+function submitRegisterForce(overwrite) {
+  setLoading(true,'reg_btn');
+  document.getElementById('dup_box').style.display = 'none';
+
+  var payload = {
+    name:document.getElementById('reg_name').value.trim(),
+    birthday:document.getElementById('reg_bd').value.trim(),
+    period:document.getElementById('reg_period').value.trim(),
+    club:document.getElementById('reg_club').value,
+    area:document.getElementById('reg_area').value,
+    status:document.querySelector('input[name="reg_st"]:checked').value,
+    hobby:document.getElementById('reg_hobby').value.trim(),
+    note:document.getElementById('reg_note').value.trim(),
+  };
+
+  if(overwrite){
+    payload.action = 'updateStatus';
+  } else {
+    payload.action = 'register';
+    payload.forceRegister = 'true';
+  }
+
+  send(payload, function(res){
+    setLoading(false,'reg_btn');
+    if(res && res.success){
+      document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
+      showSection('done');
+    } else {
+      showErr('reg_err', (res && res.error) || '処理に失敗しました。もう一度お試しください。');
+    }
+  });
+}
+
+// ===== 近況更新 ステップ1：本人確認 =====
+function checkRadar() {
+  var ok = true;
+  ok = reqField('rf-name', document.getElementById('r_name').value.trim()) && ok;
+  ok = reqBirthday('rf-bd', document.getElementById('r_bd').value.trim()) && ok;
+  if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  document.getElementById('r_check_err').style.display = 'none';
+  setLoading(true,'r_check_btn');
+
+  send({
+    action:'verify',
+    name:document.getElementById('r_name').value.trim(),
+    birthday:document.getElementById('r_bd').value.trim(),
+    period:document.getElementById('r_period_check').value.trim(),
+  }, function(res){
+    setLoading(false,'r_check_btn');
+    if(!res || !res.found){
+      showErr('r_check_err','名前または誕生日が一致しません。登録時と同じ情報を入力してください。');
+      return;
+    }
+    if(res.multiple){
+      showErr('r_check_err','同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。');
+      return;
+    }
+    // 現在の情報を表示してステップ2へ
+    document.getElementById('ci_period').textContent    = res.period     || '-';
+    document.getElementById('ci_club').textContent      = res.club       || '-';
+    document.getElementById('ci_area').textContent      = res.area       || '-';
+    document.getElementById('ci_status').textContent    = res.status     || '-';
+    document.getElementById('ci_homecoming').textContent= res.homecoming || '-';
+    document.getElementById('ci_hobby').textContent     = res.hobby      || '-';
+    document.getElementById('ci_note').textContent      = res.note       || '-';
+
+    // フォームにも現在値をセット
+    setSelectValue('r_area', res.area);
+    setRadioValue('r_st', res.status);
+    document.getElementById('r_hc').value    = res.homecoming || '';
+    document.getElementById('r_hobby').value = res.hobby      || '';
+    document.getElementById('r_note').value  = res.note       || '';
+
+    document.getElementById('radar-step1').classList.remove('active');
+    document.getElementById('radar-step2').classList.add('active');
+    window.scrollTo(0,0);
+  });
+}
+
+function backToStep1() {
+  document.getElementById('radar-step1').classList.add('active');
+  document.getElementById('radar-step2').classList.remove('active');
+}
+
+function setSelectValue(id, val) {
+  var sel = document.getElementById(id);
+  for(var i=0;i<sel.options.length;i++){
+    if(sel.options[i].value === val){ sel.selectedIndex = i; break; }
+  }
+}
+function setRadioValue(name, val) {
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){
+    r.checked = (r.value === val);
+    r.closest('.radio-item').classList.toggle('selected', r.checked);
+  });
+}
+
+// ===== 近況更新 ステップ2：送信 =====
 function submitRadar() {
   var ok = true;
-  ok = reqField('rf-name',   document.getElementById('r_name').value.trim()) && ok;
-  ok = reqBirthday('rf-bd',  document.getElementById('r_bd').value.trim()) && ok;
   ok = reqField('rf-area',   document.getElementById('r_area').value) && ok;
   ok = reqField('rf-status', (document.querySelector('input[name="r_st"]:checked')||{}).value||'') && ok;
   if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
   setLoading(true,'r_btn');
   send({
     action:'updateStatus',
     name:document.getElementById('r_name').value.trim(),
     birthday:document.getElementById('r_bd').value.trim(),
+    period:document.getElementById('r_period_check').value.trim(),
     area:document.getElementById('r_area').value,
     status:document.querySelector('input[name="r_st"]:checked').value,
     homecoming:document.getElementById('r_hc').value.trim(),
+    club:document.getElementById('r_club').value,
+    hobby:document.getElementById('r_hobby').value.trim(),
     note:document.getElementById('r_note').value.trim(),
   }, function(res){
     setLoading(false,'r_btn');
     if(res && res.success){ showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500); }
-    else { showErr('r_err', (res && res.error) || '名前または誕生日が一致しません。'); }
+    else { showErr('r_err', (res && res.error) || '更新に失敗しました。もう一度お試しください。'); }
   });
 }
+
+// ===== コルクボード =====
 function submitBoard() {
   var ok = true;
   ok = reqField('bf-name',   document.getElementById('b_name').value.trim()) && ok;
@@ -461,6 +657,7 @@ function submitBoard() {
     action:'postBoard',
     name:document.getElementById('b_name').value.trim(),
     birthday:document.getElementById('b_bd').value.trim(),
+    period:document.getElementById('b_period').value.trim(),
     cat:document.getElementById('b_cat').value,
     title:document.getElementById('b_title').value.trim(),
     detail:document.getElementById('b_detail').value.trim(),
@@ -468,9 +665,11 @@ function submitBoard() {
   }, function(res){
     setLoading(false,'b_btn');
     if(res && res.success){ showToast('✓ 投稿しました！'); setTimeout(showTop, 1500); }
+    else if(res && res.multiple){ showErr('b_err', '同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。'); }
     else { showErr('b_err', (res && res.error) || '名前または誕生日が一致しません。'); }
   });
 }
+
 function send(payload, callback) {
   document.getElementById('overlay').classList.add('show');
   var params = Object.keys(payload).map(function(k){
@@ -481,10 +680,17 @@ function send(payload, callback) {
     .then(function(res){ document.getElementById('overlay').classList.remove('show'); callback(res); })
     .catch(function(){ document.getElementById('overlay').classList.remove('show'); callback({ success: false, error: '通信エラーが発生しました。' }); });
 }
+
 function setLoading(on, btnId) {
   var btn = document.getElementById(btnId);
   btn.disabled = on;
   if(on) btn.textContent = '送信中...';
+  else {
+    if(btnId==='reg_btn')     btn.textContent = 'メンバー登録する';
+    if(btnId==='r_check_btn') btn.textContent = '確認する';
+    if(btnId==='r_btn')       btn.textContent = '近況を更新する';
+    if(btnId==='b_btn')       btn.textContent = '投稿する';
+  }
 }
 function showErr(id, msg) {
   var el = document.getElementById(id);
@@ -498,6 +704,7 @@ function showToast(msg){
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 3500);
 }
+
 var hash = window.location.hash;
 if(hash === '#register') showSection('register');
 else if(hash === '#radar') showSection('radar');
