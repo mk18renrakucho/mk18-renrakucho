@@ -71,14 +71,16 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .dup-box{background:#FAEEDA;border:2px solid var(--accent);border-radius:12px;padding:20px;margin-top:16px;display:none}
 .dup-box .dup-title{font-size:14px;font-weight:700;color:var(--accent-dark);margin-bottom:10px}
 .dup-box .dup-desc{font-size:12px;color:#5a2200;line-height:1.7;margin-bottom:14px}
-/* 近況更新：確認ステップ / 更新フォームステップ */
 .radar-step{display:none}
 .radar-step.active{display:block}
 .current-info-card{background:#f5f0e8;border:1px solid var(--accent);border-radius:10px;padding:16px;margin-bottom:20px}
 .current-info-card .ci-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--sub);margin-bottom:10px}
 .current-info-row{display:flex;gap:8px;font-size:13px;margin-bottom:6px}
-.current-info-row .ci-label{color:var(--sub);flex-shrink:0;width:70px}
+.current-info-row .ci-label{color:var(--sub);flex-shrink:0;width:90px}
 .current-info-row .ci-val{color:var(--text);font-weight:700}
+/* ニックネーム入力欄（V4） */
+.nick-input-wrap{margin-top:10px;display:none}
+.nick-input-wrap.show{display:block}
 @media(max-width:480px){.card{padding:20px 16px}}
 </style>
 </head>
@@ -229,6 +231,20 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <div class="divider"></div>
     <p class="section-label">プロフィール（任意）</p>
+
+    <!-- ニックネーム（V4追加） -->
+    <div class="field">
+      <label>表示名の設定<span class="hint">任意</span></label>
+      <div class="radio-group">
+        <label class="radio-item selected"><input type="radio" name="reg_nick_type" value="real" checked><span>本名をそのまま表示する</span></label>
+        <label class="radio-item"><input type="radio" name="reg_nick_type" value="nick"><span>ニックネームで表示する</span></label>
+      </div>
+      <div class="nick-input-wrap" id="reg_nick_wrap">
+        <input type="text" id="reg_nickname" placeholder="例：むねあき・ムネアキン など" style="margin-top:8px">
+        <p style="font-size:11px;color:var(--sub);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
+      </div>
+    </div>
+
     <div class="field">
       <label>趣味・キーワード<span class="hint">任意</span></label>
       <input type="text" id="reg_hobby" placeholder="例：サイクリング・落語・読書">
@@ -351,6 +367,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <div class="current-info-row"><span class="ci-label">帰省期間</span><span class="ci-val" id="ci_homecoming">-</span></div>
         <div class="current-info-row"><span class="ci-label">趣味</span><span class="ci-val" id="ci_hobby">-</span></div>
         <div class="current-info-row"><span class="ci-label">ひとこと</span><span class="ci-val" id="ci_note">-</span></div>
+        <div class="current-info-row"><span class="ci-label">表示名</span><span class="ci-val" id="ci_nickname">-</span></div>
       </div>
       <p class="section-label">変更する内容</p>
       <div class="field" id="rf-area">
@@ -395,6 +412,20 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           <option>茶道部</option><option>新聞部</option><option>その他</option>
         </select>
       </div>
+
+      <!-- ニックネーム変更（V4追加） -->
+      <div class="field">
+        <label>表示名の変更<span class="hint">任意</span></label>
+        <div class="radio-group">
+          <label class="radio-item selected"><input type="radio" name="r_nick_type" value="real" checked><span>本名をそのまま表示する</span></label>
+          <label class="radio-item"><input type="radio" name="r_nick_type" value="nick"><span>ニックネームで表示する</span></label>
+        </div>
+        <div class="nick-input-wrap" id="r_nick_wrap">
+          <input type="text" id="r_nickname" placeholder="例：むねあき・ムネアキン など" style="margin-top:8px">
+          <p style="font-size:11px;color:var(--sub);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
+        </div>
+      </div>
+
       <div class="field">
         <label>趣味・キーワード<span class="hint">任意</span></label>
         <input type="text" id="r_hobby" placeholder="例：サイクリング・落語・読書">
@@ -427,7 +458,6 @@ function showSection(id) {
 function showTop() {
   document.getElementById('top').style.display = '';
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
-  // 近況更新をリセット
   backToStep1();
   window.scrollTo(0,0);
 }
@@ -436,6 +466,20 @@ document.querySelectorAll('.radio-item input').forEach(function(r){
   r.addEventListener('change',function(){
     r.closest('.radio-group').querySelectorAll('.radio-item').forEach(function(el){el.classList.remove('selected');});
     r.closest('.radio-item').classList.add('selected');
+  });
+});
+
+// ニックネームラジオ切り替え（V4追加）
+document.querySelectorAll('input[name="reg_nick_type"]').forEach(function(r){
+  r.addEventListener('change', function(){
+    document.getElementById('reg_nick_wrap').classList.toggle('show', r.value === 'nick');
+    if(r.value === 'real') document.getElementById('reg_nickname').value = '';
+  });
+});
+document.querySelectorAll('input[name="r_nick_type"]').forEach(function(r){
+  r.addEventListener('change', function(){
+    document.getElementById('r_nick_wrap').classList.toggle('show', r.value === 'nick');
+    if(r.value === 'real') document.getElementById('r_nickname').value = '';
   });
 });
 
@@ -477,6 +521,13 @@ function calcPeriodFromBirth(){
   document.getElementById('reg-period').classList.remove('has-error');
 }
 
+// ニックネーム取得ヘルパー（V4追加）
+function getNickname(typeName, inputId) {
+  var type = (document.querySelector('input[name="'+typeName+'"]:checked') || {}).value;
+  if(type === 'nick') return document.getElementById(inputId).value.trim();
+  return '';
+}
+
 // ===== 登録 =====
 function submitRegister() {
   if(!document.getElementById('reg_agree').checked){
@@ -506,6 +557,7 @@ function submitRegister() {
     status:document.querySelector('input[name="reg_st"]:checked').value,
     hobby:document.getElementById('reg_hobby').value.trim(),
     note:document.getElementById('reg_note').value.trim(),
+    nickname:getNickname('reg_nick_type','reg_nickname'), // V4追加
   }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
@@ -533,6 +585,7 @@ function submitRegisterForce(overwrite) {
     status:document.querySelector('input[name="reg_st"]:checked').value,
     hobby:document.getElementById('reg_hobby').value.trim(),
     note:document.getElementById('reg_note').value.trim(),
+    nickname:getNickname('reg_nick_type','reg_nickname'), // V4追加
   };
 
   if(overwrite){
@@ -579,13 +632,14 @@ function checkRadar() {
       return;
     }
     // 現在の情報を表示してステップ2へ
-    document.getElementById('ci_period').textContent    = res.period     || '-';
-    document.getElementById('ci_club').textContent      = res.club       || '-';
-    document.getElementById('ci_area').textContent      = res.area       || '-';
-    document.getElementById('ci_status').textContent    = res.status     || '-';
-    document.getElementById('ci_homecoming').textContent= res.homecoming || '-';
-    document.getElementById('ci_hobby').textContent     = res.hobby      || '-';
-    document.getElementById('ci_note').textContent      = res.note       || '-';
+    document.getElementById('ci_period').textContent     = res.period     || '-';
+    document.getElementById('ci_club').textContent       = res.club       || '-';
+    document.getElementById('ci_area').textContent       = res.area       || '-';
+    document.getElementById('ci_status').textContent     = res.status     || '-';
+    document.getElementById('ci_homecoming').textContent = res.homecoming || '-';
+    document.getElementById('ci_hobby').textContent      = res.hobby      || '-';
+    document.getElementById('ci_note').textContent       = res.note       || '-';
+    document.getElementById('ci_nickname').textContent   = res.nickname   || '（本名表示）'; // V4追加
 
     // フォームにも現在値をセット
     setSelectValue('r_area', res.area);
@@ -593,6 +647,17 @@ function checkRadar() {
     document.getElementById('r_hc').value    = res.homecoming || '';
     document.getElementById('r_hobby').value = res.hobby      || '';
     document.getElementById('r_note').value  = res.note       || '';
+
+    // ニックネーム初期値（V4追加）
+    if(res.nickname){
+      setRadioValue('r_nick_type', 'nick');
+      document.getElementById('r_nick_wrap').classList.add('show');
+      document.getElementById('r_nickname').value = res.nickname;
+    } else {
+      setRadioValue('r_nick_type', 'real');
+      document.getElementById('r_nick_wrap').classList.remove('show');
+      document.getElementById('r_nickname').value = '';
+    }
 
     document.getElementById('radar-step1').classList.remove('active');
     document.getElementById('radar-step2').classList.add('active');
@@ -637,6 +702,7 @@ function submitRadar() {
     club:document.getElementById('r_club').value,
     hobby:document.getElementById('r_hobby').value.trim(),
     note:document.getElementById('r_note').value.trim(),
+    nickname:getNickname('r_nick_type','r_nickname'), // V4追加
   }, function(res){
     setLoading(false,'r_btn');
     if(res && res.success){ showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500); }
