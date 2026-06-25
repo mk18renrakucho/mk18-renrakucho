@@ -85,6 +85,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .fav-user-badge .fav-user-info{flex:1;font-size:13px;color:var(--blue);font-weight:500}
 .fav-user-badge .fav-logout-btn{font-size:11px;color:var(--text-ter);background:none;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit}
 
+/* 2ステップモーダル用 */
+.modal-step{display:none}
+.modal-step.active{display:block}
+.verified-badge{background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:13px;color:#2d7d46;display:flex;align-items:center;gap:6px}
+
 /* PWAインストールバナー */
 .pwa-banner{background:linear-gradient(135deg,#813100,#A84400);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none}
 .pwa-banner-icon{font-size:24px;flex-shrink:0}
@@ -231,7 +236,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 </div>
 
-<!-- 近況更新モーダル -->
+<!-- ===================================================
+     近況更新モーダル（2ステップ化）
+     ステップ1：誕生日入力→確認
+     ステップ2：本人確認OK→更新フォーム表示
+=================================================== -->
 <div class="modal-overlay" id="modal">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -239,50 +248,108 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
     <div id="db"></div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
-        <i class="ti ti-lock" style="margin-right:4px"></i>誕生日4桁を入力して本人確認します
+
+    <!-- ステップ1：誕生日入力 -->
+    <div class="modal-step active" id="u-step1">
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
+          <i class="ti ti-lock" style="margin-right:4px"></i>誕生日4桁を入力して本人確認します
+        </div>
+        <input type="text" id="u_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
+        <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+        <button class="btn btn-primary" onclick="doVerifyUpdate()" style="width:100%" id="u_verify_btn">
+          <i class="ti ti-check" style="margin-right:4px"></i>確認する
+        </button>
       </div>
-      <input type="text" id="u_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
-      <div id="u_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
-      <select id="us" style="margin-bottom:8px">
-        <option value="在住（松山在住）">松山に在住</option>
-        <option value="松山以外に在住">松山以外に在住</option>
-        <option value="帰省予定">帰省予定あり</option>
-        <option value="帰省中">帰省中</option>
-      </select>
-      <input type="text" id="ud" placeholder="帰省期間（例：8/13〜8/17）" style="margin-bottom:8px">
-      <input type="text" id="ue" placeholder="現在のエリア（例：松山・関東・大阪）" style="margin-bottom:8px">
-      <input type="text" id="un" placeholder="ひとこと近況" style="margin-bottom:10px">
-      <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn"><i class="ti ti-check" style="margin-right:4px"></i>更新する</button>
+    </div>
+
+    <!-- ステップ2：更新フォーム -->
+    <div class="modal-step" id="u-step2">
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="verified-badge">
+          <i class="ti ti-user-check" style="font-size:16px"></i>
+          <span id="u_verified_name"></span>さんの本人確認ができました
+        </div>
+        <select id="us" style="margin-bottom:8px">
+          <option value="在住（松山在住）">松山に在住</option>
+          <option value="松山以外に在住">松山以外に在住</option>
+          <option value="帰省予定">帰省予定あり</option>
+          <option value="帰省中">帰省中</option>
+        </select>
+        <input type="text" id="ud" placeholder="帰省期間（例：8/13〜8/17）" style="margin-bottom:8px">
+        <input type="text" id="ue" placeholder="現在のエリア（例：松山・関東・大阪）" style="margin-bottom:8px">
+        <input type="text" id="un" placeholder="ひとこと近況" style="margin-bottom:10px">
+        <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+        <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
+          <i class="ti ti-check" style="margin-right:4px"></i>更新する
+        </button>
+        <button onclick="backToUStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+          ← 入力し直す
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- コルクボード投稿モーダル -->
+<!-- ===================================================
+     コルクボード投稿モーダル（2ステップ化）
+     ステップ1：名前＋誕生日→確認
+     ステップ2：本人確認OK→投稿フォーム表示
+=================================================== -->
 <div class="modal-overlay" id="modal-board">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">📌 お知らせを投稿する</div>
       <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
-    <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
-      🔑 名前と誕生日で本人確認します。
+
+    <!-- ステップ1：名前＋誕生日 -->
+    <div class="modal-step active" id="b-step1">
+      <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
+        🔑 名前と誕生日で本人確認します。
+      </div>
+      <div style="margin-bottom:6px">
+        <input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()">
+      </div>
+      <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
+      <div style="margin-bottom:12px">
+        <input type="text" id="b_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric">
+      </div>
+      <div id="b_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="b_verify_btn" onclick="doVerifyBoard()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        確認する
+      </button>
     </div>
-    <div style="margin-bottom:6px"><input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()"></div>
-    <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
-    <div style="margin-bottom:10px"><input type="text" id="b_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric"></div>
-    <div style="margin-bottom:10px">
-      <select id="b_cat" style="font-size:14px">
-        <option value="告知">📢 告知（イベント・集まり）</option>
-        <option value="近況">💬 近況（ちょっとした報告）</option>
-      </select>
+
+    <!-- ステップ2：投稿フォーム -->
+    <div class="modal-step" id="b-step2">
+      <div class="verified-badge" style="margin-bottom:14px">
+        <i class="ti ti-user-check" style="font-size:16px"></i>
+        <span id="b_verified_name"></span>さんの本人確認ができました
+      </div>
+      <div style="margin-bottom:10px">
+        <select id="b_cat" style="font-size:14px">
+          <option value="告知">📢 告知（イベント・集まり）</option>
+          <option value="近況">💬 近況（ちょっとした報告）</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="b_title" placeholder="タイトル（必須）">
+      </div>
+      <div style="margin-bottom:10px">
+        <textarea id="b_detail" rows="4" placeholder="詳細（必須）日時・場所・内容など"></textarea>
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="b_url" placeholder="参考URL（任意）">
+      </div>
+      <div id="b_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="b_btn" onclick="addPost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        投稿する
+      </button>
+      <button onclick="backToBStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+        ← 入力し直す
+      </button>
     </div>
-    <div style="margin-bottom:10px"><input type="text" id="b_title" placeholder="タイトル（必須）"></div>
-    <div style="margin-bottom:10px"><textarea id="b_detail" rows="4" placeholder="詳細（必須）日時・場所・内容など"></textarea></div>
-    <div style="margin-bottom:10px"><input type="text" id="b_url" placeholder="参考URL（任意）"></div>
-    <div id="b_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
-    <button id="b_btn" onclick="addPost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">投稿する</button>
   </div>
 </div>
 
@@ -294,6 +361,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <script>
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
+var boardVerifiedUser = null; // コルクボード本人確認済みユーザー
 
 // ===================================================
 // PWA：Service Worker登録 & インストールバナー
@@ -308,7 +376,6 @@ if('serviceWorker' in navigator){
   });
 }
 
-// Androidのインストールバナー
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
@@ -319,15 +386,12 @@ document.getElementById('pwa-install-btn').addEventListener('click', function(){
   if(!deferredPrompt) return;
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then(function(result){
-    if(result.outcome === 'accepted'){
-      showToast('📱 ホーム画面に追加しました！');
-    }
+    if(result.outcome === 'accepted') showToast('📱 ホーム画面に追加しました！');
     deferredPrompt = null;
     hidePwaBanner();
   });
 });
 
-// インストール完了時にバナーを隠す
 window.addEventListener('appinstalled', function(){
   hidePwaBanner();
   showToast('✓ アプリとしてインストールされました');
@@ -520,6 +584,9 @@ function toggleFav(id,e){
   });
 }
 
+// ===================================================
+// 近況更新モーダル（2ステップ）
+// ===================================================
 function openDet(id){
   selId=id;
   var m=M.find(function(x){return x.id===id;});
@@ -531,26 +598,73 @@ function openDet(id){
     }).join("")+'</div>'
     +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+m.date+'</span>':"")
     +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+(m.note||"")+'</p>';
-  document.getElementById("us").value=m.status||"在住（松山在住）";
-  document.getElementById("ud").value=m.date||"";
-  document.getElementById("ue").value=m.area||"";
-  document.getElementById("un").value=m.note||"";
+
+  // ステップ1にリセット
   document.getElementById("u_bd").value="";
-  document.getElementById("u_err").style.display="none";
+  document.getElementById("u_err1").style.display="none";
+  document.getElementById("u_err2").style.display="none";
+  showUStep(1);
+
   document.getElementById("modal").classList.add("show");
   document.getElementById("modal").onclick=function(e){
-    if(e.target===document.getElementById("modal"))document.getElementById("modal").classList.remove("show");
+    if(e.target===document.getElementById("modal")) closeModal();
   };
 }
 
-function closeModal(){document.getElementById("modal").classList.remove("show");}
+function closeModal(){
+  document.getElementById("modal").classList.remove("show");
+}
 
+function showUStep(n){
+  document.getElementById("u-step1").className="modal-step"+(n===1?" active":"");
+  document.getElementById("u-step2").className="modal-step"+(n===2?" active":"");
+}
+
+function backToUStep1(){
+  document.getElementById("u_bd").value="";
+  document.getElementById("u_err1").style.display="none";
+  showUStep(1);
+}
+
+// ステップ1：誕生日で本人確認
+function doVerifyUpdate(){
+  var m=M.find(function(x){return x.id===selId;});
+  var bd=(document.getElementById("u_bd").value||"").trim();
+  var errEl=document.getElementById("u_err1");
+  errEl.style.display="none";
+  if(!bd||!/^[0-9]{4}$/.test(bd)){
+    errEl.textContent="誕生日を4桁で入力してください（例：0315）";
+    errEl.style.display="block";
+    return;
+  }
+  var btn=document.getElementById("u_verify_btn");
+  btn.disabled=true;btn.textContent="確認中...";
+
+  gasGet({action:"verify", name:m.name, birthday:bd}, function(res){
+    btn.disabled=false;btn.textContent="確認する";
+    if(res && res.found && !res.multiple){
+      // 本人確認OK→ステップ2へ
+      document.getElementById("u_verified_name").textContent=m.name;
+      document.getElementById("us").value=m.status||"在住（松山在住）";
+      document.getElementById("ud").value=m.date||"";
+      document.getElementById("ue").value=m.area||"";
+      document.getElementById("un").value=m.note||"";
+      document.getElementById("u_err2").style.display="none";
+      showUStep(2);
+    } else {
+      errEl.textContent="誕生日が一致しません。もう一度入力してください。";
+      errEl.style.display="block";
+      document.getElementById("u_bd").value="";
+    }
+  });
+}
+
+// ステップ2：更新送信
 function doUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var bd=(document.getElementById("u_bd").value||"").trim();
-  var errEl=document.getElementById("u_err");
+  var errEl=document.getElementById("u_err2");
   errEl.style.display="none";
-  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください（例：0315）";errEl.style.display="block";return;}
   var btn=document.getElementById("u_btn");
   btn.disabled=true;btn.textContent="更新中...";
   gasGet({
@@ -562,17 +676,19 @@ function doUpdate(){
   },function(res){
     btn.disabled=false;btn.textContent="更新する";
     if(res&&res.success){
-      document.getElementById("modal").classList.remove("show");
+      closeModal();
       showToast("✓ 近況を更新しました！");
       loadFromAPI();
     } else {
-      errEl.textContent=(res&&res.error)||"誕生日が一致しません。もう一度入力してください。";
+      errEl.textContent=(res&&res.error)||"更新に失敗しました。もう一度お試しください。";
       errEl.style.display="block";
-      document.getElementById("u_bd").value="";
     }
   });
 }
 
+// ===================================================
+// コルクボード投稿モーダル（2ステップ）
+// ===================================================
 function checkBoardName(){
   var name=(document.getElementById("b_name").value||"").trim();
   var el=document.getElementById("b_name_check");
@@ -593,30 +709,76 @@ function openBoardModal(){
   document.getElementById("b_title").value="";
   document.getElementById("b_detail").value="";
   document.getElementById("b_url").value="";
-  document.getElementById("b_err").style.display="none";
+  document.getElementById("b_err1").style.display="none";
+  document.getElementById("b_err2").style.display="none";
   document.getElementById("b_name_check").style.display="none";
+  boardVerifiedUser=null;
+  showBStep(1);
   document.getElementById("modal-board").classList.add("show");
   document.getElementById("modal-board").onclick=function(e){
-    if(e.target===document.getElementById("modal-board"))closeBoardModal();
+    if(e.target===document.getElementById("modal-board")) closeBoardModal();
   };
 }
-function closeBoardModal(){document.getElementById("modal-board").classList.remove("show");}
 
-function addPost(){
+function closeBoardModal(){
+  document.getElementById("modal-board").classList.remove("show");
+}
+
+function showBStep(n){
+  document.getElementById("b-step1").className="modal-step"+(n===1?" active":"");
+  document.getElementById("b-step2").className="modal-step"+(n===2?" active":"");
+}
+
+function backToBStep1(){
+  document.getElementById("b_err1").style.display="none";
+  showBStep(1);
+}
+
+// ステップ1：名前＋誕生日で本人確認
+function doVerifyBoard(){
   var name=(document.getElementById("b_name").value||"").trim();
   var bd=(document.getElementById("b_bd").value||"").trim();
-  var title=(document.getElementById("b_title").value||"").trim();
-  var detail=(document.getElementById("b_detail").value||"").trim();
-  var errEl=document.getElementById("b_err");
+  var errEl=document.getElementById("b_err1");
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
   if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+
+  var btn=document.getElementById("b_verify_btn");
+  btn.disabled=true;btn.textContent="確認中...";
+
+  gasGet({action:"verify", name:name, birthday:bd}, function(res){
+    btn.disabled=false;btn.textContent="確認する";
+    if(res && res.found && !res.multiple){
+      boardVerifiedUser={name:name, birthday:bd};
+      document.getElementById("b_verified_name").textContent=name;
+      document.getElementById("b_err2").style.display="none";
+      showBStep(2);
+    } else if(res && res.multiple){
+      errEl.textContent="同じ名前・誕生日の方が複数います。管理者にお問い合わせください。";
+      errEl.style.display="block";
+    } else {
+      errEl.textContent="名前または誕生日が一致しません。登録時と同じ情報を入力してください。";
+      errEl.style.display="block";
+      document.getElementById("b_bd").value="";
+    }
+  });
+}
+
+// ステップ2：投稿送信
+function addPost(){
+  if(!boardVerifiedUser){return;}
+  var title=(document.getElementById("b_title").value||"").trim();
+  var detail=(document.getElementById("b_detail").value||"").trim();
+  var errEl=document.getElementById("b_err2");
+  errEl.style.display="none";
   if(!title){errEl.textContent="タイトルを入力してください";errEl.style.display="block";return;}
   if(!detail){errEl.textContent="詳細を入力してください";errEl.style.display="block";return;}
   var btn=document.getElementById("b_btn");
   btn.disabled=true;btn.textContent="送信中...";
   gasGet({
-    action:"postBoard",name:name,birthday:bd,
+    action:"postBoard",
+    name:boardVerifiedUser.name,
+    birthday:boardVerifiedUser.birthday,
     cat:document.getElementById("b_cat").value,
     title:title,detail:detail,
     url:(document.getElementById("b_url").value||"").trim()
@@ -625,9 +787,8 @@ function addPost(){
     if(res&&res.success){
       closeBoardModal();showToast("✓ 投稿しました！");loadBoardFromAPI();
     } else {
-      errEl.textContent=(res&&res.error)||"名前または誕生日が一致しません。";
+      errEl.textContent=(res&&res.error)||"投稿に失敗しました。もう一度お試しください。";
       errEl.style.display="block";
-      document.getElementById("b_bd").value="";
     }
   });
 }
