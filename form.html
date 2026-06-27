@@ -269,7 +269,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
-<!-- 【B】コルクボード投稿 -->
+<!-- 【B】コルクボード投稿（2ステップ） -->
 <div class="form-section" id="board">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
   <div class="header">
@@ -277,48 +277,63 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <h1>お知らせを投稿する</h1>
     <p class="sub">同窓生全体へのテキストお知らせを書き込む</p>
   </div>
-  <div class="card">
-    <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>公式お知らせ（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
-    <p class="section-label">本人確認</p>
-    <div class="field" id="bf-name">
-      <label>お名前<span class="req">*</span></label>
-      <input type="text" id="b_name" placeholder="例：佐々木 宗明">
-      <p class="error-msg">お名前を入力してください</p>
+
+  <!-- ステップ1：本人確認 -->
+  <div class="radar-step active" id="board-step1">
+    <div class="card">
+      <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>公式お知らせ（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
+      <p class="section-label">本人確認</p>
+      <div class="field" id="bf-name">
+        <label>お名前<span class="req">*</span></label>
+        <input type="text" id="b_name" placeholder="例：佐々木 宗明">
+        <p class="error-msg">お名前を入力してください</p>
+      </div>
+      <div class="field" id="bf-bd">
+        <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
+        <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
+        <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+      </div>
+      <div class="field">
+        <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
+        <input type="text" id="b_period" placeholder="例：33期">
+      </div>
+      <div class="err-box" id="b_err1"></div>
+      <button class="submit-btn" id="b_verify_btn" onclick="verifyBoard()">確認する</button>
     </div>
-    <div class="field" id="bf-bd">
-      <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
-      <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-      <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+  </div>
+
+  <!-- ステップ2：投稿内容 -->
+  <div class="radar-step" id="board-step2">
+    <div class="card">
+      <div style="background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2d7d46;display:flex;align-items:center;gap:6px">
+        ✅ <span id="b_verified_name"></span>さんの本人確認ができました
+      </div>
+      <p class="section-label">投稿内容</p>
+      <div class="field">
+        <label>カテゴリ<span class="req">*</span></label>
+        <select id="b_cat">
+          <option value="告知">📢 告知（イベント・集まり）</option>
+          <option value="近況">💬 近況（ちょっとした報告）</option>
+        </select>
+      </div>
+      <div class="field" id="bf-title">
+        <label>タイトル<span class="req">*</span></label>
+        <input type="text" id="b_title" placeholder="例：関東同窓会 秋の集まり">
+        <p class="error-msg">タイトルを入力してください</p>
+      </div>
+      <div class="field" id="bf-detail">
+        <label>詳細<span class="req">*</span><span class="hint">日時・場所・メッセージなど</span></label>
+        <textarea id="b_detail" placeholder="日時・場所・内容などを書いてください"></textarea>
+        <p class="error-msg">詳細を入力してください</p>
+      </div>
+      <div class="field">
+        <label>参考URL<span class="hint">任意</span></label>
+        <input type="text" id="b_url" placeholder="https://...">
+      </div>
+      <div class="err-box" id="b_err2"></div>
+      <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
+      <button class="submit-btn-sub" onclick="backToBoardStep1()">← 入力し直す</button>
     </div>
-    <div class="field">
-      <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
-      <input type="text" id="b_period" placeholder="例：33期">
-    </div>
-    <div class="divider"></div>
-    <p class="section-label">投稿内容</p>
-    <div class="field">
-      <label>カテゴリ<span class="req">*</span></label>
-      <select id="b_cat">
-        <option value="告知">📢 告知（イベント・集まり）</option>
-        <option value="近況">💬 近況（ちょっとした報告）</option>
-      </select>
-    </div>
-    <div class="field" id="bf-title">
-      <label>タイトル<span class="req">*</span></label>
-      <input type="text" id="b_title" placeholder="例：関東同窓会 秋の集まり">
-      <p class="error-msg">タイトルを入力してください</p>
-    </div>
-    <div class="field" id="bf-detail">
-      <label>詳細<span class="req">*</span><span class="hint">日時・場所・メッセージなど</span></label>
-      <textarea id="b_detail" placeholder="日時・場所・内容などを書いてください"></textarea>
-      <p class="error-msg">詳細を入力してください</p>
-    </div>
-    <div class="field">
-      <label>参考URL<span class="hint">任意</span></label>
-      <input type="text" id="b_url" placeholder="https://...">
-    </div>
-    <div class="err-box" id="b_err"></div>
-    <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
   </div>
 </div>
 
@@ -710,20 +725,64 @@ function submitRadar() {
   });
 }
 
-// ===== コルクボード =====
-function submitBoard() {
+// ===== コルクボード（2ステップ） =====
+var boardVerifiedUser = null;
+
+function verifyBoard() {
+  var name = document.getElementById('b_name').value.trim();
+  var bd   = document.getElementById('b_bd').value.trim();
+  var errEl = document.getElementById('b_err1');
+  errEl.style.display = 'none';
   var ok = true;
-  ok = reqField('bf-name',   document.getElementById('b_name').value.trim()) && ok;
-  ok = reqBirthday('bf-bd',  document.getElementById('b_bd').value.trim()) && ok;
+  ok = reqField('bf-name', name) && ok;
+  ok = reqBirthday('bf-bd', bd) && ok;
+  if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  var btn = document.getElementById('b_verify_btn');
+  btn.disabled = true; btn.textContent = '確認中...';
+  send({
+    action:'verify',
+    name:name,
+    birthday:bd,
+    period:document.getElementById('b_period').value.trim(),
+  }, function(res){
+    btn.disabled = false; btn.textContent = '確認する';
+    if(res && res.found && !res.multiple){
+      boardVerifiedUser = {name:name, birthday:bd, period:document.getElementById('b_period').value.trim()};
+      document.getElementById('b_verified_name').textContent = name;
+      document.getElementById('board-step1').classList.remove('active');
+      document.getElementById('board-step2').classList.add('active');
+      window.scrollTo(0,0);
+    } else if(res && res.multiple){
+      errEl.textContent = '同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。';
+      errEl.style.display = 'block';
+    } else {
+      errEl.textContent = '名前または誕生日が一致しません。登録時と同じ情報を入力してください。';
+      errEl.style.display = 'block';
+      document.getElementById('b_bd').value = '';
+    }
+  });
+}
+
+function backToBoardStep1() {
+  document.getElementById('b_err1').style.display = 'none';
+  document.getElementById('board-step1').classList.add('active');
+  document.getElementById('board-step2').classList.remove('active');
+  boardVerifiedUser = null;
+}
+
+function submitBoard() {
+  if(!boardVerifiedUser){ return; }
+  var ok = true;
   ok = reqField('bf-title',  document.getElementById('b_title').value.trim()) && ok;
   ok = reqField('bf-detail', document.getElementById('b_detail').value.trim()) && ok;
   if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
   setLoading(true,'b_btn');
   send({
     action:'postBoard',
-    name:document.getElementById('b_name').value.trim(),
-    birthday:document.getElementById('b_bd').value.trim(),
-    period:document.getElementById('b_period').value.trim(),
+    name:boardVerifiedUser.name,
+    birthday:boardVerifiedUser.birthday,
+    period:boardVerifiedUser.period,
     cat:document.getElementById('b_cat').value,
     title:document.getElementById('b_title').value.trim(),
     detail:document.getElementById('b_detail').value.trim(),
@@ -731,17 +790,17 @@ function submitBoard() {
   }, function(res){
     setLoading(false,'b_btn');
     if(res && res.success){ showToast('✓ 投稿しました！'); setTimeout(showTop, 1500); }
-    else if(res && res.multiple){ showErr('b_err', '同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。'); }
-    else { showErr('b_err', (res && res.error) || '名前または誕生日が一致しません。'); }
+    else { showErr('b_err2', (res && res.error) || '投稿に失敗しました。もう一度お試しください。'); }
   });
 }
 
 function send(payload, callback) {
   document.getElementById('overlay').classList.add('show');
-  var params = Object.keys(payload).map(function(k){
-    return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k] || '');
-  }).join('&');
-  fetch(GAS_URL + '?' + params)
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
     .then(function(r){ return r.json(); })
     .then(function(res){ document.getElementById('overlay').classList.remove('show'); callback(res); })
     .catch(function(){ document.getElementById('overlay').classList.remove('show'); callback({ success: false, error: '通信エラーが発生しました。' }); });
