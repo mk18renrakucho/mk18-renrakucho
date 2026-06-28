@@ -78,7 +78,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .current-info-row{display:flex;gap:8px;font-size:13px;margin-bottom:6px}
 .current-info-row .ci-label{color:var(--sub);flex-shrink:0;width:90px}
 .current-info-row .ci-val{color:var(--text);font-weight:700}
-/* ニックネーム入力欄（V4） */
 .nick-input-wrap{margin-top:10px;display:none}
 .nick-input-wrap.show{display:block}
 @media(max-width:480px){.card{padding:20px 16px}}
@@ -231,8 +230,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <div class="divider"></div>
     <p class="section-label">プロフィール（任意）</p>
-
-    <!-- ニックネーム（V4追加） -->
     <div class="field">
       <label>表示名の設定<span class="hint">任意</span></label>
       <div class="radio-group">
@@ -244,7 +241,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <p style="font-size:11px;color:var(--sub);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
       </div>
     </div>
-
     <div class="field">
       <label>趣味・キーワード<span class="hint">任意</span></label>
       <input type="text" id="reg_hobby" placeholder="例：サイクリング・落語・読書">
@@ -253,7 +249,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>ひとこと近況<span class="hint">任意</span></label>
       <textarea id="reg_note" placeholder="近況をひとことどうぞ"></textarea>
     </div>
-    <!-- 重複確認ボックス -->
     <div class="dup-box" id="dup_box">
       <div class="dup-title">⚠️ 同じ名前・誕生日のメンバーがすでに登録されています</div>
       <div class="dup-desc">以前ご自身で登録された可能性があります。どちらですか？</div>
@@ -277,8 +272,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <h1>お知らせを投稿する</h1>
     <p class="sub">同窓生全体へのテキストお知らせを書き込む</p>
   </div>
-
-  <!-- ステップ1：本人確認 -->
   <div class="radar-step active" id="board-step1">
     <div class="card">
       <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>公式お知らせ（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
@@ -301,8 +294,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <button class="submit-btn" id="b_verify_btn" onclick="verifyBoard()">確認する</button>
     </div>
   </div>
-
-  <!-- ステップ2：投稿内容 -->
   <div class="radar-step" id="board-step2">
     <div class="card">
       <div style="background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2d7d46;display:flex;align-items:center;gap:6px">
@@ -345,8 +336,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <h1>近況を更新する</h1>
     <p class="sub">まず本人確認をしてから更新します</p>
   </div>
-
-  <!-- ステップ1：本人確認 -->
   <div class="radar-step active" id="radar-step1">
     <div class="card">
       <div class="notice">🔑 登録時の名前と誕生日を入力してください。現在の登録情報を表示します。</div>
@@ -368,11 +357,8 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <button class="submit-btn" id="r_check_btn" onclick="checkRadar()">確認する</button>
     </div>
   </div>
-
-  <!-- ステップ2：現在の情報を表示して更新 -->
   <div class="radar-step" id="radar-step2">
     <div class="card">
-      <!-- 現在の登録情報 -->
       <div class="current-info-card">
         <div class="ci-title">📋 現在の登録情報</div>
         <div class="current-info-row"><span class="ci-label">期</span><span class="ci-val" id="ci_period">-</span></div>
@@ -427,8 +413,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           <option>茶道部</option><option>新聞部</option><option>その他</option>
         </select>
       </div>
-
-      <!-- ニックネーム変更（V4追加） -->
       <div class="field">
         <label>表示名の変更<span class="hint">任意</span></label>
         <div class="radio-group">
@@ -440,7 +424,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           <p style="font-size:11px;color:var(--sub);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
         </div>
       </div>
-
       <div class="field">
         <label>趣味・キーワード<span class="hint">任意</span></label>
         <input type="text" id="r_hobby" placeholder="例：サイクリング・落語・読書">
@@ -484,7 +467,6 @@ document.querySelectorAll('.radio-item input').forEach(function(r){
   });
 });
 
-// ニックネームラジオ切り替え（V4追加）
 document.querySelectorAll('input[name="reg_nick_type"]').forEach(function(r){
   r.addEventListener('change', function(){
     document.getElementById('reg_nick_wrap').classList.toggle('show', r.value === 'nick');
@@ -536,7 +518,6 @@ function calcPeriodFromBirth(){
   document.getElementById('reg-period').classList.remove('has-error');
 }
 
-// ニックネーム取得ヘルパー（V4追加）
 function getNickname(typeName, inputId) {
   var type = (document.querySelector('input[name="'+typeName+'"]:checked') || {}).value;
   if(type === 'nick') return document.getElementById(inputId).value.trim();
@@ -572,7 +553,7 @@ function submitRegister() {
     status:document.querySelector('input[name="reg_st"]:checked').value,
     hobby:document.getElementById('reg_hobby').value.trim(),
     note:document.getElementById('reg_note').value.trim(),
-    nickname:getNickname('reg_nick_type','reg_nickname'), // V4追加
+    nickname:getNickname('reg_nick_type','reg_nickname'),
   }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
@@ -600,7 +581,7 @@ function submitRegisterForce(overwrite) {
     status:document.querySelector('input[name="reg_st"]:checked').value,
     hobby:document.getElementById('reg_hobby').value.trim(),
     note:document.getElementById('reg_note').value.trim(),
-    nickname:getNickname('reg_nick_type','reg_nickname'), // V4追加
+    nickname:getNickname('reg_nick_type','reg_nickname'),
   };
 
   if(overwrite){
@@ -646,7 +627,6 @@ function checkRadar() {
       showErr('r_check_err','同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。');
       return;
     }
-    // 現在の情報を表示してステップ2へ
     document.getElementById('ci_period').textContent     = res.period     || '-';
     document.getElementById('ci_club').textContent       = res.club       || '-';
     document.getElementById('ci_area').textContent       = res.area       || '-';
@@ -654,16 +634,14 @@ function checkRadar() {
     document.getElementById('ci_homecoming').textContent = res.homecoming || '-';
     document.getElementById('ci_hobby').textContent      = res.hobby      || '-';
     document.getElementById('ci_note').textContent       = res.note       || '-';
-    document.getElementById('ci_nickname').textContent   = res.nickname   || '（本名表示）'; // V4追加
+    document.getElementById('ci_nickname').textContent   = res.nickname   || '（本名表示）';
 
-    // フォームにも現在値をセット
     setSelectValue('r_area', res.area);
     setRadioValue('r_st', res.status);
     document.getElementById('r_hc').value    = res.homecoming || '';
     document.getElementById('r_hobby').value = res.hobby      || '';
     document.getElementById('r_note').value  = res.note       || '';
 
-    // ニックネーム初期値（V4追加）
     if(res.nickname){
       setRadioValue('r_nick_type', 'nick');
       document.getElementById('r_nick_wrap').classList.add('show');
@@ -717,7 +695,7 @@ function submitRadar() {
     club:document.getElementById('r_club').value,
     hobby:document.getElementById('r_hobby').value.trim(),
     note:document.getElementById('r_note').value.trim(),
-    nickname:getNickname('r_nick_type','r_nickname'), // V4追加
+    nickname:getNickname('r_nick_type','r_nickname'),
   }, function(res){
     setLoading(false,'r_btn');
     if(res && res.success){ showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500); }
@@ -794,11 +772,12 @@ function submitBoard() {
   });
 }
 
+// ===== 共通送信関数（text/plainでCORSエラー回避）=====
 function send(payload, callback) {
   document.getElementById('overlay').classList.add('show');
   fetch(GAS_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload),
   })
     .then(function(r){ return r.json(); })
