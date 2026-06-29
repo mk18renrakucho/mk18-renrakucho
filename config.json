@@ -1,11 +1,11 @@
 {
   "clubs": [
-    {"name":"テニス部",         "pass":"テニス",       "url":"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16", "desc":"テニス部の思い出アルバム"},
-    {"name":"野球部",           "pass":"野球",         "url":"https://photos.app.goo.gl/Aphu5ttxy8DHz6ax9", "desc":"野球部の思い出アルバム"},
-    {"name":"バスケットボール部","pass":"バスケ",       "url":"https://photos.app.goo.gl/Cn9W59EUYmZ7Wh569", "desc":"バスケットボール部の思い出アルバム"},
-    {"name":"応援団",           "pass":"北心会",       "url":"https://photos.app.goo.gl/Ri8j8KfiBryvDRoM7", "desc":"応援団の思い出アルバム"},
-    {"name":"バドミントン部",   "pass":"バドミントン", "url":"https://photos.app.goo.gl/sgTpX5sJJfergwGz8", "desc":"バドミントン部の思い出アルバム"},
-    {"name":"サッカー部",       "pass":"サッカー",     "url":"https://photos.app.goo.gl/qe2UiatKYsM48eS16", "desc":"サッカー部の思い出アルバム"},
+    {"name":"テニス部",         "pass":"テニス",       "url":"", "desc":"テニス部の思い出アルバム"},
+    {"name":"野球部",           "pass":"野球",         "url":"", "desc":"野球部の思い出アルバム"},
+    {"name":"バスケットボール部","pass":"バスケ",       "url":"", "desc":"バスケットボール部の思い出アルバム"},
+    {"name":"応援団",           "pass":"北心会",       "url":"", "desc":"応援団の思い出アルバム"},
+    {"name":"バドミントン部",   "pass":"バドミントン", "url":"", "desc":"バドミントン部の思い出アルバム"},
+    {"name":"サッカー部",       "pass":"サッカー",     "url":"", "desc":"サッカー部の思い出アルバム"},
     {"name":"吹奏楽部",         "pass":"吹奏楽",       "url":"",                                            "desc":"吹奏楽部の思い出アルバム"},
     {"name":"美術部",           "pass":"美術",         "url":"",                                            "desc":"美術部の思い出アルバム"},
     {"name":"卓球部",           "pass":"卓球",         "url":"",                                            "desc":"卓球部の思い出アルバム"},
