@@ -1,0 +1,33 @@
+{
+  "clubs": [
+    {"name":"テニス部",         "pass":"テニス",       "url":"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16", "desc":"テニス部の思い出アルバム"},
+    {"name":"野球部",           "pass":"野球",         "url":"https://photos.app.goo.gl/Aphu5ttxy8DHz6ax9", "desc":"野球部の思い出アルバム"},
+    {"name":"バスケットボール部","pass":"バスケ",       "url":"https://photos.app.goo.gl/Cn9W59EUYmZ7Wh569", "desc":"バスケットボール部の思い出アルバム"},
+    {"name":"応援団",           "pass":"北心会",       "url":"https://photos.app.goo.gl/Ri8j8KfiBryvDRoM7", "desc":"応援団の思い出アルバム"},
+    {"name":"バドミントン部",   "pass":"バドミントン", "url":"https://photos.app.goo.gl/sgTpX5sJJfergwGz8", "desc":"バドミントン部の思い出アルバム"},
+    {"name":"サッカー部",       "pass":"サッカー",     "url":"https://photos.app.goo.gl/qe2UiatKYsM48eS16", "desc":"サッカー部の思い出アルバム"},
+    {"name":"吹奏楽部",         "pass":"吹奏楽",       "url":"",                                            "desc":"吹奏楽部の思い出アルバム"},
+    {"name":"美術部",           "pass":"美術",         "url":"",                                            "desc":"美術部の思い出アルバム"},
+    {"name":"卓球部",           "pass":"卓球",         "url":"",                                            "desc":"卓球部の思い出アルバム"},
+    {"name":"ソフトボール部",   "pass":"ソフトボール", "url":"",                                            "desc":"ソフトボール部の思い出アルバム"},
+    {"name":"陸上部",           "pass":"陸上",         "url":"",                                            "desc":"陸上部の思い出アルバム"},
+    {"name":"ハンドボール部",   "pass":"ハンドボール", "url":"",                                            "desc":"ハンドボール部の思い出アルバム"},
+    {"name":"ボート部",         "pass":"ボート",       "url":"",                                            "desc":"ボート部の思い出アルバム"},
+    {"name":"弓道部",           "pass":"弓道",         "url":"",                                            "desc":"弓道部の思い出アルバム"},
+    {"name":"剣道部",           "pass":"剣道",         "url":"",                                            "desc":"剣道部の思い出アルバム"},
+    {"name":"帰宅部",           "pass":"帰宅",         "url":"",                                            "desc":"帰宅部の思い出アルバム"},
+    {"name":"写真部",           "pass":"写真",         "url":"",                                            "desc":"写真部の思い出アルバム"},
+    {"name":"生徒会",           "pass":"生徒会",       "url":"",                                            "desc":"生徒会の思い出アルバム"},
+    {"name":"ラグビー部",       "pass":"ラグビー",     "url":"",                                            "desc":"ラグビー部の思い出アルバム"},
+    {"name":"バレーボール部",   "pass":"バレーボール", "url":"",                                            "desc":"バレーボール部の思い出アルバム"},
+    {"name":"水泳部",           "pass":"水泳",         "url":"",                                            "desc":"水泳部の思い出アルバム"},
+    {"name":"柔道部",           "pass":"柔道",         "url":"",                                            "desc":"柔道部の思い出アルバム"},
+    {"name":"体操部",           "pass":"体操",         "url":"",                                            "desc":"体操部の思い出アルバム"},
+    {"name":"演劇部",           "pass":"演劇",         "url":"",                                            "desc":"演劇部の思い出アルバム"},
+    {"name":"書道部",           "pass":"書道",         "url":"",                                            "desc":"書道部の思い出アルバム"},
+    {"name":"合唱部",           "pass":"合唱",         "url":"",                                            "desc":"合唱部の思い出アルバム"},
+    {"name":"放送部",           "pass":"放送",         "url":"",                                            "desc":"放送部の思い出アルバム"},
+    {"name":"茶道部",           "pass":"茶道",         "url":"",                                            "desc":"茶道部の思い出アルバム"},
+    {"name":"新聞部",           "pass":"新聞",         "url":"",                                            "desc":"新聞部の思い出アルバム"}
+  ]
+}
