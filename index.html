@@ -236,11 +236,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 </div>
 
-<!-- ===================================================
-     近況更新モーダル（2ステップ化）
-     ステップ1：誕生日入力→確認
-     ステップ2：本人確認OK→更新フォーム表示
-=================================================== -->
+<!-- 近況更新モーダル（2ステップ化） -->
 <div class="modal-overlay" id="modal">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -248,8 +244,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
     <div id="db"></div>
-
-    <!-- ステップ1：誕生日入力 -->
     <div class="modal-step active" id="u-step1">
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
@@ -262,8 +256,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         </button>
       </div>
     </div>
-
-    <!-- ステップ2：更新フォーム -->
     <div class="modal-step" id="u-step2">
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div class="verified-badge">
@@ -291,19 +283,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
-<!-- ===================================================
-     コルクボード投稿モーダル（2ステップ化）
-     ステップ1：名前＋誕生日→確認
-     ステップ2：本人確認OK→投稿フォーム表示
-=================================================== -->
+<!-- コルクボード投稿モーダル（2ステップ化） -->
 <div class="modal-overlay" id="modal-board">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">📌 お知らせを投稿する</div>
       <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
-
-    <!-- ステップ1：名前＋誕生日 -->
     <div class="modal-step active" id="b-step1">
       <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
         🔑 名前と誕生日で本人確認します。
@@ -320,8 +306,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         確認する
       </button>
     </div>
-
-    <!-- ステップ2：投稿フォーム -->
     <div class="modal-step" id="b-step2">
       <div class="verified-badge" style="margin-bottom:14px">
         <i class="ti ti-user-check" style="font-size:16px"></i>
@@ -361,131 +345,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <script>
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
-var boardVerifiedUser = null; // コルクボード本人確認済みユーザー
+var boardVerifiedUser = null;
 
 // ===================================================
-// PWA：Service Worker登録 & インストールバナー
+// 部室データをconfig.jsonから読み込む
 // ===================================================
-var deferredPrompt = null;
+var AL = [];
+fetch('config.json')
+  .then(function(r){ return r.json(); })
+  .then(function(cfg){
+    AL = cfg.clubs;
+    // 部室タブが開いていたら再描画
+    if(document.getElementById('p-c').style.display !== 'none') renderClubs();
+  })
+  .catch(function(){ console.warn('config.json の読み込みに失敗しました'); });
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js')
-      .then(function(reg){ console.log('SW登録完了:', reg.scope); })
-      .catch(function(err){ console.log('SW登録失敗:', err); });
-  });
-}
-
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('pwa-banner').style.display = 'flex';
-});
-
-document.getElementById('pwa-install-btn').addEventListener('click', function(){
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(function(result){
-    if(result.outcome === 'accepted') showToast('📱 ホーム画面に追加しました！');
-    deferredPrompt = null;
-    hidePwaBanner();
-  });
-});
-
-window.addEventListener('appinstalled', function(){
-  hidePwaBanner();
-  showToast('✓ アプリとしてインストールされました');
-});
-
-function hidePwaBanner(){
-  document.getElementById('pwa-banner').style.display = 'none';
-}
-
-// ===================================================
-// お気に入りログイン状態
-// ===================================================
-function favLogin(){
-  var name=(document.getElementById("fv_name").value||"").trim();
-  var bd=(document.getElementById("fv_bd").value||"").trim();
-  var errEl=document.getElementById("fv_err");
-  errEl.style.display="none";
-  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
-  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
-  document.getElementById("overlay").classList.add("show");
-  gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
-    document.getElementById("overlay").classList.remove("show");
-    if(res && res.success){
-      favUser = {name:name, birthday:bd};
-      var favNames = res.favorites || [];
-      M.forEach(function(m){ m.fav = favNames.indexOf(m.name) >= 0; });
-      showFavLoggedIn();
-      renderFav();
-      renderM();
-    } else {
-      errEl.textContent="名前または誕生日が一致しません。もう一度確認してください。";
-      errEl.style.display="block";
-      document.getElementById("fv_bd").value="";
-    }
-  });
-}
-
-function favLogout(){
-  favUser = null;
-  M.forEach(function(m){ m.fav = false; });
-  showFavLoggedOut();
-  renderFav();
-  renderM();
-}
-
-function showFavLoggedIn(){
-  document.getElementById("fav-login-area").style.display="none";
-  document.getElementById("fav-user-area").style.display="flex";
-  document.getElementById("fav-hint").style.display="block";
-  document.getElementById("fav-user-label").textContent=favUser.name + "さんでログイン中";
-}
-
-function showFavLoggedOut(){
-  document.getElementById("fav-login-area").style.display="block";
-  document.getElementById("fav-user-area").style.display="none";
-  document.getElementById("fav-hint").style.display="none";
-  document.getElementById("fv_bd").value="";
-  document.getElementById("fv_err").style.display="none";
-}
-
-// ===================================================
-// 部室アルバムリスト
-// ===================================================
-var AL=[
-  {name:"テニス部",pass:"テニス",url:"https://photos.app.goo.gl/FUntLYFBqTtfP3Y16",desc:"テニス部の思い出アルバム"},
-  {name:"野球部",pass:"野球",url:"https://photos.app.goo.gl/Aphu5ttxy8DHz6ax9",desc:"野球部の思い出アルバム"},
-  {name:"バスケットボール部",pass:"バスケ",url:"https://photos.app.goo.gl/Cn9W59EUYmZ7Wh569",desc:"バスケットボール部の思い出アルバム"},
-  {name:"応援団",pass:"応援団",url:"https://photos.app.goo.gl/Ri8j8KfiBryvDRoM7",desc:"応援団の思い出アルバム"},
-  {name:"バドミントン部",pass:"バドミントン",url:"https://photos.app.goo.gl/sgTpX5sJJfergwGz8",desc:"バドミントン部の思い出アルバム"},
-  {name:"サッカー部",pass:"サッカー",url:"https://photos.app.goo.gl/qe2UiatKYsM48eS16",desc:"サッカー部の思い出アルバム"},
-  {name:"吹奏楽部",pass:"吹奏楽",url:"",desc:"吹奏楽部の思い出アルバム"},
-  {name:"美術部",pass:"美術",url:"",desc:"美術部の思い出アルバム"},
-  {name:"卓球部",pass:"卓球",url:"",desc:"卓球部の思い出アルバム"},
-  {name:"ソフトボール部",pass:"ソフトボール",url:"",desc:"ソフトボール部の思い出アルバム"},
-  {name:"陸上部",pass:"陸上",url:"",desc:"陸上部の思い出アルバム"},
-  {name:"ハンドボール部",pass:"ハンドボール",url:"",desc:"ハンドボール部の思い出アルバム"},
-  {name:"ボート部",pass:"ボート",url:"",desc:"ボート部の思い出アルバム"},
-  {name:"弓道部",pass:"弓道",url:"",desc:"弓道部の思い出アルバム"},
-  {name:"剣道部",pass:"剣道",url:"",desc:"剣道部の思い出アルバム"},
-  {name:"帰宅部",pass:"帰宅部",url:"",desc:"帰宅部の思い出アルバム"},
-  {name:"写真部",pass:"写真",url:"",desc:"写真部の思い出アルバム"},
-  {name:"生徒会",pass:"生徒会",url:"",desc:"生徒会の思い出アルバム"},
-  {name:"ラグビー部",pass:"ラグビー",url:"",desc:"ラグビー部の思い出アルバム"},
-  {name:"バレーボール部",pass:"バレーボール",url:"",desc:"バレーボール部の思い出アルバム"},
-  {name:"水泳部",pass:"水泳",url:"",desc:"水泳部の思い出アルバム"},
-  {name:"柔道部",pass:"柔道",url:"",desc:"柔道部の思い出アルバム"},
-  {name:"体操部",pass:"体操",url:"",desc:"体操部の思い出アルバム"},
-  {name:"演劇部",pass:"演劇",url:"",desc:"演劇部の思い出アルバム"},
-  {name:"書道部",pass:"書道",url:"",desc:"書道部の思い出アルバム"},
-  {name:"合唱部",pass:"合唱",url:"",desc:"合唱部の思い出アルバム"},
-  {name:"放送部",pass:"放送",url:"",desc:"放送部の思い出アルバム"},
-  {name:"茶道部",pass:"茶道",url:"",desc:"茶道部の思い出アルバム"},
-  {name:"新聞部",pass:"新聞",url:"",desc:"新聞部の思い出アルバム"},
-];
 var AC=["#813100","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
 var API_URL="https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
 
@@ -598,22 +472,17 @@ function openDet(id){
     }).join("")+'</div>'
     +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+m.date+'</span>':"")
     +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+(m.note||"")+'</p>';
-
-  // ステップ1にリセット
   document.getElementById("u_bd").value="";
   document.getElementById("u_err1").style.display="none";
   document.getElementById("u_err2").style.display="none";
   showUStep(1);
-
   document.getElementById("modal").classList.add("show");
   document.getElementById("modal").onclick=function(e){
     if(e.target===document.getElementById("modal")) closeModal();
   };
 }
 
-function closeModal(){
-  document.getElementById("modal").classList.remove("show");
-}
+function closeModal(){document.getElementById("modal").classList.remove("show");}
 
 function showUStep(n){
   document.getElementById("u-step1").className="modal-step"+(n===1?" active":"");
@@ -626,7 +495,6 @@ function backToUStep1(){
   showUStep(1);
 }
 
-// ステップ1：誕生日で本人確認
 function doVerifyUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var bd=(document.getElementById("u_bd").value||"").trim();
@@ -634,16 +502,13 @@ function doVerifyUpdate(){
   errEl.style.display="none";
   if(!bd||!/^[0-9]{4}$/.test(bd)){
     errEl.textContent="誕生日を4桁で入力してください（例：0315）";
-    errEl.style.display="block";
-    return;
+    errEl.style.display="block";return;
   }
   var btn=document.getElementById("u_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
-
   gasGet({action:"verify", name:m.name, birthday:bd}, function(res){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
-      // 本人確認OK→ステップ2へ
       document.getElementById("u_verified_name").textContent=m.name;
       document.getElementById("us").value=m.status||"在住（松山在住）";
       document.getElementById("ud").value=m.date||"";
@@ -659,7 +524,6 @@ function doVerifyUpdate(){
   });
 }
 
-// ステップ2：更新送信
 function doUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var bd=(document.getElementById("u_bd").value||"").trim();
@@ -676,9 +540,7 @@ function doUpdate(){
   },function(res){
     btn.disabled=false;btn.textContent="更新する";
     if(res&&res.success){
-      closeModal();
-      showToast("✓ 近況を更新しました！");
-      loadFromAPI();
+      closeModal();showToast("✓ 近況を更新しました！");loadFromAPI();
     } else {
       errEl.textContent=(res&&res.error)||"更新に失敗しました。もう一度お試しください。";
       errEl.style.display="block";
@@ -720,9 +582,7 @@ function openBoardModal(){
   };
 }
 
-function closeBoardModal(){
-  document.getElementById("modal-board").classList.remove("show");
-}
+function closeBoardModal(){document.getElementById("modal-board").classList.remove("show");}
 
 function showBStep(n){
   document.getElementById("b-step1").className="modal-step"+(n===1?" active":"");
@@ -734,7 +594,6 @@ function backToBStep1(){
   showBStep(1);
 }
 
-// ステップ1：名前＋誕生日で本人確認
 function doVerifyBoard(){
   var name=(document.getElementById("b_name").value||"").trim();
   var bd=(document.getElementById("b_bd").value||"").trim();
@@ -742,10 +601,8 @@ function doVerifyBoard(){
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
   if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
-
   var btn=document.getElementById("b_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
-
   gasGet({action:"verify", name:name, birthday:bd}, function(res){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
@@ -764,7 +621,6 @@ function doVerifyBoard(){
   });
 }
 
-// ステップ2：投稿送信
 function addPost(){
   if(!boardVerifiedUser){return;}
   var title=(document.getElementById("b_title").value||"").trim();
@@ -821,6 +677,10 @@ function fPost(cat){
 }
 
 function renderClubs(){
+  if(AL.length===0){
+    document.getElementById("cl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込み中...</div>';
+    return;
+  }
   document.getElementById("cl").innerHTML=AL.map(function(a){
     return '<div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
       +'<i class="ti ti-lock" style="color:var(--text-ter);font-size:18px;flex-shrink:0"></i>'
@@ -887,6 +747,69 @@ function loadBoardFromAPI(){
     .then(function(r){return r.json();})
     .then(function(data){P=Array.isArray(data)?data:[];renderP();})
     .catch(function(){document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';});
+}
+
+// PWA
+var deferredPrompt = null;
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
+  });
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('pwa-banner').style.display='flex';
+});
+document.getElementById('pwa-install-btn').addEventListener('click', function(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result){
+    if(result.outcome==='accepted')showToast('📱 ホーム画面に追加しました！');
+    deferredPrompt=null;hidePwaBanner();
+  });
+});
+window.addEventListener('appinstalled',function(){hidePwaBanner();showToast('✓ アプリとしてインストールされました');});
+function hidePwaBanner(){document.getElementById('pwa-banner').style.display='none';}
+
+// お気に入りログイン
+function favLogin(){
+  var name=(document.getElementById("fv_name").value||"").trim();
+  var bd=(document.getElementById("fv_bd").value||"").trim();
+  var errEl=document.getElementById("fv_err");
+  errEl.style.display="none";
+  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  document.getElementById("overlay").classList.add("show");
+  gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
+    document.getElementById("overlay").classList.remove("show");
+    if(res && res.success){
+      favUser={name:name,birthday:bd};
+      var favNames=res.favorites||[];
+      M.forEach(function(m){m.fav=favNames.indexOf(m.name)>=0;});
+      showFavLoggedIn();renderFav();renderM();
+    } else {
+      errEl.textContent="名前または誕生日が一致しません。もう一度確認してください。";
+      errEl.style.display="block";
+      document.getElementById("fv_bd").value="";
+    }
+  });
+}
+function favLogout(){
+  favUser=null;M.forEach(function(m){m.fav=false;});
+  showFavLoggedOut();renderFav();renderM();
+}
+function showFavLoggedIn(){
+  document.getElementById("fav-login-area").style.display="none";
+  document.getElementById("fav-user-area").style.display="flex";
+  document.getElementById("fav-hint").style.display="block";
+  document.getElementById("fav-user-label").textContent=favUser.name+"さんでログイン中";
+}
+function showFavLoggedOut(){
+  document.getElementById("fav-login-area").style.display="block";
+  document.getElementById("fav-user-area").style.display="none";
+  document.getElementById("fav-hint").style.display="none";
+  document.getElementById("fv_bd").value="";
+  document.getElementById("fv_err").style.display="none";
 }
 
 var hash=window.location.hash;
