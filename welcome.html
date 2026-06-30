@@ -180,10 +180,12 @@ function toggleLineBtn(){
     btn.style.pointerEvents = 'auto';
     btn.style.opacity = '1';
     btn.onclick = null;
+    try{ sessionStorage.setItem('mk18_terms_agreed_at', new Date().toISOString()); }catch(e){}
   } else {
     btn.style.pointerEvents = 'none';
     btn.style.opacity = '0.4';
     btn.onclick = function(){ return false; };
+    try{ sessionStorage.removeItem('mk18_terms_agreed_at'); }catch(e){}
   }
 }
 function check(){
