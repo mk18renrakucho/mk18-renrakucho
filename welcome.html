@@ -155,7 +155,7 @@ input[type=text]:focus{border-color:var(--accent)}
       </div>
     </div>
   </div>
-  <div class="footer">北高 連絡帳 v1.0<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+  <div class="footer">北高 連絡帳 v1.0.1<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 <script>
 var MAX = 5;
@@ -180,12 +180,12 @@ function toggleLineBtn(){
     btn.style.pointerEvents = 'auto';
     btn.style.opacity = '1';
     btn.onclick = null;
-    try{ sessionStorage.setItem('mk18_terms_agreed_at', new Date().toISOString()); }catch(e){}
+    try{ localStorage.setItem('mk18_terms_agreed_at', new Date().toISOString()); }catch(e){}
   } else {
     btn.style.pointerEvents = 'none';
     btn.style.opacity = '0.4';
     btn.onclick = function(){ return false; };
-    try{ sessionStorage.removeItem('mk18_terms_agreed_at'); }catch(e){}
+    try{ localStorage.removeItem('mk18_terms_agreed_at'); }catch(e){}
   }
 }
 function check(){
