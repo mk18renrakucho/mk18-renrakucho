@@ -441,7 +441,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.0　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.0.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -526,7 +526,7 @@ function getNickname(typeName, inputId) {
 }
 
 function getTermsAgreedAt() {
-  try{ return sessionStorage.getItem('mk18_terms_agreed_at') || ''; }catch(e){ return ''; }
+  try{ return localStorage.getItem('mk18_terms_agreed_at') || ''; }catch(e){ return ''; }
 }
 
 // ===== 登録 =====
