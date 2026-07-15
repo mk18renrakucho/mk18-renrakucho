@@ -1,72 +1,3 @@
-Skip to content
-mk18renrakucho
-mk18-renrakucho
-Repository navigation
-Code
-Issues
-Pull requests
-Agents
-Actions
-Projects
-Wiki
-Security and quality
-Insights
-Settings
-mk18-renrakucho
-/
-index.html
-in
-main
-
-Edit
-
-Preview
-Indent mode
-
-Spaces
-Indent size
-
-2
-Line wrap mode
-
-No wrap
-Editing index.html file contents
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -103,5 +34,999 @@ Editing index.html file contents
 :root{--blue:#813100;--blue-mid:#A84400;--blue-light:#FAEEDA;--green:#06C755;--gray:#F5F5F5;--border:#E0E0E0;--text:#222;--text-sub:#666;--text-ter:#999;--white:#fff;--radius:12px;--radius-sm:8px;}
 body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#F0F2F5;min-height:100vh}
 .app{max-width:480px;margin:0 auto;background:var(--white);min-height:100vh;display:flex;flex-direction:column;box-shadow:0 0 20px rgba(0,0,0,0.1)}
-Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.
- 
+.header{background:var(--blue);color:var(--white);padding:16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-title{font-size:18px;font-weight:500}
+.header-sub{font-size:11px;opacity:0.7;margin-top:2px}
+.header-count-num{font-size:24px;font-weight:500;text-align:right}
+.header-count-label{font-size:10px;opacity:0.8;text-align:right}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--white);position:sticky;top:64px;z-index:99}
+.tab{flex:1;padding:12px 4px;border:none;background:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;border-bottom:2px solid transparent;color:var(--text-sub);font-family:inherit;transition:all 0.15s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+.content{flex:1;padding:12px;overflow-y:auto}
+.card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.badge-home{background:#E7F8EE;color:#27500A}
+.badge-plan{background:#FAEEDA;color:#813100}
+.badge-live{background:#F1EFE8;color:#444}
+input,select,textarea{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:14px;font-family:inherit;color:var(--text);background:var(--white)}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+.btn{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;border:1px solid var(--border);background:var(--white);color:var(--text)}
+.btn-primary{background:var(--blue);color:var(--white);border:none}
+.pill{font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--gray);color:var(--text-sub);white-space:nowrap}
+.pill.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-ter);font-size:15px;pointer-events:none}
+.search-wrap input{padding-left:32px}
+.filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.filter-sel{font-size:12px;padding:5px 8px;flex:1 1 auto;min-width:70px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--white);color:var(--text)}
+.member-card{transition:border-color 0.15s}
+.member-card:hover{border-color:var(--blue-mid)}
+.fav-btn{background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#ddd;transition:color 0.15s}
+.fav-btn.active{color:#e74c3c}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.club-unlock{background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius);padding:14px;margin-bottom:12px;display:none}
+.footer{background:var(--blue);color:rgba(255,255,255,0.6);text-align:center;padding:8px;font-size:10px}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#2d2620;color:#fff;padding:12px 22px;border-radius:28px;font-size:14px;font-weight:500;transition:transform .35s cubic-bezier(.17,.67,.35,1.1);z-index:400;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:300;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:#c9a96e;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fav-login{background:var(--gray);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.fav-login-title{font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.fav-login-sub{font-size:12px;color:var(--text-sub);margin-bottom:12px;line-height:1.6}
+.fav-login input,.fav-login select{margin-bottom:8px}
+.fav-user-badge{display:flex;align-items:center;gap:10px;background:var(--blue-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
+.fav-user-badge .fav-user-info{flex:1;font-size:13px;color:var(--blue);font-weight:500}
+.fav-user-badge .fav-logout-btn{font-size:11px;color:var(--text-ter);background:none;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit}
+
+/* 2ステップモーダル用 */
+.modal-step{display:none}
+.modal-step.active{display:block}
+.verified-badge{background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:13px;color:#2d7d46;display:flex;align-items:center;gap:6px}
+
+/* PWAインストールバナー */
+.pwa-banner{background:linear-gradient(135deg,#813100,#A84400);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none}
+.pwa-banner-icon{font-size:24px;flex-shrink:0}
+.pwa-banner-text{flex:1}
+.pwa-banner-btn{background:#fff;color:#813100;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.pwa-banner-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- PWAインストールバナー -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-icon">📱</div>
+  <div class="pwa-banner-text">ホーム画面に追加するとアプリとして使えます</div>
+  <button class="pwa-banner-btn" id="pwa-install-btn">追加する</button>
+  <button class="pwa-banner-close" onclick="hidePwaBanner()">✕</button>
+</div>
+
+<div style="background:#1a3a5c;color:#fff;text-align:center;padding:8px 12px;font-size:12px;line-height:1.8">
+  北高 連絡帳は、同窓生の近況共有を目的としたデジタル回覧板です。<br>
+  個人間の連絡・取引・仲介を行うサービスではありません。
+</div>
+
+<div class="header">
+  <div>
+    <div class="header-title">北高 連絡帳</div>
+    <div class="header-sub">松山北高校 同窓会ネットワーク</div>
+  </div>
+  <div>
+    <div class="header-count-num" id="hc">0</div>
+    <div class="header-count-label">帰省中・予定</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
+  <button class="tab" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
+  <button class="tab" id="tb-g" onclick="go('g')"><i class="ti ti-photo"></i>写真館</button>
+  <button class="tab" id="tb-c" onclick="go('c')"><i class="ti ti-lock"></i>部室</button>
+  <button class="tab" id="tb-f" onclick="go('f')"><i class="ti ti-heart"></i>お気に入り</button>
+  <button class="tab" id="tb-a" onclick="go('a')"><i class="ti ti-shield-lock"></i>安心宣言</button>
+</div>
+
+<div class="content">
+
+<!-- 出没レーダー -->
+<div id="p-r">
+  <div class="search-wrap">
+    <i class="ti ti-search"></i>
+    <input type="text" id="kw" placeholder="名前・趣味・ひとことで検索" oninput="renderM()">
+  </div>
+  <div id="period-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;overflow-x:auto;padding-bottom:2px"></div>
+  <div class="filters">
+    <select class="filter-sel" id="fc" onchange="renderM()"><option>全部活</option></select>
+    <select class="filter-sel" id="fa" onchange="renderM()"><option>全エリア</option></select>
+    <select class="filter-sel" id="fs" onchange="renderM()"><option>全状態</option><option>帰省中</option><option>帰省予定</option><option>在住</option></select>
+  </div>
+  <div id="loading-msg" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;display:none">
+    <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
+  </div>
+  <div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
+  <div id="ml"></div>
+</div>
+
+<!-- コルクボード -->
+<div id="p-b" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="display:flex;gap:6px">
+      <button class="pill active" id="pa" onclick="fPost('全')">全て</button>
+      <button class="pill" id="pb2" onclick="fPost('告知')">告知</button>
+      <button class="pill" id="pn" onclick="fPost('つぶやき')">つぶやき</button>
+    </div>
+    <button onclick="openBoardModal()" style="background:#c9a96e;color:white;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✍️ 投稿する</button>
+  </div>
+  <div id="pl"></div>
+</div>
+
+<!-- 部室 -->
+<div id="p-c" style="display:none">
+  <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
+    <i class="ti ti-info-circle" style="margin-right:4px"></i>部活の名前を合い言葉として入力するとアルバムが開きます。
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">合い言葉を入力</div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="pi" placeholder="例：テニス" style="flex:1" onkeydown="if(event.key==='Enter')chkPass()">
+      <button class="btn btn-primary" onclick="chkPass()"><i class="ti ti-key" style="margin-right:3px"></i>開く</button>
+    </div>
+    <div id="pe" style="font-size:12px;color:#a32d2d;margin-top:6px;display:none"></div>
+  </div>
+  <div class="club-unlock" id="ar">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <i class="ti ti-check" style="color:#2d7d46;font-size:18px"></i>
+      <span style="font-weight:500;color:#2d7d46;font-size:14px">合い言葉が一致しました</span>
+    </div>
+    <div id="ad" style="font-size:13px;color:#2d7d46;margin-bottom:10px"></div>
+    <a id="al" href="#" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#0f6e56;font-weight:500;background:var(--white);padding:8px 14px;border-radius:var(--radius-sm);border:1px solid #0f6e56;text-decoration:none">
+      <i class="ti ti-photo"></i><span id="alb"></span><i class="ti ti-external-link" style="font-size:11px"></i>
+    </a>
+  </div>
+  <div style="font-size:12px;color:var(--text-ter);margin-bottom:10px">開設されている部室（29部室）</div>
+  <div id="cl"></div>
+</div>
+
+<!-- 写真館 -->
+<div id="p-g" style="display:none">
+  <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
+    <i class="ti ti-info-circle" style="margin-right:4px"></i>登録済みの方なら誰でも投稿・閲覧できます（部活の写真は「部室」タブへ）。
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">📷 写真を投稿する</div>
+    <input type="file" id="g_file" accept="image/*" style="margin-bottom:8px">
+    <input type="text" id="g_caption" placeholder="ひとことコメント（任意）" style="margin-bottom:8px">
+    <div id="g_upload_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button class="btn btn-primary" id="g_upload_btn" onclick="uploadGalleryPhoto()" style="width:100%">投稿する</button>
+  </div>
+
+  <div id="g_period_pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;overflow-x:auto;padding-bottom:2px"></div>
+  <div id="g_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+</div>
+
+<!-- お気に入り -->
+<div id="p-f" style="display:none">
+  <div id="fav-login-area" class="fav-login">
+    <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
+    <div class="fav-login-sub">名前と誕生日を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
+    <input type="text" id="fv_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
+    <input type="text" id="fv_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
+    <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
+  </div>
+  <div id="fav-user-area" class="fav-user-badge" style="display:none">
+    <i class="ti ti-user-check" style="font-size:22px;color:var(--blue);flex-shrink:0"></i>
+    <div class="fav-user-info" id="fav-user-label"></div>
+    <button class="fav-logout-btn" onclick="favLogout()">ログアウト</button>
+  </div>
+  <div id="fav-hint" style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6;display:none">
+    <i class="ti ti-heart" style="margin-right:4px;color:#e74c3c"></i>メンバーカードのハートをタップするとお気に入り登録されます。
+  </div>
+  <div id="fl"></div>
+</div>
+
+<!-- 安心宣言 -->
+<div id="p-a" style="display:none">
+  <div style="background:var(--blue);border-radius:var(--radius);padding:16px;margin-bottom:14px;text-align:center">
+    <i class="ti ti-shield-lock" style="font-size:32px;color:var(--white);display:block;margin-bottom:8px"></i>
+    <div style="font-size:16px;font-weight:500;color:var(--white)">安心宣言</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
+  </div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。写真館（全体・期別の共有写真）は管理者が管理する非公開のGoogleドライブに保存されます。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。</div></div>
+  <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
+    <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
+    <div style="font-size:12px;color:var(--text-sub)">LINE ID：@711epvso</div>
+  </div>
+</div>
+
+</div>
+
+<!-- 近況更新モーダル（2ステップ化） -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px" id="dn"></div>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="db"></div>
+    <div class="modal-step active" id="u-step1">
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
+          <i class="ti ti-lock" style="margin-right:4px"></i>誕生日4桁を入力して本人確認します
+        </div>
+        <input type="text" id="u_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
+        <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+        <button class="btn btn-primary" onclick="doVerifyUpdate()" style="width:100%" id="u_verify_btn">
+          <i class="ti ti-check" style="margin-right:4px"></i>確認する
+        </button>
+      </div>
+    </div>
+    <div class="modal-step" id="u-step2">
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="verified-badge">
+          <i class="ti ti-user-check" style="font-size:16px"></i>
+          <span id="u_verified_name"></span>さんの本人確認ができました
+        </div>
+        <select id="us" style="margin-bottom:8px">
+          <option value="在住（松山在住）">松山に在住</option>
+          <option value="松山以外に在住">松山以外に在住</option>
+          <option value="帰省予定">帰省予定あり</option>
+          <option value="帰省中">帰省中</option>
+        </select>
+        <input type="text" id="ud" placeholder="帰省期間（例：8/13〜8/17）" style="margin-bottom:8px">
+        <input type="text" id="ue" placeholder="現在のエリア（例：松山・関東・大阪）" style="margin-bottom:8px">
+        <input type="text" id="un" placeholder="ひとこと近況" style="margin-bottom:10px">
+        <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+        <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
+          <i class="ti ti-check" style="margin-right:4px"></i>更新する
+        </button>
+        <button onclick="backToUStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+          ← 入力し直す
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- コルクボード投稿モーダル（2ステップ化） -->
+<div class="modal-overlay" id="modal-board">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px">📌 お知らせを投稿する</div>
+      <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-step active" id="b-step1">
+      <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
+        🔑 名前と誕生日で本人確認します。
+      </div>
+      <div style="margin-bottom:6px">
+        <input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()">
+      </div>
+      <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
+      <div style="margin-bottom:12px">
+        <input type="text" id="b_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric">
+      </div>
+      <div id="b_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="b_verify_btn" onclick="doVerifyBoard()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        確認する
+      </button>
+    </div>
+    <div class="modal-step" id="b-step2">
+      <div class="verified-badge" style="margin-bottom:14px">
+        <i class="ti ti-user-check" style="font-size:16px"></i>
+        <span id="b_verified_name"></span>さんの本人確認ができました
+      </div>
+      <div style="margin-bottom:10px">
+        <select id="b_cat" style="font-size:14px">
+          <option value="告知">📢 告知（イベント・集まり）</option>
+          <option value="つぶやき">💬 つぶやき（日常のひとこと）</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="b_title" placeholder="タイトル（必須）">
+      </div>
+      <div style="margin-bottom:10px">
+        <textarea id="b_detail" rows="4" placeholder="詳細（必須）日時・場所・内容など"></textarea>
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="b_url" placeholder="参考URL（任意）">
+      </div>
+      <div id="b_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="b_btn" onclick="addPost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        投稿する
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+<div class="footer">北高 連絡帳 v1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+</div>
+
+<script>
+var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
+var favUser = null;
+var boardVerifiedUser = null;
+
+// ===================================================
+// 部室データをconfig.jsonから読み込む
+// ===================================================
+var AL = [];
+fetch('config.json')
+  .then(function(r){ return r.json(); })
+  .then(function(cfg){
+    AL = cfg.clubs;
+    // 部室タブが開いていたら再描画
+    if(document.getElementById('p-c').style.display !== 'none') renderClubs();
+  })
+  .catch(function(){ console.warn('config.json の読み込みに失敗しました'); });
+
+var AC=["#813100","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
+var API_URL="https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
+
+function gasGet(params,cb){
+  document.getElementById("overlay").classList.add("show");
+  var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]||"");}).join("&");
+  fetch(API_URL+"?"+qs)
+    .then(function(r){return r.json();})
+    .then(function(d){document.getElementById("overlay").classList.remove("show");cb(d);})
+    .catch(function(){document.getElementById("overlay").classList.remove("show");cb({success:false,error:"通信エラー"});});
+}
+
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},3500);
+}
+
+function av(n,sz){sz=sz||40;var i=(n||"??").slice(0,2);var c=AC[(i.charCodeAt(0)+(i.charCodeAt(1)||0))%AC.length];
+  return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+i+'</div>';}
+
+function sb(st){
+  var m={帰省中:"badge-home",帰省予定:"badge-plan",在住:"badge-live"};
+  var ic={帰省中:"ti-home",帰省予定:"ti-calendar",在住:"ti-map-pin"};
+  return '<span class="badge '+(m[st]||"badge-live")+'"><i class="ti '+(ic[st]||"ti-map-pin")+'" style="font-size:10px"></i>'+st+'</span>';
+}
+
+function hc(){document.getElementById("hc").textContent=M.filter(function(m){return m.status==="帰省中"||m.status==="帰省予定";}).length;}
+
+function populateFilters(){
+  var periods=[...new Set(M.map(function(m){return m.period||"";}).filter(Boolean))];
+  periods.sort(function(a,b){return parseInt(a)-parseInt(b);});
+  var pillsEl = document.getElementById("period-pills");
+  pillsEl.innerHTML=["全期"].concat(periods).map(function(p){
+    return '<button class="pill'+(p===selectedPeriod?" active":"")+'" data-period="'+escHtmlLite(p)+'">'+escHtmlLite(p)+'</button>';
+  }).join("");
+  Array.prototype.forEach.call(pillsEl.querySelectorAll('button[data-period]'), function(btn){
+    btn.addEventListener('click', function(){ selectPeriod(btn.getAttribute('data-period')); });
+  });
+  function opts(key,prefix){return[prefix,...new Set(M.map(function(m){return m[key]||"";}).filter(Boolean))].map(function(v){return'<option>'+escHtmlLite(v)+'</option>';}).join("");}
+  document.getElementById("fc").innerHTML=opts("club","全部活");
+  document.getElementById("fa").innerHTML=opts("area","全エリア");
+}
+function selectPeriod(p){selectedPeriod=p;populateFilters();renderM();}
+
+function memberCardHTML(m){
+  var favBtnClass = favUser ? "fav-btn"+(m.fav?" active":"") : "fav-btn";
+  var favBtnTitle = favUser ? "" : ' title="お気に入りタブでログインすると保存できます"';
+  return '<div class="card member-card" id="mc'+m.id+'">'
+    +'<div style="display:flex;gap:12px;align-items:flex-start">'+av(m.name)
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
+    +'<span style="font-weight:500;font-size:15px">'+escHtmlLite(m.name)+'</span>'
+    +sb(m.status)
+    +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'>'+(m.fav?'❤️':'🤍')+'</button>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--text-sub)">'+escHtmlLite(m.period)+' · '+escHtmlLite(m.club)+' · '+escHtmlLite(m.area)+'</div>'
+    +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+escHtmlLite(m.date)+'</div>':"")
+    +'<p style="font-size:13px;color:var(--text-sub);margin:5px 0 4px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escHtmlLite(m.note||"")+'</p>'
+    +'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:3px 10px;background:var(--blue-light);color:var(--blue);border:none;border-radius:20px;cursor:pointer;font-family:inherit">近況を更新する</button>'
+    +'</div></div></div>';
+}
+
+function renderM(){
+  var kw=document.getElementById("kw").value;
+  var fc=document.getElementById("fc").value;
+  var fa=document.getElementById("fa").value,fs=document.getElementById("fs").value;
+  var f=M.filter(function(m){
+    if(selectedPeriod!=="全期"&&m.period!==selectedPeriod)return false;
+    if(fc!=="全部活"&&m.club!==fc)return false;
+    if(fa!=="全エリア"&&m.area!==fa)return false;
+    if(fs!=="全状態"&&m.status!==fs)return false;
+    if(kw&&m.name.indexOf(kw)<0&&(m.note||"").indexOf(kw)<0&&(m.hobby||"").indexOf(kw)<0)return false;
+    return true;
+  });
+  document.getElementById("mc").textContent=f.length+"名 表示中（全"+M.length+"名）";
+  document.getElementById("ml").innerHTML=f.map(memberCardHTML).join("")||'<div style="text-align:center;padding:40px 0;color:var(--text-ter)">条件に一致するメンバーが見つかりません</div>';
+  hc();
+}
+
+function renderFav(){
+  var f=M.filter(function(m){return m.fav;});
+  document.getElementById("fl").innerHTML=f.length?f.map(memberCardHTML).join(""):'<div style="text-align:center;padding:40px 0;color:var(--text-ter)"><i class="ti ti-heart" style="font-size:32px;display:block;margin-bottom:8px"></i>'+(favUser?"まだお気に入りがいません":"ログインするとお気に入りが表示されます")+'</div>';
+}
+
+function toggleFav(id,e){
+  e.stopPropagation();
+  if(!favUser){showToast("💡 お気に入りタブでログインすると保存できます");return;}
+  var m=M.find(function(x){return x.id===id;});
+  var newFav=!m.fav;
+  m.fav=newFav;
+  renderM();renderFav();
+  gasGet({action:"saveFavorite",name:favUser.name,birthday:favUser.birthday,target:m.name},function(res){
+    if(res&&res.success){
+      showToast(newFav?"❤ お気に入りに追加しました":"💔 お気に入りから削除しました");
+    } else {
+      m.fav=!newFav;renderM();renderFav();
+      showToast("⚠ 保存に失敗しました。もう一度お試しください。");
+    }
+  });
+}
+
+// ===================================================
+// 近況更新モーダル（2ステップ）
+// ===================================================
+function openDet(id){
+  selId=id;
+  var m=M.find(function(x){return x.id===id;});
+  document.getElementById("dn").textContent=m.name;
+  document.getElementById("db").innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    +[["期",m.period],["部活",m.club],["エリア",m.area],["趣味",m.hobby||"-"]].map(function(p){
+      return '<div style="background:var(--gray);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text-ter)">'+escHtmlLite(p[0])+'</div><div style="font-size:13px;font-weight:500">'+escHtmlLite(p[1])+'</div></div>';
+    }).join("")+'</div>'
+    +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+escHtmlLite(m.date)+'</span>':"")
+    +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+escHtmlLite(m.note||"")+'</p>';
+  document.getElementById("u_bd").value="";
+  document.getElementById("u_err1").style.display="none";
+  document.getElementById("u_err2").style.display="none";
+  showUStep(1);
+  document.getElementById("modal").classList.add("show");
+  document.getElementById("modal").onclick=function(e){
+    if(e.target===document.getElementById("modal")) closeModal();
+  };
+}
+
+function closeModal(){document.getElementById("modal").classList.remove("show");}
+
+function showUStep(n){
+  document.getElementById("u-step1").className="modal-step"+(n===1?" active":"");
+  document.getElementById("u-step2").className="modal-step"+(n===2?" active":"");
+}
+
+function backToUStep1(){
+  document.getElementById("u_bd").value="";
+  document.getElementById("u_err1").style.display="none";
+  showUStep(1);
+}
+
+function doVerifyUpdate(){
+  var m=M.find(function(x){return x.id===selId;});
+  var bd=(document.getElementById("u_bd").value||"").trim();
+  var errEl=document.getElementById("u_err1");
+  errEl.style.display="none";
+  if(!bd||!/^[0-9]{4}$/.test(bd)){
+    errEl.textContent="誕生日を4桁で入力してください（例：0315）";
+    errEl.style.display="block";return;
+  }
+  var btn=document.getElementById("u_verify_btn");
+  btn.disabled=true;btn.textContent="確認中...";
+  gasGet({action:"verify", name:m.name, birthday:bd}, function(res){
+    btn.disabled=false;btn.textContent="確認する";
+    if(res && res.found && !res.multiple){
+      document.getElementById("u_verified_name").textContent=m.name;
+      document.getElementById("us").value=m.status||"在住（松山在住）";
+      document.getElementById("ud").value=m.date||"";
+      document.getElementById("ue").value=m.area||"";
+      document.getElementById("un").value=m.note||"";
+      document.getElementById("u_err2").style.display="none";
+      showUStep(2);
+    } else {
+      errEl.textContent="誕生日が一致しません。もう一度入力してください。";
+      errEl.style.display="block";
+      document.getElementById("u_bd").value="";
+    }
+  });
+}
+
+function doUpdate(){
+  var m=M.find(function(x){return x.id===selId;});
+  var bd=(document.getElementById("u_bd").value||"").trim();
+  var errEl=document.getElementById("u_err2");
+  errEl.style.display="none";
+  var btn=document.getElementById("u_btn");
+  btn.disabled=true;btn.textContent="更新中...";
+  gasGet({
+    action:"updateStatus",name:m.name,birthday:bd,
+    area:document.getElementById("ue").value.trim(),
+    status:document.getElementById("us").value,
+    homecoming:document.getElementById("ud").value.trim(),
+    note:document.getElementById("un").value.trim()
+  },function(res){
+    btn.disabled=false;btn.textContent="更新する";
+    if(res&&res.success){
+      closeModal();showToast("✓ 近況を更新しました！");loadFromAPI();
+    } else {
+      errEl.textContent=(res&&res.error)||"更新に失敗しました。もう一度お試しください。";
+      errEl.style.display="block";
+    }
+  });
+}
+
+// ===================================================
+// コルクボード投稿モーダル（2ステップ）
+// ===================================================
+function checkBoardName(){
+  var name=(document.getElementById("b_name").value||"").trim();
+  var el=document.getElementById("b_name_check");
+  if(!name){el.style.display="none";return;}
+  var found=M.find(function(m){return m.name===name;});
+  if(found){
+    el.innerHTML='<span style="color:#2d7d46">✓ '+escHtmlLite(found.name)+'さん（'+escHtmlLite(found.period)+'・'+escHtmlLite(found.club)+'）</span>';
+    el.style.display="block";
+  } else {
+    el.innerHTML='<span style="color:#a32d2d">⚠ メンバーが見つかりません。名前を確認してください。</span>';
+    el.style.display="block";
+  }
+}
+
+function openBoardModal(){
+  document.getElementById("b_name").value="";
+  document.getElementById("b_bd").value="";
+  document.getElementById("b_title").value="";
+  document.getElementById("b_detail").value="";
+  document.getElementById("b_url").value="";
+  document.getElementById("b_err1").style.display="none";
+  document.getElementById("b_err2").style.display="none";
+  document.getElementById("b_name_check").style.display="none";
+  boardVerifiedUser=null;
+  showBStep(1);
+  document.getElementById("modal-board").classList.add("show");
+  document.getElementById("modal-board").onclick=function(e){
+    if(e.target===document.getElementById("modal-board")) closeBoardModal();
+  };
+}
+
+function closeBoardModal(){document.getElementById("modal-board").classList.remove("show");}
+
+function showBStep(n){
+  document.getElementById("b-step1").className="modal-step"+(n===1?" active":"");
+  document.getElementById("b-step2").className="modal-step"+(n===2?" active":"");
+}
+
+function backToBStep1(){
+  document.getElementById("b_err1").style.display="none";
+  showBStep(1);
+}
+
+function doVerifyBoard(){
+  var name=(document.getElementById("b_name").value||"").trim();
+  var bd=(document.getElementById("b_bd").value||"").trim();
+  var errEl=document.getElementById("b_err1");
+  errEl.style.display="none";
+  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  var btn=document.getElementById("b_verify_btn");
+  btn.disabled=true;btn.textContent="確認中...";
+  gasGet({action:"verify", name:name, birthday:bd}, function(res){
+    btn.disabled=false;btn.textContent="確認する";
+    if(res && res.found && !res.multiple){
+      boardVerifiedUser={name:name, birthday:bd};
+      document.getElementById("b_verified_name").textContent=name;
+      document.getElementById("b_err2").style.display="none";
+      showBStep(2);
+    } else if(res && res.multiple){
+      errEl.textContent="同じ名前・誕生日の方が複数います。管理者にお問い合わせください。";
+      errEl.style.display="block";
+    } else {
+      errEl.textContent="名前または誕生日が一致しません。登録時と同じ情報を入力してください。";
+      errEl.style.display="block";
+      document.getElementById("b_bd").value="";
+    }
+  });
+}
+
+function addPost(){
+  if(!boardVerifiedUser){return;}
+  var title=(document.getElementById("b_title").value||"").trim();
+  var detail=(document.getElementById("b_detail").value||"").trim();
+  var errEl=document.getElementById("b_err2");
+  errEl.style.display="none";
+  if(!title){errEl.textContent="タイトルを入力してください";errEl.style.display="block";return;}
+  if(!detail){errEl.textContent="詳細を入力してください";errEl.style.display="block";return;}
+  var btn=document.getElementById("b_btn");
+  btn.disabled=true;btn.textContent="送信中...";
+  gasGet({
+    action:"postBoard",
+    name:boardVerifiedUser.name,
+    birthday:boardVerifiedUser.birthday,
+    cat:document.getElementById("b_cat").value,
+    title:title,detail:detail,
+    url:(document.getElementById("b_url").value||"").trim()
+  },function(res){
+    btn.disabled=false;btn.textContent="投稿する";
+    if(res&&res.success){
+      closeBoardModal();showToast("✓ 投稿しました！");loadBoardFromAPI();
+    } else {
+      errEl.textContent=(res&&res.error)||"投稿に失敗しました。もう一度お試しください。";
+      errEl.style.display="block";
+    }
+  });
+}
+
+function renderP(){
+  var h=P.filter(function(p){return pf==="全"||p.cat===pf;}).map(function(p){
+    var safeHref = safeUrl(p.url);
+    return '<div class="card">'
+      +'<div style="display:flex;gap:10px;align-items:flex-start">'+av(p.author,36)
+      +'<div style="flex:1">'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+      +'<span style="font-weight:500;font-size:14px">'+escHtmlLite(p.author)+'</span>'
+      +'<span style="font-size:11px;color:var(--text-ter)">'+escHtmlLite(p.period)+'</span>'
+      +'<span style="font-size:11px;padding:1px 7px;border-radius:10px;background:'+(p.cat==="告知"?"#e6f1fb":"#eaf3de")+';color:'+(p.cat==="告知"?"#0c447c":"#27500a")+';font-weight:500">'+escHtmlLite(p.cat)+'</span>'
+      +'</div>'
+      +(p.title?'<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+escHtmlLite(p.title)+'</div>':"")
+      +'<p style="font-size:13px;line-height:1.6;margin:0 0 6px;color:var(--text-sub)">'+escHtmlLite(p.detail||p.content||"")+'</p>'
+      +(safeHref?'<a href="'+escHtmlLite(safeHref)+'" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--blue-mid)">'+escHtmlLite(safeHref)+'</a>':"")
+      +'<div style="font-size:11px;color:var(--text-ter);margin-top:4px">'+escHtmlLite(p.time)+'</div>'
+      +'</div></div></div>';
+  }).join("")||'<div style="text-align:center;padding:32px;color:var(--text-ter)">まだ投稿がありません</div>';
+  document.getElementById("pl").innerHTML=h;
+}
+
+function fPost(cat){
+  pf=cat;
+  document.getElementById("pa").className="pill"+(cat==="全"?" active":"");
+  document.getElementById("pb2").className="pill"+(cat==="告知"?" active":"");
+  document.getElementById("pn").className="pill"+(cat==="つぶやき"?" active":"");
+  renderP();
+}
+
+function renderClubs(){
+  if(AL.length===0){
+    document.getElementById("cl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込み中...</div>';
+    return;
+  }
+  document.getElementById("cl").innerHTML=AL.map(function(a){
+    return '<div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      +'<i class="ti ti-lock" style="color:var(--text-ter);font-size:18px;flex-shrink:0"></i>'
+      +'<div><div style="font-size:14px;font-weight:500">'+escHtmlLite(a.name)+'</div>'
+      +'<div style="font-size:12px;color:var(--text-ter)">合い言葉はOB会幹事にお問い合わせください</div></div></div>';
+  }).join("");
+}
+
+function chkPass(){
+  var v=(document.getElementById("pi").value||"").trim();
+  var err=document.getElementById("pe"),res=document.getElementById("ar");
+  var match=AL.find(function(a){return a.pass===v;});
+  if(match){
+    err.style.display="none";res.style.display="block";
+    document.getElementById("ad").textContent=match.desc;
+    document.getElementById("alb").textContent=match.name+"のアルバムを開く";
+    var link=document.getElementById("al");
+    if(match.url && safeUrl(match.url)){link.href=safeUrl(match.url);link.style.opacity="1";link.style.pointerEvents="auto";}
+    else{link.href="#";link.style.opacity="0.5";link.style.pointerEvents="none";
+      document.getElementById("ad").textContent=match.desc+"（アルバムURL準備中）";}
+  } else {
+    err.textContent="合い言葉が違います。もう一度お試しください。";
+    err.style.display="block";res.style.display="none";
+  }
+}
+
+// ===================================================
+// 写真館
+// ===================================================
+var GALLERY_MAX_DIMENSION = 1600;
+var GALLERY_JPEG_QUALITY = 0.8;
+var galleryPhotos = [];
+var gallerySelectedPeriod = '全期';
+
+function getMyUid(){
+  return localStorage.getItem('mk18_uid') || '';
+}
+
+function escHtmlLite(str){
+  return String(str || '').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+// http/https以外（javascript:等）のURLはリンク化しない
+function safeUrl(url){
+  var u = String(url || '').trim();
+  if(/^https?:\/\//i.test(u)) return u;
+  return '';
+}
+
+function loadGalleryFromAPI(){
+  var uid = getMyUid();
+  if(!uid){
+    document.getElementById('g_period_pills').innerHTML = '';
+    document.getElementById('g_grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">登録済みの方のみご利用いただけます</div>';
+    return;
+  }
+  document.getElementById('g_grid').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+
+  fetch(API_URL + '?action=getGallery&uid=' + encodeURIComponent(uid))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res || !res.success){
+        document.getElementById('g_grid').innerHTML =
+          '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+        return;
+      }
+      galleryPhotos = res.photos || [];
+      gallerySelectedPeriod = '全期';
+      renderGalleryPeriodPills();
+      renderGalleryGrid();
+    })
+    .catch(function(){
+      document.getElementById('g_grid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+    });
+}
+
+function renderGalleryPeriodPills(){
+  var periods = [];
+  galleryPhotos.forEach(function(p){
+    var per = (p.period || '').trim();
+    if(per && periods.indexOf(per) < 0) periods.push(per);
+  });
+  periods.sort(function(a,b){ return parseInt(a,10) - parseInt(b,10); });
+
+  var pillsEl = document.getElementById('g_period_pills');
+  if(periods.length === 0){ pillsEl.innerHTML = ''; return; }
+
+  pillsEl.innerHTML = ['全期'].concat(periods).map(function(p){
+    return '<button class="pill' + (p === gallerySelectedPeriod ? ' active' : '') + '" data-period="' + escHtmlLite(p) + '">' + escHtmlLite(p) + '</button>';
+  }).join('');
+
+  Array.prototype.forEach.call(pillsEl.querySelectorAll('button[data-period]'), function(btn){
+    btn.addEventListener('click', function(){
+      selectGalleryPeriod(btn.getAttribute('data-period'));
+    });
+  });
+}
+
+function selectGalleryPeriod(p){
+  gallerySelectedPeriod = p;
+  renderGalleryPeriodPills();
+  renderGalleryGrid();
+}
+
+function renderGalleryGrid(){
+  var filtered = galleryPhotos.filter(function(p){
+    return gallerySelectedPeriod === '全期' || (p.period || '') === gallerySelectedPeriod;
+  });
+
+  if(filtered.length === 0){
+    document.getElementById('g_grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">まだ写真がありません</div>';
+    return;
+  }
+
+  var uid = getMyUid();
+  document.getElementById('g_grid').innerHTML = filtered.map(function(p){
+    var imgSrc = API_URL + '?action=getPhoto&id=' + encodeURIComponent(p.driveFileId) + '&uid=' + encodeURIComponent(uid);
+    return '<div class="card" style="padding:0;overflow:hidden">'
+      + '<img src="' + imgSrc + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+      + '<div style="padding:8px 10px">'
+      + '<div style="font-size:11px;color:var(--text-sub)">' + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period) + '</div>'
+      + (p.caption ? '<div style="font-size:12px;margin-top:2px">' + escHtmlLite(p.caption) + '</div>' : '')
+      + '<div style="font-size:10px;color:var(--text-ter);margin-top:2px">' + escHtmlLite(p.postedAt) + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function compressImageFile(file){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    var reader = new FileReader();
+    reader.onload = function(e){ img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = function(){
+      var width = img.width, height = img.height;
+      if(width > height && width > GALLERY_MAX_DIMENSION){
+        height = Math.round(height * (GALLERY_MAX_DIMENSION / width));
+        width = GALLERY_MAX_DIMENSION;
+      } else if(height > GALLERY_MAX_DIMENSION){
+        width = Math.round(width * (GALLERY_MAX_DIMENSION / height));
+        height = GALLERY_MAX_DIMENSION;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', GALLERY_JPEG_QUALITY));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function uploadGalleryPhoto(){
+  var uid = getMyUid();
+  var fileInput = document.getElementById('g_file');
+  var errEl = document.getElementById('g_upload_err');
+  var btn = document.getElementById('g_upload_btn');
+  errEl.style.display = 'none';
+
+  if(!uid){ errEl.textContent = '登録情報が確認できません'; errEl.style.display = 'block'; return; }
+  var file = fileInput.files[0];
+  if(!file){ errEl.textContent = '画像を選択してください'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = '処理中...';
+
+  compressImageFile(file).then(function(dataUrl){
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'uploadPhoto',
+        uid: uid,
+        image: dataUrl,
+        caption: document.getElementById('g_caption').value.trim()
+      })
+    });
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false; btn.textContent = '投稿する';
+      if(res && res.success){
+        fileInput.value = '';
+        document.getElementById('g_caption').value = '';
+        showToast('✓ 投稿しました！');
+        loadGalleryFromAPI();
+      } else {
+        var messages = {
+          not_registered: '登録情報が確認できませんでした',
+          daily_limit_exceeded: '本日の投稿上限に達しました',
+          not_a_valid_image: '画像として読み込めませんでした',
+          image_too_large: '画像サイズが大きすぎます',
+          invalid_image_format: '画像の形式を認識できませんでした'
+        };
+        errEl.textContent = (res && messages[res.error]) || '投稿に失敗しました';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = '投稿する';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    });
+}
+
+function go(t){
+  ["r","b","c","g","f","a"].forEach(function(x){
+    document.getElementById("p-"+x).style.display=x===t?"block":"none";
+    var b=document.getElementById("tb-"+x);
+    if(b) b.className="tab"+(x===t?" active":"");
+  });
+  if(t==="b")loadBoardFromAPI();
+  if(t==="c")renderClubs();
+  if(t==="g")loadGalleryFromAPI();
+  if(t==="f")renderFav();
+}
+
+function loadFromAPI(){
+  var loading=document.getElementById("loading-msg");
+  if(loading)loading.style.display="block";
+  fetch(API_URL)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      M=data.filter(function(d){return d.name;}).map(function(d,i){
+        return {
+          id:i+1,name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
+          status:(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
+          date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false
+        };
+      });
+      if(loading)loading.style.display="none";
+      populateFilters();renderM();
+    })
+    .catch(function(){
+      if(loading)loading.style.display="none";
+      document.getElementById("ml").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。</div>';
+      populateFilters();renderM();
+    });
+}
+
+function loadBoardFromAPI(){
+  document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+  fetch(API_URL+"?action=getBoard")
+    .then(function(r){return r.json();})
+    .then(function(data){P=Array.isArray(data)?data:[];renderP();})
+    .catch(function(){document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';});
+}
+
+// PWA
+var deferredPrompt = null;
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
+  });
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('pwa-banner').style.display='flex';
+});
+document.getElementById('pwa-install-btn').addEventListener('click', function(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result){
+    if(result.outcome==='accepted')showToast('📱 ホーム画面に追加しました！');
+    deferredPrompt=null;hidePwaBanner();
+  });
+});
+window.addEventListener('appinstalled',function(){hidePwaBanner();showToast('✓ アプリとしてインストールされました');});
+function hidePwaBanner(){document.getElementById('pwa-banner').style.display='none';}
+
+// お気に入りログイン
+function favLogin(){
+  var name=(document.getElementById("fv_name").value||"").trim();
+  var bd=(document.getElementById("fv_bd").value||"").trim();
+  var errEl=document.getElementById("fv_err");
+  errEl.style.display="none";
+  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  document.getElementById("overlay").classList.add("show");
+  gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
+    document.getElementById("overlay").classList.remove("show");
+    if(res && res.success){
+      favUser={name:name,birthday:bd};
+      var favNames=res.favorites||[];
+      M.forEach(function(m){m.fav=favNames.indexOf(m.name)>=0;});
+      showFavLoggedIn();renderFav();renderM();
+    } else {
+      errEl.textContent="名前または誕生日が一致しません。もう一度確認してください。";
+      errEl.style.display="block";
+      document.getElementById("fv_bd").value="";
+    }
+  });
+}
+function favLogout(){
+  favUser=null;M.forEach(function(m){m.fav=false;});
+  showFavLoggedOut();renderFav();renderM();
+}
+function showFavLoggedIn(){
+  document.getElementById("fav-login-area").style.display="none";
+  document.getElementById("fav-user-area").style.display="flex";
+  document.getElementById("fav-hint").style.display="block";
+  document.getElementById("fav-user-label").textContent=favUser.name+"さんでログイン中";
+}
+function showFavLoggedOut(){
+  document.getElementById("fav-login-area").style.display="block";
+  document.getElementById("fav-user-area").style.display="none";
+  document.getElementById("fav-hint").style.display="none";
+  document.getElementById("fv_bd").value="";
+  document.getElementById("fv_err").style.display="none";
+}
+
+var hash=window.location.hash;
+if(hash==="#board")go("b");
+else if(hash==="#club")go("c");
+else if(hash==="#gallery")go("g");
+else if(hash==="#fav")go("f");
+else if(hash==="#anshin")go("a");
+else if(hash==="#radar")go("r");
+else go("r");
+
+loadFromAPI();
+</script>
+</body>
+</html>
