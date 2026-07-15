@@ -305,7 +305,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <label>カテゴリ<span class="req">*</span></label>
         <select id="b_cat">
           <option value="告知">📢 告知（イベント・集まり）</option>
-          <option value="近況">💬 近況（ちょっとした報告）</option>
+          <option value="つぶやき">💬 つぶやき（日常のひとこと）</option>
         </select>
       </div>
       <div class="field" id="bf-title">
@@ -441,7 +441,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.0.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -563,6 +563,7 @@ function submitRegister() {
   }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
+      if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
       document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
       showSection('done');
     } else if(res && res.duplicate){
@@ -601,6 +602,7 @@ function submitRegisterForce(overwrite) {
   send(payload, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
+      if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
       document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
       showSection('done');
     } else {
@@ -705,7 +707,10 @@ function submitRadar() {
     nickname:getNickname('r_nick_type','r_nickname'),
   }, function(res){
     setLoading(false,'r_btn');
-    if(res && res.success){ showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500); }
+    if(res && res.success){
+      if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
+      showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500);
+    }
     else { showErr('r_err', (res && res.error) || '更新に失敗しました。もう一度お試しください。'); }
   });
 }
