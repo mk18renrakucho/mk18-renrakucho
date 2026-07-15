@@ -126,8 +126,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <div class="tabs">
-  <button class="tab active" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
-  <button class="tab" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
+  <button class="tab active" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
+  <button class="tab" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
+  <button class="tab" id="tb-g" onclick="go('g')"><i class="ti ti-photo"></i>写真館</button>
   <button class="tab" id="tb-c" onclick="go('c')"><i class="ti ti-lock"></i>部室</button>
   <button class="tab" id="tb-f" onclick="go('f')"><i class="ti ti-heart"></i>お気に入り</button>
   <button class="tab" id="tb-a" onclick="go('a')"><i class="ti ti-shield-lock"></i>安心宣言</button>
@@ -136,7 +137,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div class="content">
 
 <!-- 出没レーダー -->
-<div id="p-r" style="display:none">
+<div id="p-r">
   <div class="search-wrap">
     <i class="ti ti-search"></i>
     <input type="text" id="kw" placeholder="名前・趣味・ひとことで検索" oninput="renderM()">
@@ -155,12 +156,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- コルクボード -->
-<div id="p-b">
+<div id="p-b" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="display:flex;gap:6px">
       <button class="pill active" id="pa" onclick="fPost('全')">全て</button>
       <button class="pill" id="pb2" onclick="fPost('告知')">告知</button>
-      <button class="pill" id="pn" onclick="fPost('近況')">近況</button>
+      <button class="pill" id="pn" onclick="fPost('つぶやき')">つぶやき</button>
     </div>
     <button onclick="openBoardModal()" style="background:#c9a96e;color:white;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✍️ 投稿する</button>
   </div>
@@ -194,6 +195,24 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="cl"></div>
 </div>
 
+<!-- 写真館 -->
+<div id="p-g" style="display:none">
+  <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
+    <i class="ti ti-info-circle" style="margin-right:4px"></i>登録済みの方なら誰でも投稿・閲覧できます（部活の写真は「部室」タブへ）。
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">📷 写真を投稿する</div>
+    <input type="file" id="g_file" accept="image/*" capture="environment" style="margin-bottom:8px">
+    <input type="text" id="g_caption" placeholder="ひとことコメント（任意）" style="margin-bottom:8px">
+    <div id="g_upload_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button class="btn btn-primary" id="g_upload_btn" onclick="uploadGalleryPhoto()" style="width:100%">投稿する</button>
+  </div>
+
+  <div id="g_period_pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;overflow-x:auto;padding-bottom:2px"></div>
+  <div id="g_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+</div>
+
 <!-- お気に入り -->
 <div id="p-f" style="display:none">
   <div id="fav-login-area" class="fav-login">
@@ -225,7 +244,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。</div></div>
-  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。写真館（全体・期別の共有写真）は管理者が管理する非公開のGoogleドライブに保存されます。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。</div></div>
   <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
@@ -314,7 +333,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div style="margin-bottom:10px">
         <select id="b_cat" style="font-size:14px">
           <option value="告知">📢 告知（イベント・集まり）</option>
-          <option value="近況">💬 近況（ちょっとした報告）</option>
+          <option value="つぶやき">💬 つぶやき（日常のひとこと）</option>
         </select>
       </div>
       <div style="margin-bottom:10px">
@@ -330,16 +349,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button id="b_btn" onclick="addPost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
         投稿する
       </button>
-      <button onclick="backToBStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
-        ← 入力し直す
-      </button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.0.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -392,10 +408,14 @@ function hc(){document.getElementById("hc").textContent=M.filter(function(m){ret
 function populateFilters(){
   var periods=[...new Set(M.map(function(m){return m.period||"";}).filter(Boolean))];
   periods.sort(function(a,b){return parseInt(a)-parseInt(b);});
-  document.getElementById("period-pills").innerHTML=["全期"].concat(periods).map(function(p){
-    return '<button class="pill'+(p===selectedPeriod?" active":"")+'" onclick="selectPeriod(\''+p+'\')">'+p+'</button>';
+  var pillsEl = document.getElementById("period-pills");
+  pillsEl.innerHTML=["全期"].concat(periods).map(function(p){
+    return '<button class="pill'+(p===selectedPeriod?" active":"")+'" data-period="'+escHtmlLite(p)+'">'+escHtmlLite(p)+'</button>';
   }).join("");
-  function opts(key,prefix){return[prefix,...new Set(M.map(function(m){return m[key]||"";}).filter(Boolean))].map(function(v){return'<option>'+v+'</option>';}).join("");}
+  Array.prototype.forEach.call(pillsEl.querySelectorAll('button[data-period]'), function(btn){
+    btn.addEventListener('click', function(){ selectPeriod(btn.getAttribute('data-period')); });
+  });
+  function opts(key,prefix){return[prefix,...new Set(M.map(function(m){return m[key]||"";}).filter(Boolean))].map(function(v){return'<option>'+escHtmlLite(v)+'</option>';}).join("");}
   document.getElementById("fc").innerHTML=opts("club","全部活");
   document.getElementById("fa").innerHTML=opts("area","全エリア");
 }
@@ -408,13 +428,13 @@ function memberCardHTML(m){
     +'<div style="display:flex;gap:12px;align-items:flex-start">'+av(m.name)
     +'<div style="flex:1;min-width:0">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
-    +'<span style="font-weight:500;font-size:15px">'+m.name+'</span>'
+    +'<span style="font-weight:500;font-size:15px">'+escHtmlLite(m.name)+'</span>'
     +sb(m.status)
     +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'>'+(m.fav?'❤️':'🤍')+'</button>'
     +'</div>'
-    +'<div style="font-size:12px;color:var(--text-sub)">'+m.period+' · '+m.club+' · '+m.area+'</div>'
-    +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+m.date+'</div>':"")
-    +'<p style="font-size:13px;color:var(--text-sub);margin:5px 0 4px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+(m.note||"")+'</p>'
+    +'<div style="font-size:12px;color:var(--text-sub)">'+escHtmlLite(m.period)+' · '+escHtmlLite(m.club)+' · '+escHtmlLite(m.area)+'</div>'
+    +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+escHtmlLite(m.date)+'</div>':"")
+    +'<p style="font-size:13px;color:var(--text-sub);margin:5px 0 4px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escHtmlLite(m.note||"")+'</p>'
     +'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:3px 10px;background:var(--blue-light);color:var(--blue);border:none;border-radius:20px;cursor:pointer;font-family:inherit">近況を更新する</button>'
     +'</div></div></div>';
 }
@@ -468,10 +488,10 @@ function openDet(id){
   document.getElementById("db").innerHTML=
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
     +[["期",m.period],["部活",m.club],["エリア",m.area],["趣味",m.hobby||"-"]].map(function(p){
-      return '<div style="background:var(--gray);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text-ter)">'+p[0]+'</div><div style="font-size:13px;font-weight:500">'+p[1]+'</div></div>';
+      return '<div style="background:var(--gray);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text-ter)">'+escHtmlLite(p[0])+'</div><div style="font-size:13px;font-weight:500">'+escHtmlLite(p[1])+'</div></div>';
     }).join("")+'</div>'
-    +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+m.date+'</span>':"")
-    +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+(m.note||"")+'</p>';
+    +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+escHtmlLite(m.date)+'</span>':"")
+    +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+escHtmlLite(m.note||"")+'</p>';
   document.getElementById("u_bd").value="";
   document.getElementById("u_err1").style.display="none";
   document.getElementById("u_err2").style.display="none";
@@ -557,7 +577,7 @@ function checkBoardName(){
   if(!name){el.style.display="none";return;}
   var found=M.find(function(m){return m.name===name;});
   if(found){
-    el.innerHTML='<span style="color:#2d7d46">✓ '+found.name+'さん（'+found.period+'・'+found.club+'）</span>';
+    el.innerHTML='<span style="color:#2d7d46">✓ '+escHtmlLite(found.name)+'さん（'+escHtmlLite(found.period)+'・'+escHtmlLite(found.club)+'）</span>';
     el.style.display="block";
   } else {
     el.innerHTML='<span style="color:#a32d2d">⚠ メンバーが見つかりません。名前を確認してください。</span>';
@@ -651,18 +671,19 @@ function addPost(){
 
 function renderP(){
   var h=P.filter(function(p){return pf==="全"||p.cat===pf;}).map(function(p){
+    var safeHref = safeUrl(p.url);
     return '<div class="card">'
       +'<div style="display:flex;gap:10px;align-items:flex-start">'+av(p.author,36)
       +'<div style="flex:1">'
       +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
-      +'<span style="font-weight:500;font-size:14px">'+p.author+'</span>'
-      +'<span style="font-size:11px;color:var(--text-ter)">'+p.period+'</span>'
-      +'<span style="font-size:11px;padding:1px 7px;border-radius:10px;background:'+(p.cat==="告知"?"#e6f1fb":"#eaf3de")+';color:'+(p.cat==="告知"?"#0c447c":"#27500a")+';font-weight:500">'+p.cat+'</span>'
+      +'<span style="font-weight:500;font-size:14px">'+escHtmlLite(p.author)+'</span>'
+      +'<span style="font-size:11px;color:var(--text-ter)">'+escHtmlLite(p.period)+'</span>'
+      +'<span style="font-size:11px;padding:1px 7px;border-radius:10px;background:'+(p.cat==="告知"?"#e6f1fb":"#eaf3de")+';color:'+(p.cat==="告知"?"#0c447c":"#27500a")+';font-weight:500">'+escHtmlLite(p.cat)+'</span>'
       +'</div>'
-      +(p.title?'<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+p.title+'</div>':"")
-      +'<p style="font-size:13px;line-height:1.6;margin:0 0 6px;color:var(--text-sub)">'+(p.detail||p.content||"")+'</p>'
-      +(p.url?'<a href="'+p.url+'" target="_blank" style="font-size:12px;color:var(--blue-mid)">'+p.url+'</a>':"")
-      +'<div style="font-size:11px;color:var(--text-ter);margin-top:4px">'+p.time+'</div>'
+      +(p.title?'<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+escHtmlLite(p.title)+'</div>':"")
+      +'<p style="font-size:13px;line-height:1.6;margin:0 0 6px;color:var(--text-sub)">'+escHtmlLite(p.detail||p.content||"")+'</p>'
+      +(safeHref?'<a href="'+escHtmlLite(safeHref)+'" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--blue-mid)">'+escHtmlLite(safeHref)+'</a>':"")
+      +'<div style="font-size:11px;color:var(--text-ter);margin-top:4px">'+escHtmlLite(p.time)+'</div>'
       +'</div></div></div>';
   }).join("")||'<div style="text-align:center;padding:32px;color:var(--text-ter)">まだ投稿がありません</div>';
   document.getElementById("pl").innerHTML=h;
@@ -672,7 +693,7 @@ function fPost(cat){
   pf=cat;
   document.getElementById("pa").className="pill"+(cat==="全"?" active":"");
   document.getElementById("pb2").className="pill"+(cat==="告知"?" active":"");
-  document.getElementById("pn").className="pill"+(cat==="近況"?" active":"");
+  document.getElementById("pn").className="pill"+(cat==="つぶやき"?" active":"");
   renderP();
 }
 
@@ -684,7 +705,7 @@ function renderClubs(){
   document.getElementById("cl").innerHTML=AL.map(function(a){
     return '<div class="card" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
       +'<i class="ti ti-lock" style="color:var(--text-ter);font-size:18px;flex-shrink:0"></i>'
-      +'<div><div style="font-size:14px;font-weight:500">'+a.name+'</div>'
+      +'<div><div style="font-size:14px;font-weight:500">'+escHtmlLite(a.name)+'</div>'
       +'<div style="font-size:12px;color:var(--text-ter)">合い言葉はOB会幹事にお問い合わせください</div></div></div>';
   }).join("");
 }
@@ -698,7 +719,7 @@ function chkPass(){
     document.getElementById("ad").textContent=match.desc;
     document.getElementById("alb").textContent=match.name+"のアルバムを開く";
     var link=document.getElementById("al");
-    if(match.url){link.href=match.url;link.style.opacity="1";link.style.pointerEvents="auto";}
+    if(match.url && safeUrl(match.url)){link.href=safeUrl(match.url);link.style.opacity="1";link.style.pointerEvents="auto";}
     else{link.href="#";link.style.opacity="0.5";link.style.pointerEvents="none";
       document.getElementById("ad").textContent=match.desc+"（アルバムURL準備中）";}
   } else {
@@ -707,14 +728,198 @@ function chkPass(){
   }
 }
 
+// ===================================================
+// 写真館
+// ===================================================
+var GALLERY_MAX_DIMENSION = 1600;
+var GALLERY_JPEG_QUALITY = 0.8;
+var galleryPhotos = [];
+var gallerySelectedPeriod = '全期';
+
+function getMyUid(){
+  return localStorage.getItem('mk18_uid') || '';
+}
+
+function escHtmlLite(str){
+  return String(str || '').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+// http/https以外（javascript:等）のURLはリンク化しない
+function safeUrl(url){
+  var u = String(url || '').trim();
+  if(/^https?:\/\//i.test(u)) return u;
+  return '';
+}
+
+function loadGalleryFromAPI(){
+  var uid = getMyUid();
+  if(!uid){
+    document.getElementById('g_period_pills').innerHTML = '';
+    document.getElementById('g_grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">登録済みの方のみご利用いただけます</div>';
+    return;
+  }
+  document.getElementById('g_grid').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+
+  fetch(API_URL + '?action=getGallery&uid=' + encodeURIComponent(uid))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res || !res.success){
+        document.getElementById('g_grid').innerHTML =
+          '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+        return;
+      }
+      galleryPhotos = res.photos || [];
+      gallerySelectedPeriod = '全期';
+      renderGalleryPeriodPills();
+      renderGalleryGrid();
+    })
+    .catch(function(){
+      document.getElementById('g_grid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+    });
+}
+
+function renderGalleryPeriodPills(){
+  var periods = [];
+  galleryPhotos.forEach(function(p){
+    var per = (p.period || '').trim();
+    if(per && periods.indexOf(per) < 0) periods.push(per);
+  });
+  periods.sort(function(a,b){ return parseInt(a,10) - parseInt(b,10); });
+
+  var pillsEl = document.getElementById('g_period_pills');
+  if(periods.length === 0){ pillsEl.innerHTML = ''; return; }
+
+  pillsEl.innerHTML = ['全期'].concat(periods).map(function(p){
+    return '<button class="pill' + (p === gallerySelectedPeriod ? ' active' : '') + '" data-period="' + escHtmlLite(p) + '">' + escHtmlLite(p) + '</button>';
+  }).join('');
+
+  Array.prototype.forEach.call(pillsEl.querySelectorAll('button[data-period]'), function(btn){
+    btn.addEventListener('click', function(){
+      selectGalleryPeriod(btn.getAttribute('data-period'));
+    });
+  });
+}
+
+function selectGalleryPeriod(p){
+  gallerySelectedPeriod = p;
+  renderGalleryPeriodPills();
+  renderGalleryGrid();
+}
+
+function renderGalleryGrid(){
+  var filtered = galleryPhotos.filter(function(p){
+    return gallerySelectedPeriod === '全期' || (p.period || '') === gallerySelectedPeriod;
+  });
+
+  if(filtered.length === 0){
+    document.getElementById('g_grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">まだ写真がありません</div>';
+    return;
+  }
+
+  var uid = getMyUid();
+  document.getElementById('g_grid').innerHTML = filtered.map(function(p){
+    var imgSrc = API_URL + '?action=getPhoto&id=' + encodeURIComponent(p.driveFileId) + '&uid=' + encodeURIComponent(uid);
+    return '<div class="card" style="padding:0;overflow:hidden">'
+      + '<img src="' + imgSrc + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+      + '<div style="padding:8px 10px">'
+      + '<div style="font-size:11px;color:var(--text-sub)">' + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period) + '</div>'
+      + (p.caption ? '<div style="font-size:12px;margin-top:2px">' + escHtmlLite(p.caption) + '</div>' : '')
+      + '<div style="font-size:10px;color:var(--text-ter);margin-top:2px">' + escHtmlLite(p.postedAt) + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function compressImageFile(file){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    var reader = new FileReader();
+    reader.onload = function(e){ img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = function(){
+      var width = img.width, height = img.height;
+      if(width > height && width > GALLERY_MAX_DIMENSION){
+        height = Math.round(height * (GALLERY_MAX_DIMENSION / width));
+        width = GALLERY_MAX_DIMENSION;
+      } else if(height > GALLERY_MAX_DIMENSION){
+        width = Math.round(width * (GALLERY_MAX_DIMENSION / height));
+        height = GALLERY_MAX_DIMENSION;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', GALLERY_JPEG_QUALITY));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function uploadGalleryPhoto(){
+  var uid = getMyUid();
+  var fileInput = document.getElementById('g_file');
+  var errEl = document.getElementById('g_upload_err');
+  var btn = document.getElementById('g_upload_btn');
+  errEl.style.display = 'none';
+
+  if(!uid){ errEl.textContent = '登録情報が確認できません'; errEl.style.display = 'block'; return; }
+  var file = fileInput.files[0];
+  if(!file){ errEl.textContent = '画像を選択してください'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = '処理中...';
+
+  compressImageFile(file).then(function(dataUrl){
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'uploadPhoto',
+        uid: uid,
+        image: dataUrl,
+        caption: document.getElementById('g_caption').value.trim()
+      })
+    });
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false; btn.textContent = '投稿する';
+      if(res && res.success){
+        fileInput.value = '';
+        document.getElementById('g_caption').value = '';
+        showToast('✓ 投稿しました！');
+        loadGalleryFromAPI();
+      } else {
+        var messages = {
+          not_registered: '登録情報が確認できませんでした',
+          daily_limit_exceeded: '本日の投稿上限に達しました',
+          not_a_valid_image: '画像として読み込めませんでした',
+          image_too_large: '画像サイズが大きすぎます',
+          invalid_image_format: '画像の形式を認識できませんでした'
+        };
+        errEl.textContent = (res && messages[res.error]) || '投稿に失敗しました';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = '投稿する';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    });
+}
+
 function go(t){
-  ["r","b","c","f","a"].forEach(function(x){
+  ["r","b","c","g","f","a"].forEach(function(x){
     document.getElementById("p-"+x).style.display=x===t?"block":"none";
     var b=document.getElementById("tb-"+x);
     if(b) b.className="tab"+(x===t?" active":"");
   });
   if(t==="b")loadBoardFromAPI();
   if(t==="c")renderClubs();
+  if(t==="g")loadGalleryFromAPI();
   if(t==="f")renderFav();
 }
 
@@ -815,10 +1020,11 @@ function showFavLoggedOut(){
 var hash=window.location.hash;
 if(hash==="#board")go("b");
 else if(hash==="#club")go("c");
+else if(hash==="#gallery")go("g");
 else if(hash==="#fav")go("f");
 else if(hash==="#anshin")go("a");
 else if(hash==="#radar")go("r");
-else go("b");
+else go("r");
 
 loadFromAPI();
 </script>
