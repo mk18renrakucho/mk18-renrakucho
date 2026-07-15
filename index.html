@@ -900,7 +900,7 @@ function uploadGalleryPhoto(){
           image_too_large: '画像サイズが大きすぎます',
           invalid_image_format: '画像の形式を認識できませんでした'
         };
-        errEl.textContent = (res && messages[res.error]) || '投稿に失敗しました';
+        errEl.textContent = (res && messages[res.error]) || ('投稿に失敗しました：' + ((res && res.error) || '不明なエラー'));
         errEl.style.display = 'block';
       }
     })
