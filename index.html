@@ -355,7 +355,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -822,11 +822,9 @@ function renderGalleryGrid(){
     return;
   }
 
-  var uid = getMyUid();
   document.getElementById('g_grid').innerHTML = filtered.map(function(p){
-    var imgSrc = API_URL + '?action=getPhoto&id=' + encodeURIComponent(p.driveFileId) + '&uid=' + encodeURIComponent(uid);
     return '<div class="card" style="padding:0;overflow:hidden">'
-      + '<img src="' + imgSrc + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+      + '<img src="' + p.imageData + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
       + '<div style="padding:8px 10px">'
       + '<div style="font-size:11px;color:var(--text-sub)">' + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period) + '</div>'
       + (p.caption ? '<div style="font-size:12px;margin-top:2px">' + escHtmlLite(p.caption) + '</div>' : '')
