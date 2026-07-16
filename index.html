@@ -355,7 +355,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.1.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -733,6 +733,8 @@ function chkPass(){
 // ===================================================
 var GALLERY_MAX_DIMENSION = 1600;
 var GALLERY_JPEG_QUALITY = 0.8;
+var GALLERY_THUMB_DIMENSION = 360;
+var GALLERY_THUMB_QUALITY = 0.6;
 var galleryPhotos = [];
 var gallerySelectedPeriod = '全期';
 
@@ -823,17 +825,100 @@ function renderGalleryGrid(){
   }
 
   document.getElementById('g_grid').innerHTML = filtered.map(function(p){
-    return '<div class="card" style="padding:0;overflow:hidden">'
-      + '<img src="' + p.imageData + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+    return '<div class="card gallery-thumb" data-photo-id="' + escHtmlLite(p.photoId) + '" style="padding:0;overflow:hidden;cursor:pointer;position:relative">'
+      + (p.isMine ? '<button class="gallery-del-btn" data-photo-id="' + escHtmlLite(p.photoId) + '" style="position:absolute;top:4px;right:4px;z-index:2;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer">🗑</button>' : '')
+      + '<img src="' + p.thumbnail + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
       + '<div style="padding:8px 10px">'
       + '<div style="font-size:11px;color:var(--text-sub)">' + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period) + '</div>'
       + (p.caption ? '<div style="font-size:12px;margin-top:2px">' + escHtmlLite(p.caption) + '</div>' : '')
       + '<div style="font-size:10px;color:var(--text-ter);margin-top:2px">' + escHtmlLite(p.postedAt) + '</div>'
       + '</div></div>';
   }).join('');
+
+  var grid = document.getElementById('g_grid');
+  Array.prototype.forEach.call(grid.querySelectorAll('.gallery-thumb'), function(card){
+    card.addEventListener('click', function(e){
+      if(e.target.closest('.gallery-del-btn')) return; // 削除ボタン自体は別ハンドラ
+      openGalleryLightbox(card.getAttribute('data-photo-id'));
+    });
+  });
+  Array.prototype.forEach.call(grid.querySelectorAll('.gallery-del-btn'), function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      deleteGalleryPhoto(btn.getAttribute('data-photo-id'));
+    });
+  });
 }
 
-function compressImageFile(file){
+// ---- 拡大表示（フルサイズはクリック時にだけ取得） ----
+function openGalleryLightbox(photoId){
+  var p = galleryPhotos.find(function(x){ return x.photoId === photoId; });
+  if(!p) return;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'gallery-lightbox';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px';
+  overlay.innerHTML =
+    '<button id="gl-close" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer">✕</button>'
+    + '<div id="gl-body" style="max-width:100%;max-height:80vh;display:flex;align-items:center;justify-content:center">'
+    + '<div class="spinner" style="border-top-color:#fff"></div>'
+    + '</div>'
+    + '<div style="color:#fff;text-align:center;margin-top:12px;font-size:13px;max-width:90%">'
+    + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period)
+    + (p.caption ? '<div style="margin-top:4px">' + escHtmlLite(p.caption) + '</div>' : '')
+    + '</div>';
+  document.body.appendChild(overlay);
+
+  document.getElementById('gl-close').addEventListener('click', closeGalleryLightbox);
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeGalleryLightbox(); });
+
+  var uid = getMyUid();
+  fetch(API_URL + '?action=getPhotoFull&uid=' + encodeURIComponent(uid) + '&photoId=' + encodeURIComponent(photoId))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var body = document.getElementById('gl-body');
+      if(!body) return; // 既に閉じられていた場合
+      if(res && res.success){
+        body.innerHTML = '<img src="' + res.imageData + '" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px">';
+      } else {
+        body.innerHTML = '<div style="color:#fff;font-size:13px">読み込みに失敗しました</div>';
+      }
+    })
+    .catch(function(){
+      var body = document.getElementById('gl-body');
+      if(body) body.innerHTML = '<div style="color:#fff;font-size:13px">読み込みに失敗しました</div>';
+    });
+}
+
+function closeGalleryLightbox(){
+  var overlay = document.getElementById('gallery-lightbox');
+  if(overlay) overlay.remove();
+}
+
+function deleteGalleryPhoto(photoId){
+  if(!confirm('この写真を削除しますか？この操作は取り消せません。')) return;
+  var uid = getMyUid();
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'deletePhoto', uid: uid, photoId: photoId })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.success){
+        showToast('✓ 削除しました');
+        loadGalleryFromAPI();
+      } else {
+        showToast('⚠ 削除に失敗しました');
+      }
+    })
+    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+}
+
+// ---- 画像圧縮（メイン画像・サムネイル共通で使う汎用版） ----
+function compressImageFile(file, maxDim, quality){
+  maxDim = maxDim || GALLERY_MAX_DIMENSION;
+  quality = quality || GALLERY_JPEG_QUALITY;
   return new Promise(function(resolve, reject){
     var img = new Image();
     var reader = new FileReader();
@@ -841,17 +926,17 @@ function compressImageFile(file){
     reader.onerror = reject;
     img.onload = function(){
       var width = img.width, height = img.height;
-      if(width > height && width > GALLERY_MAX_DIMENSION){
-        height = Math.round(height * (GALLERY_MAX_DIMENSION / width));
-        width = GALLERY_MAX_DIMENSION;
-      } else if(height > GALLERY_MAX_DIMENSION){
-        width = Math.round(width * (GALLERY_MAX_DIMENSION / height));
-        height = GALLERY_MAX_DIMENSION;
+      if(width > height && width > maxDim){
+        height = Math.round(height * (maxDim / width));
+        width = maxDim;
+      } else if(height > maxDim){
+        width = Math.round(width * (maxDim / height));
+        height = maxDim;
       }
       var canvas = document.createElement('canvas');
       canvas.width = width; canvas.height = height;
       canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', GALLERY_JPEG_QUALITY));
+      resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.onerror = reject;
     reader.readAsDataURL(file);
@@ -871,14 +956,18 @@ function uploadGalleryPhoto(){
 
   btn.disabled = true; btn.textContent = '処理中...';
 
-  compressImageFile(file).then(function(dataUrl){
+  Promise.all([
+    compressImageFile(file, GALLERY_MAX_DIMENSION, GALLERY_JPEG_QUALITY),
+    compressImageFile(file, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
+  ]).then(function(results){
     return fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'uploadPhoto',
         uid: uid,
-        image: dataUrl,
+        image: results[0],
+        thumbnail: results[1],
         caption: document.getElementById('g_caption').value.trim()
       })
     });
@@ -895,6 +984,7 @@ function uploadGalleryPhoto(){
           not_registered: '登録情報が確認できませんでした',
           daily_limit_exceeded: '本日の投稿上限に達しました',
           not_a_valid_image: '画像として読み込めませんでした',
+          invalid_thumbnail: 'サムネイルの生成に失敗しました',
           image_too_large: '画像サイズが大きすぎます',
           invalid_image_format: '画像の形式を認識できませんでした'
         };
