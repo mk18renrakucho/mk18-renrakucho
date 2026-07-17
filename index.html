@@ -211,7 +211,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 
   <div id="g_period_pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;overflow-x:auto;padding-bottom:2px"></div>
-  <div id="g_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+  <div id="g_grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"></div>
 </div>
 
 <!-- お気に入り -->
@@ -343,8 +343,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div style="margin-bottom:10px">
         <textarea id="b_detail" rows="4" placeholder="詳細（必須）日時・場所・内容など"></textarea>
       </div>
-      <div style="margin-bottom:10px">
-        <input type="text" id="b_url" placeholder="参考URL（任意）">
+      <div style="margin-bottom:4px">
+        <input type="text" id="b_url" placeholder="参考URL（任意）https://...から始まる形で入力">
+      </div>
+      <div id="b_url_hint" style="font-size:11px;color:var(--text-ter);margin-bottom:8px">
+        ※他のアプリからコピーした「文字付きリンク」は貼り付けても、URL部分だけ自動で取り出します
       </div>
       <div id="b_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
       <button id="b_btn" onclick="addPost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
@@ -646,10 +649,16 @@ function addPost(){
   if(!boardVerifiedUser){return;}
   var title=(document.getElementById("b_title").value||"").trim();
   var detail=(document.getElementById("b_detail").value||"").trim();
+  var rawUrl=(document.getElementById("b_url").value||"").trim();
+  var url=extractUrl(rawUrl); // ← V4j：Markdown形式で貼られていてもURL部分だけを取り出す
   var errEl=document.getElementById("b_err2");
   errEl.style.display="none";
   if(!title){errEl.textContent="タイトルを入力してください";errEl.style.display="block";return;}
   if(!detail){errEl.textContent="詳細を入力してください";errEl.style.display="block";return;}
+  if(rawUrl && !isValidUrl(url)){
+    errEl.textContent="URLの形式が正しくありません。https:// から始まる形で入力してください。";
+    errEl.style.display="block";return;
+  }
   var btn=document.getElementById("b_btn");
   btn.disabled=true;btn.textContent="送信中...";
   gasGet({
@@ -658,7 +667,7 @@ function addPost(){
     birthday:boardVerifiedUser.birthday,
     cat:document.getElementById("b_cat").value,
     title:title,detail:detail,
-    url:(document.getElementById("b_url").value||"").trim()
+    url:url
   },function(res){
     btn.disabled=false;btn.textContent="投稿する";
     if(res&&res.success){
@@ -743,15 +752,59 @@ function getMyUid(){
   return localStorage.getItem('mk18_uid') || '';
 }
 
+// ===================================================
+// メンバー一覧の端末内スナップショット（V4jで追加）
+// アプリを開いた瞬間、前回表示していた内容をまず即表示し、
+// 裏側で最新データを取りに行って届き次第静かに差し替える。
+// ===================================================
+function loadCachedMembersFromStorage(){
+  try {
+    var raw = localStorage.getItem('mk18_members_cache');
+    if(!raw) return null;
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch(e){ return null; }
+}
+function saveCachedMembersToStorage(members){
+  try { localStorage.setItem('mk18_members_cache', JSON.stringify(members)); } catch(e){ /* 保存できなくても致命的ではない */ }
+}
+
 function escHtmlLite(str){
   return String(str || '').replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
 
-// http/https以外（javascript:等）のURLはリンク化しない
+// ===================================================
+// URL関連ユーティリティ（V4jで整理）
+// コルクボードのURL欄に、他アプリからコピーした
+// 「[表示文字](https://example.com)」というMarkdown形式のリンクが
+// そのまま貼り付けられるケースがあるため、URL部分だけを抽出できるようにする。
+// ===================================================
+
+// ゼロ幅文字（コピペで紛れ込むことがある目に見えない文字）を除去
+function stripInvisibleChars(str){
+  return String(str || '').replace(/[\u200B-\u200D\uFEFF\u2060]/g, '');
+}
+
+// Markdown形式 [text](url) で貼り付けられていた場合、url部分だけを取り出す。
+// 通常のURLがそのまま渡された場合はそのまま返す。
+function extractUrl(raw){
+  var s = stripInvisibleChars(String(raw || '').trim());
+  var md = s.match(/\]\(\s*(https?:\/\/[^\s)]+)\s*\)/i);
+  if(md) return md[1];
+  return s;
+}
+
+// http/https で始まる、正しい形のURLかどうかを判定
+function isValidUrl(str){
+  return /^https?:\/\/[^\s]+$/i.test(String(str || '').trim());
+}
+
+// 表示用：http/https以外（javascript:等）のURLはリンク化しない。
+// 既存データにMarkdown形式が紛れ込んでいた場合も抽出してから判定する（V4jで追加）。
 function safeUrl(url){
-  var u = String(url || '').trim();
+  var u = extractUrl(url);
   if(/^https?:\/\//i.test(u)) return u;
   return '';
 }
@@ -1006,7 +1059,12 @@ function go(t){
     var b=document.getElementById("tb-"+x);
     if(b) b.className="tab"+(x===t?" active":"");
   });
-  if(t==="b")loadBoardFromAPI();
+  if(t==="b"){
+    // ← V4j：一度でも読み込み済みのデータがあれば即表示し、体感速度を上げる。
+    //   裏側では常に最新を取りに行き、届き次第静かに差し替える。
+    if(P.length>0) renderP();
+    loadBoardFromAPI();
+  }
   if(t==="c")renderClubs();
   if(t==="g")loadGalleryFromAPI();
   if(t==="f")renderFav();
@@ -1014,7 +1072,19 @@ function go(t){
 
 function loadFromAPI(){
   var loading=document.getElementById("loading-msg");
-  if(loading)loading.style.display="block";
+
+  // ← V4j：前回表示していたスナップショットがあれば即表示（読み込み中表示を出さない）。
+  //   無ければ従来どおり「読み込み中」を表示する。
+  if(M.length===0){
+    var cachedM = loadCachedMembersFromStorage();
+    if(cachedM){
+      M = cachedM;
+      populateFilters();renderM();
+    } else if(loading){
+      loading.style.display="block";
+    }
+  }
+
   fetch(API_URL)
     .then(function(r){return r.json();})
     .then(function(data){
@@ -1027,20 +1097,33 @@ function loadFromAPI(){
       });
       if(loading)loading.style.display="none";
       populateFilters();renderM();
+      saveCachedMembersToStorage(M); // ← V4j：次回の即表示のためにスナップショットを保存
     })
     .catch(function(){
       if(loading)loading.style.display="none";
-      document.getElementById("ml").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。</div>';
-      populateFilters();renderM();
+      if(M.length===0){
+        document.getElementById("ml").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">データの読み込みに失敗しました。</div>';
+        populateFilters();renderM();
+      }
+      // 既にキャッシュ表示がある場合は、通信エラーでも今の表示は維持する
     });
 }
 
 function loadBoardFromAPI(){
-  document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+  // ← V4j：初回（まだ何も表示されていない時）だけ「読み込み中」を出す。
+  //   2回目以降はgo('b')側で直前のデータが既に表示されているため、ここで上書きしない。
+  if(P.length===0){
+    document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+  }
   fetch(API_URL+"?action=getBoard")
     .then(function(r){return r.json();})
     .then(function(data){P=Array.isArray(data)?data:[];renderP();})
-    .catch(function(){document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';});
+    .catch(function(){
+      if(P.length===0){
+        document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';
+      }
+      // 既にP件のデータが表示されている場合は、通信エラーでも今の表示は維持する
+    });
 }
 
 // PWA
