@@ -318,9 +318,11 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <textarea id="b_detail" placeholder="日時・場所・内容などを書いてください"></textarea>
         <p class="error-msg">詳細を入力してください</p>
       </div>
-      <div class="field">
+      <div class="field" id="bf-url">
         <label>参考URL<span class="hint">任意</span></label>
-        <input type="text" id="b_url" placeholder="https://...">
+        <input type="text" id="b_url" placeholder="https://...から始まる形で入力してください">
+        <p class="error-msg">URLの形式が正しくありません（https:// から始まる形で入力してください）</p>
+        <p style="font-size:11px;color:var(--sub);margin-top:4px">※他のアプリからコピーした「文字付きリンク」を貼り付けても、URL部分だけ自動で取り出します</p>
       </div>
       <div class="err-box" id="b_err2"></div>
       <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
@@ -447,6 +449,25 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec';
+
+// ===================================================
+// URL関連ユーティリティ（V4jで追加）
+// コルクボードのURL欄に、他アプリからコピーした
+// 「[表示文字](https://example.com)」というMarkdown形式のリンクが
+// そのまま貼り付けられるケースがあるため、URL部分だけを抽出できるようにする。
+// ===================================================
+function stripInvisibleChars(str){
+  return String(str || '').replace(/[\u200B-\u200D\uFEFF\u2060]/g, '');
+}
+function extractUrl(raw){
+  var s = stripInvisibleChars(String(raw || '').trim());
+  var md = s.match(/\]\(\s*(https?:\/\/[^\s)]+)\s*\)/i);
+  if(md) return md[1];
+  return s;
+}
+function isValidUrl(str){
+  return /^https?:\/\/[^\s]+$/i.test(String(str || '').trim());
+}
 
 function showSection(id) {
   document.getElementById('top').style.display = 'none';
@@ -766,6 +787,19 @@ function submitBoard() {
   var ok = true;
   ok = reqField('bf-title',  document.getElementById('b_title').value.trim()) && ok;
   ok = reqField('bf-detail', document.getElementById('b_detail').value.trim()) && ok;
+
+  // ← V4j：URL欄の検証を追加。Markdown形式で貼られていても中のURLだけを抽出し、
+  //   抽出後もURLとして成立しない場合ははっきりエラー表示する（黙って捨てない）
+  var rawUrl = document.getElementById('b_url').value.trim();
+  var url = extractUrl(rawUrl);
+  var urlField = document.getElementById('bf-url');
+  if(rawUrl && !isValidUrl(url)){
+    urlField.classList.add('has-error');
+    ok = false;
+  } else {
+    urlField.classList.remove('has-error');
+  }
+
   if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
   setLoading(true,'b_btn');
   send({
@@ -776,7 +810,7 @@ function submitBoard() {
     cat:document.getElementById('b_cat').value,
     title:document.getElementById('b_title').value.trim(),
     detail:document.getElementById('b_detail').value.trim(),
-    url:document.getElementById('b_url').value.trim(),
+    url:url,
   }, function(res){
     setLoading(false,'b_btn');
     if(res && res.success){ showToast('✓ 投稿しました！'); setTimeout(showTop, 1500); }
