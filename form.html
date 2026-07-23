@@ -106,12 +106,12 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <button class="branch-btn" onclick="showSection('radar')">
       <div class="icon">📡</div>
       <div class="title">近況を更新する</div>
-      <div class="desc">登録情報を確認してから変更できます<br>名前＋誕生日で本人確認します</div>
+      <div class="desc">登録情報を確認してから変更できます<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
     </button>
     <button class="branch-btn" onclick="showSection('board')">
       <div class="icon">📌</div>
       <div class="title">お知らせを投稿する</div>
-      <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>名前＋誕生日で本人確認します</div>
+      <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
     </button>
     <div class="voom-card">
       <div class="icon">📢</div>
@@ -137,12 +137,12 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div style="font-size:15px;font-weight:700;margin-bottom:20px">登録が完了しました</div>
     </div>
     <div style="background:#FAEEDA;border:1px solid #813100;border-radius:10px;padding:16px;margin-bottom:16px">
-      <div style="font-size:12px;color:#5a2200;margin-bottom:8px;font-weight:700">🔑 本人確認パスワード（重要）</div>
+      <div style="font-size:12px;color:#5a2200;margin-bottom:8px;font-weight:700">🔑 誕生日または確認用の数字（重要）</div>
       <div style="font-size:13px;color:#5a2200;line-height:1.7">
         近況更新・コルクボード投稿時に使用します。<br>忘れずに控えておいてください！
       </div>
       <div style="background:#fff;border:2px solid #813100;border-radius:8px;padding:12px;margin-top:10px;text-align:center">
-        <div style="font-size:11px;color:#7a6f65;margin-bottom:4px">登録した誕生日</div>
+        <div style="font-size:11px;color:#7a6f65;margin-bottom:4px">登録した誕生日または確認用の数字</div>
         <div style="font-size:28px;font-weight:700;color:#813100;letter-spacing:.2em" id="done_bd"></div>
       </div>
     </div>
@@ -159,7 +159,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <p class="sub">出没レーダーに載せる情報を入力してください</p>
   </div>
   <div class="card">
-    <div class="notice">🔑 誕生日（月日4桁）は本人確認パスワードになります。忘れずに覚えておいてください。</div>
+    <div class="notice">🔑 誕生日、またはお好きな4桁の数字が、近況更新・コルクボード投稿時の本人確認パスワードになります。忘れずに覚えておいてください。</div>
     <p class="section-label">基本情報</p>
     <div class="field" id="reg-name">
       <label>お名前（漢字）<span class="req">*</span></label>
@@ -167,9 +167,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <p class="error-msg">お名前を入力してください</p>
     </div>
     <div class="field" id="reg-bd">
-      <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
+      <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　例：0315</span></label>
       <input type="text" id="reg_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-      <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+      <p class="error-msg">4桁の数字で入力してください（例：0315）</p>
     </div>
     <div class="field" id="reg-period">
       <label>期<span class="req">*</span><span class="hint">例：33期</span></label>
@@ -186,7 +186,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <button type="button" onclick="calcPeriodFromBirth()" style="width:100%;margin-top:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">計算</button>
         <div id="calc_result2" style="font-size:12px;color:#5a2200;margin-top:6px;min-height:16px"></div>
-        <p style="font-size:11px;color:#5a2200;margin-top:6px;opacity:.75">※卒業年から直接知りたい方は<a href="http://www.matsuyamakita.com/aboutus/yearofgrad/index.html" target="_blank" style="color:#5a2200">北斗会の早見表</a>もどうぞ</p>
+        <p style="font-size:11px;color:#5a2200;margin-top:6px;opacity:.75">※卒業年から直接知りたい方は<a href="https://www.matsuyamakita.com/aboutus/yearofgrad/" target="_blank" rel="noopener noreferrer" style="color:#5a2200">北斗会の早見表</a>もどうぞ</p>
       </div>
     </div>
     <div class="field" id="reg-club">
@@ -250,10 +250,10 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <textarea id="reg_note" placeholder="近況をひとことどうぞ"></textarea>
     </div>
     <div class="dup-box" id="dup_box">
-      <div class="dup-title">⚠️ 同じ名前・誕生日のメンバーがすでに登録されています</div>
+      <div class="dup-title">⚠️ 同じ名前・誕生日（または確認用の数字）のメンバーがすでに登録されています</div>
       <div class="dup-desc">以前ご自身で登録された可能性があります。どちらですか？</div>
-      <button class="submit-btn" onclick="submitRegisterForce(true)">自分の情報を上書き更新する</button>
-      <div style="margin-top:12px;padding:12px;background:#fff;border-radius:8px;font-size:12px;color:#5a2200;line-height:1.8">別人の方は管理者までご連絡ください。<br><a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:#813100;font-weight:700">📋 管理者にお問い合わせフォームで連絡する</a></div>
+      <button class="submit-btn" onclick="submitRegisterOverwrite()">自分の情報を上書き更新する</button>
+      <div style="margin-top:12px;padding:12px;background:#fff;border-radius:8px;font-size:12px;color:#5a2200;line-height:1.8">別人の方は管理者までご連絡ください。<br><a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="color:#813100;font-weight:700">📋 管理者にお問い合わせフォームで連絡する</a></div>
     </div>
     <div class="err-box" id="reg_err"></div>
     <p style="font-size:11px;color:var(--sub);margin-top:16px">🔑 登録内容の正確性についてのご確認です。</p>
@@ -283,9 +283,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <p class="error-msg">お名前を入力してください</p>
       </div>
       <div class="field" id="bf-bd">
-        <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
+        <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　例：0315</span></label>
         <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-        <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+        <p class="error-msg">4桁の数字で入力してください（例：0315）</p>
       </div>
       <div class="field">
         <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
@@ -341,16 +341,16 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   </div>
   <div class="radar-step active" id="radar-step1">
     <div class="card">
-      <div class="notice">🔑 登録時の名前と誕生日を入力してください。現在の登録情報を表示します。</div>
+      <div class="notice">🔑 登録時の名前と、誕生日または確認用の数字を入力してください。現在の登録情報を表示します。</div>
       <div class="field" id="rf-name">
         <label>お名前（漢字）<span class="req">*</span></label>
         <input type="text" id="r_name" placeholder="例：佐々木 宗明">
         <p class="error-msg">お名前を入力してください</p>
       </div>
       <div class="field" id="rf-bd">
-        <label>誕生日<span class="req">*</span><span class="hint">月日4桁　例：3月15日 → 0315</span></label>
+        <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　登録時に設定した数字　例：0315</span></label>
         <input type="text" id="r_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-        <p class="error-msg">誕生日を4桁で入力してください（例：0315）</p>
+        <p class="error-msg">4桁の数字で入力してください（例：0315）</p>
       </div>
       <div class="field">
         <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
@@ -443,7 +443,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.2　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -596,11 +596,18 @@ function submitRegister() {
   });
 }
 
-function submitRegisterForce(overwrite) {
+// ← 整理済み：以前はsubmitRegisterForce(overwrite)という名前で、
+//   「別人として強制的に新規登録する」分岐（forceRegister:'true'をCode.gs側へ送信）
+//   も用意されていたが、Code.gs側では一切受け取っておらず、かつ呼び出すボタンも
+//   UI上に存在しなかったため、死んだコードとして削除。
+//   重複時にできる操作は「自分の情報として上書き更新する」の1つのみ
+//   （別人の場合は下の案内どおり管理者へ連絡してもらう運用）。
+function submitRegisterOverwrite() {
   setLoading(true,'reg_btn');
   document.getElementById('dup_box').style.display = 'none';
 
-  var payload = {
+  send({
+    action:'updateStatus',
     name:document.getElementById('reg_name').value.trim(),
     birthday:document.getElementById('reg_bd').value.trim(),
     period:document.getElementById('reg_period').value.trim(),
@@ -611,16 +618,7 @@ function submitRegisterForce(overwrite) {
     note:document.getElementById('reg_note').value.trim(),
     nickname:getNickname('reg_nick_type','reg_nickname'),
     termsAgreedAt:getTermsAgreedAt(),
-  };
-
-  if(overwrite){
-    payload.action = 'updateStatus';
-  } else {
-    payload.action = 'register';
-    payload.forceRegister = 'true';
-  }
-
-  send(payload, function(res){
+  }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
       if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
@@ -650,11 +648,11 @@ function checkRadar() {
   }, function(res){
     setLoading(false,'r_check_btn');
     if(!res || !res.found){
-      showErr('r_check_err','名前または誕生日が一致しません。登録時と同じ情報を入力してください。');
+      showErr('r_check_err','名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。');
       return;
     }
     if(res.multiple){
-      showErr('r_check_err','同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。');
+      showErr('r_check_err','同じ名前・誕生日（確認用の数字）の方が複数います。期の欄に期を入力してもう一度お試しください。');
       return;
     }
     document.getElementById('ci_period').textContent     = res.period     || '-';
@@ -765,10 +763,10 @@ function verifyBoard() {
       document.getElementById('board-step2').classList.add('active');
       window.scrollTo(0,0);
     } else if(res && res.multiple){
-      errEl.textContent = '同じ名前・誕生日の方が複数います。期の欄に期を入力してもう一度お試しください。';
+      errEl.textContent = '同じ名前・誕生日（確認用の数字）の方が複数います。期の欄に期を入力してもう一度お試しください。';
       errEl.style.display = 'block';
     } else {
-      errEl.textContent = '名前または誕生日が一致しません。登録時と同じ情報を入力してください。';
+      errEl.textContent = '名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。';
       errEl.style.display = 'block';
       document.getElementById('b_bd').value = '';
     }
