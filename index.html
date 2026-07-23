@@ -218,9 +218,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div id="p-f" style="display:none">
   <div id="fav-login-area" class="fav-login">
     <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
-    <div class="fav-login-sub">名前と誕生日を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
+    <div class="fav-login-sub">名前と、誕生日または確認用の数字を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
     <input type="text" id="fv_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
-    <input type="text" id="fv_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
+    <input type="text" id="fv_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
     <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
     <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
   </div>
@@ -243,7 +243,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">プライバシーポリシー</div>
   </div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【1】過去の名簿は使っていません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">過去の卒業名簿・住所録・連絡先リストは一切使用していません。参加者が自分の意思で登録した情報だけを扱います。「勝手に載せられる」ことは絶対にありません。</div></div>
-  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。</div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。なお、本人確認用にお伺いする4桁の数字は、誕生日、またはお好きな数字でご登録いただけます。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。写真館（全体・期別の共有写真）は管理者が管理する非公開のGoogleドライブに保存されます。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合はLINEで管理者に連絡してください。登録情報を即座に削除します。</div></div>
@@ -267,9 +267,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div class="modal-step active" id="u-step1">
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
-          <i class="ti ti-lock" style="margin-right:4px"></i>誕生日4桁を入力して本人確認します
+          <i class="ti ti-lock" style="margin-right:4px"></i>誕生日または確認用の数字4桁を入力して本人確認します
         </div>
-        <input type="text" id="u_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
+        <input type="text" id="u_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
         <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doVerifyUpdate()" style="width:100%" id="u_verify_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>確認する
@@ -312,14 +312,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div class="modal-step active" id="b-step1">
       <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
-        🔑 名前と誕生日で本人確認します。
+        🔑 名前と、誕生日または確認用の数字で本人確認します。
       </div>
       <div style="margin-bottom:6px">
         <input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()">
       </div>
       <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
       <div style="margin-bottom:12px">
-        <input type="text" id="b_bd" placeholder="誕生日4桁（例：0315）" maxlength="4" inputmode="numeric">
+        <input type="text" id="b_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric">
       </div>
       <div id="b_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
       <button id="b_verify_btn" onclick="doVerifyBoard()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
@@ -359,7 +359,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.1　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.2　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -525,7 +525,7 @@ function doVerifyUpdate(){
   var errEl=document.getElementById("u_err1");
   errEl.style.display="none";
   if(!bd||!/^[0-9]{4}$/.test(bd)){
-    errEl.textContent="誕生日を4桁で入力してください（例：0315）";
+    errEl.textContent="誕生日または確認用の数字を4桁で入力してください（例：0315）";
     errEl.style.display="block";return;
   }
   var btn=document.getElementById("u_verify_btn");
@@ -541,7 +541,7 @@ function doVerifyUpdate(){
       document.getElementById("u_err2").style.display="none";
       showUStep(2);
     } else {
-      errEl.textContent="誕生日が一致しません。もう一度入力してください。";
+      errEl.textContent="誕生日または確認用の数字が一致しません。もう一度入力してください。";
       errEl.style.display="block";
       document.getElementById("u_bd").value="";
     }
@@ -624,7 +624,7 @@ function doVerifyBoard(){
   var errEl=document.getElementById("b_err1");
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
-  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日または確認用の数字を4桁で入力してください";errEl.style.display="block";return;}
   var btn=document.getElementById("b_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
   gasGet({action:"verify", name:name, birthday:bd}, function(res){
@@ -635,10 +635,10 @@ function doVerifyBoard(){
       document.getElementById("b_err2").style.display="none";
       showBStep(2);
     } else if(res && res.multiple){
-      errEl.textContent="同じ名前・誕生日の方が複数います。管理者にお問い合わせください。";
+      errEl.textContent="同じ名前・誕生日（確認用の数字）の方が複数います。管理者にお問い合わせください。";
       errEl.style.display="block";
     } else {
-      errEl.textContent="名前または誕生日が一致しません。登録時と同じ情報を入力してください。";
+      errEl.textContent="名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。";
       errEl.style.display="block";
       document.getElementById("b_bd").value="";
     }
@@ -1155,7 +1155,7 @@ function favLogin(){
   var errEl=document.getElementById("fv_err");
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
-  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日を4桁で入力してください";errEl.style.display="block";return;}
+  if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日または確認用の数字を4桁で入力してください";errEl.style.display="block";return;}
   document.getElementById("overlay").classList.add("show");
   gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
     document.getElementById("overlay").classList.remove("show");
@@ -1165,7 +1165,7 @@ function favLogin(){
       M.forEach(function(m){m.fav=favNames.indexOf(m.name)>=0;});
       showFavLoggedIn();renderFav();renderM();
     } else {
-      errEl.textContent="名前または誕生日が一致しません。もう一度確認してください。";
+      errEl.textContent="名前または誕生日（確認用の数字）が一致しません。もう一度確認してください。";
       errEl.style.display="block";
       document.getElementById("fv_bd").value="";
     }
