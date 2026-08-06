@@ -282,15 +282,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
           <i class="ti ti-user-check" style="font-size:16px"></i>
           <span id="u_verified_name"></span>さんの本人確認ができました
         </div>
-        <select id="us" style="margin-bottom:8px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">状態</div>
+        <select id="us" style="margin-bottom:12px">
           <option value="在住（松山在住）">松山に在住</option>
           <option value="松山以外に在住">松山以外に在住</option>
           <option value="帰省予定">帰省予定あり</option>
           <option value="帰省中">帰省中</option>
         </select>
-        <input type="text" id="ud" placeholder="帰省期間（例：8/13〜8/17）" style="margin-bottom:8px">
-        <input type="text" id="ue" placeholder="現在のエリア（例：松山・関東・大阪）" style="margin-bottom:8px">
-        <input type="text" id="un" placeholder="ひとこと近況" style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">帰省期間（任意）</div>
+        <input type="text" id="ud" placeholder="例：8/13〜8/17" style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">現在のエリア</div>
+        <input type="text" id="ue" placeholder="例：松山・関東・大阪" style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと近況</div>
+        <input type="text" id="un" placeholder="近況をひとことどうぞ" style="margin-bottom:10px">
         <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>更新する
@@ -489,13 +493,14 @@ function openDet(id){
   selId=id;
   var m=M.find(function(x){return x.id===id;});
   document.getElementById("dn").textContent=m.name;
+  // ← 修正：エリア・状態・帰省期間・ひとことは下の編集フォームと重複するため削除。
+  //   ここには編集対象外の参考情報（期・部活・趣味）だけを残す。
   document.getElementById("db").innerHTML=
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
-    +[["期",m.period],["部活",m.club],["エリア",m.area],["趣味",m.hobby||"-"]].map(function(p){
-      return '<div style="background:var(--gray);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text-ter)">'+escHtmlLite(p[0])+'</div><div style="font-size:13px;font-weight:500">'+escHtmlLite(p[1])+'</div></div>';
-    }).join("")+'</div>'
-    +sb(m.status)+(m.date?' <span style="font-size:12px;color:var(--text-sub);margin-left:6px">'+escHtmlLite(m.date)+'</span>':"")
-    +'<p style="font-size:14px;line-height:1.6;margin:10px 0 0;color:var(--text)">'+escHtmlLite(m.note||"")+'</p>';
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-sub)">'
+    +'<div><span style="color:var(--text-ter)">期</span> '+escHtmlLite(m.period)+'</div>'
+    +'<div><span style="color:var(--text-ter)">部活</span> '+escHtmlLite(m.club)+'</div>'
+    +'<div><span style="color:var(--text-ter)">趣味</span> '+escHtmlLite(m.hobby||"-")+'</div>'
+    +'</div>';
   document.getElementById("u_bd").value="";
   document.getElementById("u_err1").style.display="none";
   document.getElementById("u_err2").style.display="none";
@@ -534,10 +539,14 @@ function doVerifyUpdate(){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
       document.getElementById("u_verified_name").textContent=m.name;
-      document.getElementById("us").value=m.status||"在住（松山在住）";
-      document.getElementById("ud").value=m.date||"";
-      document.getElementById("ue").value=m.area||"";
-      document.getElementById("un").value=m.note||"";
+      // ← バグ修正：以前は一覧表示用に短縮されたm.status（例：「在住」）を
+      //   そのままプルダウンにセットしていたため、選択肢の文字列
+      //  （例：「在住（松山在住）」）と一致せず空欄に見える不具合があった。
+      //   verify APIが返す加工前の値（res.*）を使うよう修正。
+      document.getElementById("us").value=res.status||"在住（松山在住）";
+      document.getElementById("ud").value=res.homecoming||"";
+      document.getElementById("ue").value=res.area||"";
+      document.getElementById("un").value=res.note||"";
       document.getElementById("u_err2").style.display="none";
       showUStep(2);
     } else {
