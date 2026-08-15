@@ -1102,7 +1102,8 @@ function loadFromAPI(){
         return {
           id:i+1,name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
           status:(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
-          date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false
+          date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false,
+          updatedAt:d.updatedAt||0 // ← V4l修正：出没レーダーの並び替え用の値を拾い忘れていたため追加
         };
       });
       if(loading)loading.style.display="none";
