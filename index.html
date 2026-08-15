@@ -363,7 +363,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.4　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.5　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -459,6 +459,7 @@ function renderM(){
     if(kw&&m.name.indexOf(kw)<0&&(m.note||"").indexOf(kw)<0&&(m.hobby||"").indexOf(kw)<0)return false;
     return true;
   });
+  f.sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}); // ← V4l：出没レーダーは最終更新日時が新しい順
   document.getElementById("mc").textContent=f.length+"名 表示中（全"+M.length+"名）";
   document.getElementById("ml").innerHTML=f.map(memberCardHTML).join("")||'<div style="text-align:center;padding:40px 0;color:var(--text-ter)">条件に一致するメンバーが見つかりません</div>';
   hc();
