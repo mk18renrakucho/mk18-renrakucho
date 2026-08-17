@@ -385,7 +385,7 @@ fetch('config.json')
   .catch(function(){ console.warn('config.json の読み込みに失敗しました'); });
 
 var AC=["#813100","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
-var API_URL="https://script.google.com/macros/s/AKfycby8QL5qmdiy_n2SZqnrnP5wpLJE-LuXPPVqFzhDKp0ZISRNK3643M4BBAXx7LD5AP5r7g/exec";
+var API_URL="https://script.google.com/macros/s/AKfycbz0OpZUvaACrFGdLoxXI7TOXEisYz0x4wwLAx3k6uluhWChwlQjtT1pz2F9sbZuODdTow/exec";
 
 function gasGet(params,cb){
   document.getElementById("overlay").classList.add("show");
@@ -441,7 +441,6 @@ function memberCardHTML(m){
     +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+'>'+(m.fav?'❤️':'🤍')+'</button>'
     +'</div>'
     +'<div style="font-size:12px;color:var(--text-sub)">'+escHtmlLite(m.period)+' · '+escHtmlLite(m.club)+' · '+escHtmlLite(m.area)+'</div>'
-    +'<div style="font-size:10px;color:#c00;margin-top:2px">[DEBUG] updatedAt: '+(m.updatedAt?new Date(m.updatedAt).toLocaleString('ja-JP'):'(なし/0)')+'</div>' // ← 一時デバッグ表示。原因確認後に削除する。
     +(m.date?'<div style="font-size:11px;color:var(--text-sub);margin-top:2px"><i class="ti ti-clock" style="font-size:10px;margin-right:2px"></i>'+escHtmlLite(m.date)+'</div>':"")
     +'<p style="font-size:13px;color:var(--text-sub);margin:5px 0 4px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escHtmlLite(m.note||"")+'</p>'
     +'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:3px 10px;background:var(--blue-light);color:var(--blue);border:none;border-radius:20px;cursor:pointer;font-family:inherit">近況を更新する</button>'
