@@ -129,6 +129,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div class="tabs">
   <button class="tab active" id="tb-r" onclick="go('r')"><i class="ti ti-radar"></i>出没レーダー</button>
   <button class="tab" id="tb-b" onclick="go('b')"><i class="ti ti-message-circle"></i>コルクボード</button>
+  <button class="tab" id="tb-n" onclick="go('n')"><i class="ti ti-speakerphone"></i>お知らせ</button>
   <button class="tab" id="tb-g" onclick="go('g')"><i class="ti ti-photo"></i>写真館</button>
   <button class="tab" id="tb-c" onclick="go('c')"><i class="ti ti-lock"></i>部室</button>
   <button class="tab" id="tb-f" onclick="go('f')"><i class="ti ti-heart"></i>お気に入り</button>
@@ -169,7 +170,71 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="pl"></div>
 </div>
 
-<!-- 部室 -->
+<!-- お知らせ -->
+<div id="p-n" style="display:none">
+  <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
+    <i class="ti ti-info-circle" style="margin-right:4px"></i>講演会・イベントなどの公式なお知らせです。コメントは登録済みの方ならどなたでもできます。
+  </div>
+  <div style="text-align:right;margin-bottom:10px">
+    <button onclick="openAnnouncePostModal()" style="background:none;border:1px solid var(--border);color:var(--text-ter);border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit">🔑 管理者用：投稿する</button>
+  </div>
+  <div id="an_list"></div>
+</div>
+
+<!-- お知らせ詳細・コメント -->
+<div class="modal-overlay" id="modal-announce-detail">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px" id="an_d_title">お知らせ</div>
+      <button onclick="closeAnnounceDetail()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="an_d_time" style="font-size:11px;color:var(--text-ter);margin-bottom:10px"></div>
+    <div id="an_d_images" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px"></div>
+    <div id="an_d_detail" style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:16px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px">💬 コメント</div>
+      <div id="an_comments" style="margin-bottom:12px"></div>
+      <div id="an_c_quickreplies" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+      <div style="margin-bottom:6px">
+        <input type="text" id="an_c_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:6px">
+        <input type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
+        <textarea id="an_c_content" rows="2" placeholder="コメントを書く（上のボタンをタップしても入力できます）"></textarea>
+      </div>
+      <div id="an_c_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="an_c_btn" onclick="postAnnounceComment()" style="width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">
+        コメントする
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- お知らせ投稿（管理者用） -->
+<div class="modal-overlay" id="modal-announce-post">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px">📢 お知らせを投稿する（管理者用）</div>
+      <button onclick="closeAnnouncePostModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="margin-bottom:10px">
+      <input type="password" id="an_p_pw" placeholder="管理者パスワード">
+    </div>
+    <div style="margin-bottom:10px">
+      <input type="text" id="an_p_title" placeholder="タイトル（必須）">
+    </div>
+    <div style="margin-bottom:10px">
+      <textarea id="an_p_detail" rows="4" placeholder="詳細（日時・場所・内容など）"></textarea>
+    </div>
+    <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
+    <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:10px">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:10px;cursor:pointer">
+      <input type="checkbox" id="an_p_notify" style="width:auto">LINEで全員に通知する
+    </label>
+    <div id="an_p_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button id="an_p_btn" onclick="submitAnnouncePost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+      投稿する
+    </button>
+  </div>
+</div>
 <div id="p-c" style="display:none">
   <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
     <i class="ti ti-info-circle" style="margin-right:4px"></i>部活の名前を合い言葉として入力するとアルバムが開きます。
@@ -363,7 +428,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.5　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.6　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -1064,7 +1129,7 @@ function uploadGalleryPhoto(){
 }
 
 function go(t){
-  ["r","b","c","g","f","a"].forEach(function(x){
+  ["r","b","n","c","g","f","a"].forEach(function(x){
     document.getElementById("p-"+x).style.display=x===t?"block":"none";
     var b=document.getElementById("tb-"+x);
     if(b) b.className="tab"+(x===t?" active":"");
@@ -1075,6 +1140,7 @@ function go(t){
     if(P.length>0) renderP();
     loadBoardFromAPI();
   }
+  if(t==="n")loadAnnounceFromAPI();
   if(t==="c")renderClubs();
   if(t==="g")loadGalleryFromAPI();
   if(t==="f")renderFav();
@@ -1134,6 +1200,197 @@ function loadBoardFromAPI(){
         document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';
       }
       // 既にP件のデータが表示されている場合は、通信エラーでも今の表示は維持する
+    });
+}
+
+// ===================================================
+// お知らせ機能（v1.2.6で追加）
+// ===================================================
+var AN_QUICK_REPLIES = ['参加します','懐かしい！行きたいです','何時からですか','会費はいくらですか'];
+var AN_CURRENT_ID = null;
+var AN_CACHE = {};
+
+function loadAnnounceFromAPI(){
+  gasGet({action:'getAnnouncements'}, function(data){
+    var list = Array.isArray(data) ? data : [];
+    AN_CACHE = {};
+    list.forEach(function(a){ AN_CACHE[a.id] = a; });
+    renderAnnounceList(list);
+  });
+}
+
+function renderAnnounceList(list){
+  var el = document.getElementById('an_list');
+  if(!list.length){
+    el.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-ter)">まだお知らせはありません</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(a){
+    var thumbHtml = (a.thumbnails||[]).map(function(t){
+      return '<img src="'+t+'" style="width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:6px">';
+    }).join('');
+    var preview = escHtmlLite((a.detail||'').slice(0,60)) + ((a.detail||'').length>60?'…':'');
+    return '<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openAnnounceDetail(\''+a.id+'\')">'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:4px">📢 '+escHtmlLite(a.title)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-ter);margin-bottom:8px">'+escHtmlLite(a.time)+'</div>'
+      + (thumbHtml?'<div style="display:flex;margin-bottom:8px">'+thumbHtml+'</div>':'')
+      + '<div style="font-size:13px;color:var(--text-sub)">'+preview+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openAnnounceDetail(id){
+  var a = AN_CACHE[id];
+  if(!a) return;
+  AN_CURRENT_ID = id;
+  document.getElementById('an_d_title').textContent = '📢 ' + a.title;
+  document.getElementById('an_d_time').textContent = a.time;
+  document.getElementById('an_d_detail').textContent = a.detail || '';
+  document.getElementById('an_d_images').innerHTML = '<div style="color:var(--text-ter);font-size:12px">画像を読み込み中...</div>';
+  document.getElementById('an_c_quickreplies').innerHTML = AN_QUICK_REPLIES.map(function(q){
+    return '<button onclick="fillAnnounceComment(\''+q.replace(/'/g,"\\'")+'\')" style="background:var(--gray);border:none;border-radius:16px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">'+escHtmlLite(q)+'</button>';
+  }).join('');
+  if(favUser){
+    document.getElementById('an_c_name').value = favUser.name;
+    document.getElementById('an_c_bd').value = favUser.birthday;
+  }
+  document.getElementById('an_c_err').style.display = 'none';
+  document.getElementById('modal-announce-detail').classList.add('show');
+
+  gasGet({action:'getAnnouncementFull', id:id}, function(res){
+    var imgs = (res && res.success) ? res.images : [];
+    var imgEl = document.getElementById('an_d_images');
+    imgEl.innerHTML = imgs.length
+      ? imgs.map(function(src){ return '<img src="'+src+'" style="max-height:220px;border-radius:8px;flex-shrink:0">'; }).join('')
+      : '';
+  });
+  loadAnnounceComments(id);
+}
+
+function closeAnnounceDetail(){
+  document.getElementById('modal-announce-detail').classList.remove('show');
+  AN_CURRENT_ID = null;
+}
+
+function fillAnnounceComment(text){
+  var el = document.getElementById('an_c_content');
+  el.value = text;
+}
+
+function loadAnnounceComments(id){
+  gasGet({action:'getComments', announceId:id}, function(data){
+    var list = Array.isArray(data) ? data : [];
+    var el = document.getElementById('an_comments');
+    el.innerHTML = list.length
+      ? list.map(function(c){
+          return '<div style="background:var(--gray);border-radius:8px;padding:8px 10px;margin-bottom:6px">'
+            + '<div style="font-size:12px;font-weight:500;margin-bottom:2px">'+escHtmlLite(c.author)+' <span style="font-weight:400;color:var(--text-ter);font-size:11px">'+escHtmlLite(c.time)+'</span></div>'
+            + '<div style="font-size:13px;white-space:pre-wrap">'+escHtmlLite(c.content)+'</div>'
+            + '</div>';
+        }).join('')
+      : '<div style="font-size:12px;color:var(--text-ter);padding:6px 0">まだコメントはありません</div>';
+  });
+}
+
+function postAnnounceComment(){
+  var name = (document.getElementById('an_c_name').value||'').trim();
+  var bd = (document.getElementById('an_c_bd').value||'').trim();
+  var content = (document.getElementById('an_c_content').value||'').trim();
+  var errEl = document.getElementById('an_c_err');
+  errEl.style.display = 'none';
+  if(!name || !bd){ errEl.textContent = 'お名前と誕生日（確認用の数字）を入力してください'; errEl.style.display = 'block'; return; }
+  if(!content){ errEl.textContent = 'コメントを入力してください'; errEl.style.display = 'block'; return; }
+  if(!AN_CURRENT_ID) return;
+
+  var btn = document.getElementById('an_c_btn');
+  btn.disabled = true; btn.textContent = '送信中...';
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action:'postComment', announceId:AN_CURRENT_ID, name:name, birthday:bd, content:content })
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false; btn.textContent = 'コメントする';
+      if(res && res.success){
+        document.getElementById('an_c_content').value = '';
+        loadAnnounceComments(AN_CURRENT_ID);
+      } else {
+        errEl.textContent = (res && res.multiple) ? '同じ名前・誕生日の方が複数いるため確認できませんでした' : '名前または誕生日が一致しませんでした';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = 'コメントする';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    });
+}
+
+// ---- お知らせ投稿（管理者用） ----
+function openAnnouncePostModal(){
+  document.getElementById('an_p_err').style.display = 'none';
+  document.getElementById('modal-announce-post').classList.add('show');
+}
+function closeAnnouncePostModal(){
+  document.getElementById('modal-announce-post').classList.remove('show');
+}
+
+function submitAnnouncePost(){
+  var pw = document.getElementById('an_p_pw').value || '';
+  var title = (document.getElementById('an_p_title').value||'').trim();
+  var detail = (document.getElementById('an_p_detail').value||'').trim();
+  var notify = document.getElementById('an_p_notify').checked;
+  var files = Array.prototype.slice.call(document.getElementById('an_p_files').files||[]).slice(0,3);
+  var errEl = document.getElementById('an_p_err');
+  errEl.style.display = 'none';
+
+  if(!pw){ errEl.textContent = '管理者パスワードを入力してください'; errEl.style.display = 'block'; return; }
+  if(!title){ errEl.textContent = 'タイトルを入力してください'; errEl.style.display = 'block'; return; }
+
+  var btn = document.getElementById('an_p_btn');
+  btn.disabled = true; btn.textContent = '処理中...';
+
+  Promise.all(files.map(function(f){
+    return Promise.all([
+      compressImageFile(f, GALLERY_MAX_DIMENSION, GALLERY_JPEG_QUALITY),
+      compressImageFile(f, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
+    ]).then(function(r){ return { image:r[0], thumbnail:r[1] }; });
+  })).then(function(images){
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'postAnnouncement',
+        adminPassword: pw,
+        title: title,
+        detail: detail,
+        images: images,
+        notifyLine: notify
+      })
+    });
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false; btn.textContent = '投稿する';
+      if(res && res.success){
+        document.getElementById('an_p_pw').value = '';
+        document.getElementById('an_p_title').value = '';
+        document.getElementById('an_p_detail').value = '';
+        document.getElementById('an_p_files').value = '';
+        document.getElementById('an_p_notify').checked = false;
+        closeAnnouncePostModal();
+        showToast('✓ お知らせを投稿しました！');
+        loadAnnounceFromAPI();
+      } else {
+        var messages = { unauthorized:'パスワードが違います', title_required:'タイトルを入力してください' };
+        errEl.textContent = messages[res && res.error] || '投稿に失敗しました';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = '投稿する';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
     });
 }
 
