@@ -363,7 +363,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.6　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.7　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 
 <script>
@@ -574,6 +574,7 @@ function doUpdate(){
   },function(res){
     btn.disabled=false;btn.textContent="更新する";
     if(res&&res.success){
+      if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} } // ← v1.2.7：近況更新でも写真館用IDを保存し、本人確認が両方で連動するよう修正
       closeModal();showToast("✓ 近況を更新しました！");loadFromAPI();
     } else {
       errEl.textContent=(res&&res.error)||"更新に失敗しました。もう一度お試しください。";
