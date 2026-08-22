@@ -145,28 +145,40 @@ input[type=text]:focus{border-color:var(--accent)}
         </p>
       </div>
     </div>
-    <!-- 画面③：ブロック -->
+    <!-- 画面③：やり直し案内（旧：ブロック画面） -->
     <div class="screen" id="sc-block">
-      <div class="block-icon">🚫</div>
-      <div class="block-title">アクセスできません</div>
+      <div class="block-icon">😌</div>
+      <div class="block-title" style="color:var(--accent)">なかなか難しかったですね</div>
       <div class="block-msg">
-        複数回の認証失敗によりブロックされました。<br><br>
-        心当たりのある方は既存メンバーにご相談ください。
+        お手数ですが、<br>
+        もう一度最初からやり直してください。<br>
+        <br>
+        このページを閉じて、<br>
+        もう一度開き直していただくと、<br>
+        新しい問題からやり直せます。<br>
+        <br>
+        心当たりのある方は、<br>
+        既存メンバーにご相談ください。
       </div>
     </div>
   </div>
-  <div class="footer">北高 連絡帳 v1.0.1<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+  <div class="footer">北高 連絡帳 v1.2.9<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 <script>
-var MAX = 5;
+var MAX = 6;
 var QUESTIONS = [
   { q:'北高の怖い体育の先生のあだ名は？',        a:['ゴリさん','ごりさん','ゴリ','ごり'] },
   { q:'電停の前にあるお店といえば？',             a:['パール','ぱーる'] },
-  { q:'卒業アルバムでおなじみの写真館の名前は？', a:['松原写真館','松原','まつばら写真館','まつばら'] },
-  { q:'北高の近くにうまい中華料理屋といえば？',   a:['ない','なし','ないよ','そんな店はない','そんなお店はない','ありません','ないです'] }
+  { q:'卒業アルバムでおなじみの写真館の名前は？', a:['松原写真館','松原','まつばら写真館','まつばら'] }
 ];
 var tries = 0;
-var current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+function pickQuestion(excludeQ){
+  if(QUESTIONS.length <= 1) return QUESTIONS[0];
+  var q;
+  do { q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]; } while(q === excludeQ);
+  return q;
+}
+var current = pickQuestion(null);
 document.getElementById('q-text').textContent = current.q;
 function norm(s){ return (s||'').replace(/[\s　！!。、？?・]/g,'').toLowerCase(); }
 function show(id){
@@ -196,15 +208,12 @@ function check(){
   if(ok){ show('sc-ok'); return; }
   var left = MAX - tries;
   if(left <= 0){ show('sc-block'); return; }
-  document.getElementById('err').textContent = '❌ 違います。';
+  current = pickQuestion(current);
+  document.getElementById('q-text').textContent = current.q;
+  document.getElementById('err').textContent = '❌ 違います。問題を変えました。';
   document.getElementById('remain').textContent = 'あと'+left+'回試せます';
   document.getElementById('q-input').value = '';
   document.getElementById('q-input').focus();
-  if(tries === 3){
-    current = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
-    document.getElementById('q-text').textContent = current.q;
-    document.getElementById('err').textContent = '❌ 違います。問題を変えました。';
-  }
 }
 </script>
 </body>
