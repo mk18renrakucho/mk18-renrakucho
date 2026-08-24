@@ -134,20 +134,19 @@ input[type=text]:focus{border-color:var(--accent)}
         <p>⑥運営者の判断によりサービスを終了する場合があります。</p>
       </div>
       <label class="terms-check">
-        <input type="checkbox" id="agree-check" onchange="toggleContinueBtns()">
+        <input type="checkbox" id="agree-check" onchange="toggleLineBtn()">
         <span>上記6項目の利用規約に同意します</span>
       </label>
       <div class="choices">
-        <a class="btn-web" id="web-btn" href="register.html"
-          style="pointer-events:none;opacity:0.4;" onclick="return false;">
-          📲 このままWebで登録する
+        <a class="btn-web-disabled" href="javascript:void(0)">
+          📲 アプリ版は近日公開予定
         </a>
-        <p class="choice-note">友だち追加不要。すぐにメンバー登録できます</p>
+        <p class="choice-note">現在準備中です。</p>
         <a class="btn-line" id="line-btn" href="https://line.me/ti/p/%40711epvso" target="_blank"
           style="pointer-events:none;opacity:0.4;" onclick="return false;">
           📱 LINEで友だち追加する
         </a>
-        <p class="choice-note">お知らせ通知を受け取りたい方はこちら（任意）</p>
+        <p class="choice-note">リッチメニューから簡単に操作できます</p>
         <p class="choice-note" style="font-size:13px;font-weight:700;color:var(--accent);margin-top:4px">
           📋 <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:var(--accent)">フォームで管理者にお問い合わせ</a>
         </p>
@@ -170,7 +169,7 @@ input[type=text]:focus{border-color:var(--accent)}
       </div>
     </div>
   </div>
-  <div class="footer">北高 連絡帳 v1.2.10<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+  <div class="footer">北高 連絡帳 v1.2.11<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 <script>
 var MAX = 6;
@@ -193,33 +192,21 @@ function show(id){
   document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('show'); });
   document.getElementById(id).classList.add('show');
 }
-// ← v1.2.10：これまで「LINEで友だち追加する」ボタンだけを有効化していたが、
-//   「このままWebで登録する」ボタンも同時に有効化するよう変更。
-//   同意チェックが外れたら両方とも再び無効化する。
-function toggleContinueBtns(){
+// ← v1.2.11：通知機能（Web Push許可の実装）がまだ完了していないため、
+//   Web版登録ボタンはいったん無効化に戻した。LINEで友だち追加した人にのみ
+//   同意チェック後に先へ進めるようにする（v1.2.9以前と同じ挙動）。
+function toggleLineBtn(){
   var checked = document.getElementById('agree-check').checked;
-  var webBtn = document.getElementById('web-btn');
-  var lineBtn = document.getElementById('line-btn');
+  var btn = document.getElementById('line-btn');
   if(checked){
-    webBtn.style.pointerEvents = 'auto';
-    webBtn.style.opacity = '1';
-    webBtn.onclick = function(){
-      // クイズに正解した証をこの端末に保存する（無期限・端末単位）。
-      // register.html側はこの値の有無で登録フォームを表示するかどうかを判定する。
-      try{ localStorage.setItem('mk18_quiz_passed_at', new Date().toISOString()); }catch(e){}
-      return true; // 通常のリンク遷移を続行させる
-    };
-    lineBtn.style.pointerEvents = 'auto';
-    lineBtn.style.opacity = '1';
-    lineBtn.onclick = null;
+    btn.style.pointerEvents = 'auto';
+    btn.style.opacity = '1';
+    btn.onclick = null;
     try{ localStorage.setItem('mk18_terms_agreed_at', new Date().toISOString()); }catch(e){}
   } else {
-    webBtn.style.pointerEvents = 'none';
-    webBtn.style.opacity = '0.4';
-    webBtn.onclick = function(){ return false; };
-    lineBtn.style.pointerEvents = 'none';
-    lineBtn.style.opacity = '0.4';
-    lineBtn.onclick = function(){ return false; };
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.4';
+    btn.onclick = function(){ return false; };
     try{ localStorage.removeItem('mk18_terms_agreed_at'); }catch(e){}
   }
 }
