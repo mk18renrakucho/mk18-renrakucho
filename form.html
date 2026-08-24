@@ -80,7 +80,13 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .current-info-row .ci-val{color:var(--text);font-weight:700}
 .nick-input-wrap{margin-top:10px;display:none}
 .nick-input-wrap.show{display:block}
-@media(max-width:480px){.card{padding:20px 16px}}
+.gate-card{background:var(--surface);border:1.5px solid var(--accent);border-radius:14px;padding:28px 24px;box-shadow:var(--shadow);text-align:center}
+.gate-card .gate-icon{font-size:40px;margin-bottom:14px}
+.gate-card .gate-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.gate-card .gate-desc{font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:22px}
+.gate-link-btn{display:inline-block;width:100%;padding:14px;background:var(--accent);color:#fff;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:.05em;box-sizing:border-box}
+.gate-link-btn:hover{background:var(--accent-dark)}
+@media(max-width:480px){.card{padding:20px 16px}.gate-card{padding:24px 18px}}
 </style>
 </head>
 <body>
@@ -98,7 +104,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <p class="sub">書き込む内容を選んでください</p>
   </div>
   <div class="branch-wrap">
-    <button class="branch-btn" onclick="showSection('register')">
+    <button class="branch-btn" onclick="goToRegister()">
       <div class="icon">📝</div>
       <div class="title">メンバー登録する</div>
       <div class="desc">出没レーダーに名前を載せる<br>名前・期・部活・エリアを登録します</div>
@@ -121,6 +127,28 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       </div>
       <a class="voom-link" href="https://line.me/R/home/public/main?id=711epvso">VOOMを見る</a>
     </div>
+  </div>
+</div>
+
+<!-- 【登録前ゲート】まだクイズに正解していない・未登録の場合の案内 -->
+<!-- ← v1.2.10で追加：welcome.htmlの合言葉クイズを通っていない状態で
+     直接このページの登録フォームへ到達できてしまっていたのを、
+     ここでいったん止めて案内する -->
+<div class="form-section" id="register-gate">
+  <button class="back-btn" onclick="showTop()">← 戻る</button>
+  <div class="header">
+    <div class="badge">🔑 本人確認</div>
+    <h1>まずはこちらから</h1>
+    <p class="sub">メンバー登録の前に、簡単な確認があります</p>
+  </div>
+  <div class="gate-card">
+    <div class="gate-icon">📋</div>
+    <div class="gate-title">北高を知っているか確認します</div>
+    <div class="gate-desc">
+      メンバー登録の前に、まず簡単なクイズにお答えいただいています。<br>
+      一度正解すれば、この端末では次回から表示されません。
+    </div>
+    <a class="gate-link-btn" href="welcome.html">確認画面へ進む</a>
   </div>
 </div>
 
@@ -443,7 +471,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.9　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.11　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -467,6 +495,28 @@ function extractUrl(raw){
 }
 function isValidUrl(str){
   return /^https?:\/\/[^\s]+$/i.test(String(str || '').trim());
+}
+
+// ===================================================
+// 登録ゲート判定（v1.2.10で追加）
+// welcome.htmlの合言葉クイズに正解済み（mk18_quiz_passed_at）か、
+// すでに登録済み（mk18_uid）のどちらかがこの端末にあれば、
+// 登録フォームへ直接進める。どちらも無ければゲート案内を表示する。
+// ===================================================
+function hasQuizPassedOrRegistered(){
+  try{
+    return !!(localStorage.getItem('mk18_quiz_passed_at') || localStorage.getItem('mk18_uid'));
+  }catch(e){
+    // localStorageが使えない環境では、安全側に倒してゲートを表示する
+    return false;
+  }
+}
+function goToRegister(){
+  if(hasQuizPassedOrRegistered()){
+    showSection('register');
+  } else {
+    showSection('register-gate');
+  }
 }
 
 function showSection(id) {
@@ -647,6 +697,11 @@ function checkRadar() {
     period:document.getElementById('r_period_check').value.trim(),
   }, function(res){
     setLoading(false,'r_check_btn');
+    if(res && res.locked){
+      // ← v1.2.10：総当たり対策でロック中の場合の案内
+      showErr('r_check_err', res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。');
+      return;
+    }
     if(!res || !res.found){
       showErr('r_check_err','名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。');
       return;
@@ -762,6 +817,10 @@ function verifyBoard() {
       document.getElementById('board-step1').classList.remove('active');
       document.getElementById('board-step2').classList.add('active');
       window.scrollTo(0,0);
+    } else if(res && res.locked){
+      // ← v1.2.10：総当たり対策でロック中の場合の案内
+      errEl.textContent = res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。';
+      errEl.style.display = 'block';
     } else if(res && res.multiple){
       errEl.textContent = '同じ名前・誕生日（確認用の数字）の方が複数います。期の欄に期を入力してもう一度お試しください。';
       errEl.style.display = 'block';
@@ -854,7 +913,7 @@ function showToast(msg){
 }
 
 var hash = window.location.hash;
-if(hash === '#register') showSection('register');
+if(hash === '#register') goToRegister();
 else if(hash === '#radar') showSection('radar');
 else if(hash === '#board') showSection('board');
 </script>
