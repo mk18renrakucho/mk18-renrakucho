@@ -435,7 +435,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.9　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.10　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -625,7 +625,8 @@ function doVerifyUpdate(){
       document.getElementById("u_err2").style.display="none";
       showUStep(2);
     } else {
-      errEl.textContent="誕生日または確認用の数字が一致しません。もう一度入力してください。";
+      // ← v1.2.10：総当たり対策でロック中の場合は、サーバーから返る案内文をそのまま表示する
+      errEl.textContent=(res&&res.locked&&res.error)?res.error:"誕生日または確認用の数字が一致しません。もう一度入力してください。";
       errEl.style.display="block";
       document.getElementById("u_bd").value="";
     }
@@ -719,6 +720,10 @@ function doVerifyBoard(){
       document.getElementById("b_verified_name").textContent=name;
       document.getElementById("b_err2").style.display="none";
       showBStep(2);
+    } else if(res && res.locked){
+      // ← v1.2.10：総当たり対策でロック中の場合の案内
+      errEl.textContent=res.error||"確認の試行回数が多いため、しばらく時間をおいてからお試しください。";
+      errEl.style.display="block";
     } else if(res && res.multiple){
       errEl.textContent="同じ名前・誕生日（確認用の数字）の方が複数います。管理者にお問い合わせください。";
       errEl.style.display="block";
@@ -1344,6 +1349,10 @@ function postAnnounceComment(){
       if(res && res.success){
         document.getElementById('an_c_content').value = '';
         loadAnnounceComments(AN_CURRENT_ID);
+      } else if(res && res.locked){
+        // ← v1.2.10：総当たり対策でロック中の場合の案内
+        errEl.textContent = res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。';
+        errEl.style.display = 'block';
       } else {
         errEl.textContent = (res && res.multiple) ? '同じ名前・誕生日の方が複数いるため確認できませんでした' : '名前または誕生日が一致しませんでした';
         errEl.style.display = 'block';
@@ -1462,7 +1471,8 @@ function favLogin(){
       M.forEach(function(m){m.fav=favNames.indexOf(m.name)>=0;});
       showFavLoggedIn();renderFav();renderM();
     } else {
-      errEl.textContent="名前または誕生日（確認用の数字）が一致しません。もう一度確認してください。";
+      // ← v1.2.10：総当たり対策でロック中の場合は、その旨をそのまま表示する
+      errEl.textContent=(res&&res.locked&&res.error)?res.error:"名前または誕生日（確認用の数字）が一致しません。もう一度確認してください。";
       errEl.style.display="block";
       document.getElementById("fv_bd").value="";
     }
