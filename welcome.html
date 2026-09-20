@@ -138,10 +138,10 @@ input[type=text]:focus{border-color:var(--accent)}
         <span>上記6項目の利用規約に同意します</span>
       </label>
       <div class="choices">
-        <a class="btn-web-disabled" href="javascript:void(0)">
+        <a class="btn-web-disabled" id="web-btn" href="javascript:void(0)">
           📲 アプリ版は近日公開予定
         </a>
-        <p class="choice-note">現在準備中です。</p>
+        <p class="choice-note" id="web-note">現在準備中です。</p>
         <a class="btn-line" id="line-btn" href="https://line.me/ti/p/%40711epvso" target="_blank"
           style="pointer-events:none;opacity:0.4;" onclick="return false;">
           📱 LINEで友だち追加する
@@ -169,9 +169,18 @@ input[type=text]:focus{border-color:var(--accent)}
       </div>
     </div>
   </div>
-  <div class="footer">北高 連絡帳 v1.2.11<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+  <div class="footer">北高 連絡帳 v1.2.12<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 <script>
+// ===================================================
+// v1.2.12：Web（LINEなし）での登録を許すかどうかの切り替え。
+//   false（現在）：LINE公式アカウントの友だち追加のみ。Web登録ボタンは無効のまま、
+//                  クイズ正解の印（mk18_quiz_passed_at）も端末に保存しない。
+//   true          ：Web登録ボタンが有効になり、クイズ正解の印を保存する。
+//                  ※通知（LINE）が届かない登録になるため、通知手段が整うまではfalseのままにする。
+// ===================================================
+var WEB_REGISTER_ENABLED = false;
+
 var MAX = 6;
 var QUESTIONS = [
   { q:'北高の怖い体育の先生のあだ名は？',        a:['ゴリさん','ごりさん','ゴリ','ごり'] },
@@ -192,21 +201,36 @@ function show(id){
   document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('show'); });
   document.getElementById(id).classList.add('show');
 }
-// ← v1.2.11：通知機能（Web Push許可の実装）がまだ完了していないため、
-//   Web版登録ボタンはいったん無効化に戻した。LINEで友だち追加した人にのみ
-//   同意チェック後に先へ進めるようにする（v1.2.9以前と同じ挙動）。
+
+// WEB_REGISTER_ENABLED が true の時だけ、Web登録ボタンを有効な見た目・リンクに切り替える
+function setupWebButton(){
+  if(!WEB_REGISTER_ENABLED) return;
+  var b = document.getElementById('web-btn');
+  var n = document.getElementById('web-note');
+  b.className = 'btn-web';
+  b.href = 'register.html';
+  b.innerHTML = '📲 Webで登録する';
+  b.style.pointerEvents = 'none';
+  b.style.opacity = '0.4';
+  n.textContent = 'LINEを使わずにWebだけで登録します（LINEの通知は届きません）';
+}
+
+// 利用規約に同意したら、LINE友だち追加ボタン（とWebボタンが有効な場合はそちらも）を押せるようにする
 function toggleLineBtn(){
   var checked = document.getElementById('agree-check').checked;
   var btn = document.getElementById('line-btn');
+  var web = document.getElementById('web-btn');
   if(checked){
     btn.style.pointerEvents = 'auto';
     btn.style.opacity = '1';
     btn.onclick = null;
+    if(WEB_REGISTER_ENABLED){ web.style.pointerEvents = 'auto'; web.style.opacity = '1'; }
     try{ localStorage.setItem('mk18_terms_agreed_at', new Date().toISOString()); }catch(e){}
   } else {
     btn.style.pointerEvents = 'none';
     btn.style.opacity = '0.4';
     btn.onclick = function(){ return false; };
+    if(WEB_REGISTER_ENABLED){ web.style.pointerEvents = 'none'; web.style.opacity = '0.4'; }
     try{ localStorage.removeItem('mk18_terms_agreed_at'); }catch(e){}
   }
 }
@@ -215,7 +239,14 @@ function check(){
   if(!val) return;
   tries++;
   var ok = current.a.some(function(a){ return norm(val)===norm(a); });
-  if(ok){ show('sc-ok'); return; }
+  if(ok){
+    // Web登録を許す設定の時だけ、クイズ正解の印を端末に保存する（register.htmlの入口ガードが参照する）
+    if(WEB_REGISTER_ENABLED){
+      try{ localStorage.setItem('mk18_quiz_passed_at', new Date().toISOString()); }catch(e){}
+    }
+    show('sc-ok');
+    return;
+  }
   var left = MAX - tries;
   if(left <= 0){ show('sc-block'); return; }
   current = pickQuestion(current);
@@ -225,6 +256,7 @@ function check(){
   document.getElementById('q-input').value = '';
   document.getElementById('q-input').focus();
 }
+setupWebButton();
 </script>
 </body>
 </html>
