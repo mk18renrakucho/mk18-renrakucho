@@ -70,6 +70,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .modal-overlay.show{display:flex}
 .modal{background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+/* v1.2.12：閉じるボタンはアイコンフォントに頼らず「×」の文字にする（フォントが読み込めなくても見えて押せるように） */
+.x-btn{background:none;border:none;cursor:pointer;font-size:28px;line-height:1;color:var(--text-sub);padding:0 6px;font-family:inherit}
 .club-unlock{background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius);padding:14px;margin-bottom:12px;display:none}
 .footer{background:var(--blue);color:rgba(255,255,255,0.6);text-align:center;padding:8px;font-size:10px}
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#2d2620;color:#fff;padding:12px 22px;border-radius:28px;font-size:14px;font-weight:500;transition:transform .35s cubic-bezier(.17,.67,.35,1.1);z-index:400;white-space:nowrap}
@@ -231,12 +233,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
-<!-- お知らせ詳細・コメント -->
-<div class="modal-overlay" id="modal-announce-detail">
+<!-- お知らせ詳細・コメント（背景タップでも閉じる：v1.2.12） -->
+<div class="modal-overlay" id="modal-announce-detail" onclick="closeAnnounceDetail()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="an_d_title">お知らせ</div>
-      <button onclick="closeAnnounceDetail()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+      <button class="x-btn" onclick="closeAnnounceDetail()" aria-label="閉じる">&times;</button>
     </div>
     <div id="an_d_time" style="font-size:11px;color:var(--text-ter);margin-bottom:10px"></div>
     <div id="an_d_images" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px"></div>
@@ -258,31 +260,47 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
-<!-- お知らせ投稿（管理者用） -->
+<!-- お知らせ投稿（管理者用）：v1.2.12で2ステップ化。先にパスワードだけを確認し、通ってからタイトル・詳細の入力欄を出す。
+     長い文章を書いている途中で誤って閉じてしまわないよう、この画面だけは背景タップでは閉じない（×ボタンのみ） -->
 <div class="modal-overlay" id="modal-announce-post">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">📢 お知らせを投稿する（管理者用）</div>
-      <button onclick="closeAnnouncePostModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+      <button class="x-btn" onclick="closeAnnouncePostModal()" aria-label="閉じる">&times;</button>
     </div>
-    <div style="margin-bottom:10px">
-      <input type="password" id="an_p_pw" placeholder="管理者パスワード">
+    <div class="modal-step active" id="an_p_step1">
+      <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
+        🔑 管理者パスワードを入力してください。確認できると、投稿の入力欄が開きます。
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="password" id="an_p_pw" placeholder="管理者パスワード" onkeydown="if(event.key==='Enter')verifyAnnounceAdmin()">
+      </div>
+      <div id="an_p_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="an_p_verify_btn" onclick="verifyAnnounceAdmin()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        確認する
+      </button>
     </div>
-    <div style="margin-bottom:10px">
-      <input type="text" id="an_p_title" placeholder="タイトル（必須）">
+    <div class="modal-step" id="an_p_step2">
+      <div class="verified-badge" style="margin-bottom:12px">✅ 管理者として確認できました</div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="an_p_title" placeholder="タイトル（必須）">
+      </div>
+      <div style="margin-bottom:10px">
+        <textarea id="an_p_detail" rows="4" placeholder="詳細（日時・場所・内容など）"></textarea>
+      </div>
+      <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
+      <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:10px;cursor:pointer">
+        <input type="checkbox" id="an_p_notify" style="width:auto">LINEで全員に通知する
+      </label>
+      <div id="an_p_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="an_p_btn" onclick="submitAnnouncePost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        投稿する
+      </button>
+      <button onclick="backToAnnounceStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+        ← パスワードを入れ直す
+      </button>
     </div>
-    <div style="margin-bottom:10px">
-      <textarea id="an_p_detail" rows="4" placeholder="詳細（日時・場所・内容など）"></textarea>
-    </div>
-    <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
-    <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:10px">
-    <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:10px;cursor:pointer">
-      <input type="checkbox" id="an_p_notify" style="width:auto">LINEで全員に通知する
-    </label>
-    <div id="an_p_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
-    <button id="an_p_btn" onclick="submitAnnouncePost()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
-      投稿する
-    </button>
   </div>
 </div>
 
@@ -333,13 +351,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="dn"></div>
-      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+      <button class="x-btn" onclick="closeModal()" aria-label="閉じる">&times;</button>
     </div>
     <div id="db"></div>
     <div class="modal-step active" id="u-step1">
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
           <i class="ti ti-lock" style="margin-right:4px"></i>誕生日または確認用の数字4桁を入力して本人確認します
+        </div>
+        <!-- v1.2.12：ニックネームで表示している方は、本人確認に登録時の本名を使う（本名は一覧のデータに含まれないため入力してもらう） -->
+        <div id="u_realname_wrap" style="display:none;margin-bottom:8px">
+          <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ニックネームで表示されている方は、登録時の本名も入力してください</div>
+          <input type="text" id="u_realname" placeholder="本名（登録時のお名前）">
         </div>
         <input type="text" id="u_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
         <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
@@ -366,7 +389,30 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">現在のエリア</div>
         <input type="text" id="ue" placeholder="例：松山・関東・大阪" style="margin-bottom:12px">
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと近況</div>
-        <input type="text" id="un" placeholder="例：〇〇に住んでます、最近は畑仕事にハマってます、など" style="margin-bottom:10px">
+        <input type="text" id="un" placeholder="例：〇〇に住んでます、最近は畑仕事にハマってます、など" style="margin-bottom:12px">
+        <!-- v1.2.12：部活・表示名・趣味もここから変更できるようにした（これまでは「連絡帳に書き込む」ページからのみ） -->
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px" id="u_club_label">部活（変更する場合のみ選択）</div>
+        <select id="uc" style="margin-bottom:12px">
+          <option value="">変更しない</option>
+          <option>テニス部</option><option>野球部</option><option>バスケットボール部</option>
+          <option>応援団</option><option>バドミントン部</option><option>サッカー部</option>
+          <option>吹奏楽部</option><option>美術部</option><option>卓球部</option>
+          <option>ソフトボール部</option><option>陸上部</option><option>ハンドボール部</option>
+          <option>ボート部</option><option>弓道部</option><option>剣道部</option>
+          <option>帰宅部</option><option>写真部</option><option>生徒会</option>
+          <option>ラグビー部</option><option>バレーボール部</option><option>水泳部</option>
+          <option>柔道部</option><option>体操部</option><option>演劇部</option>
+          <option>書道部</option><option>合唱部</option><option>放送部</option>
+          <option>茶道部</option><option>新聞部</option><option>その他</option>
+        </select>
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">表示名</div>
+        <div style="display:flex;gap:16px;margin-bottom:8px;font-size:13px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="u_nick_type" value="real" checked style="width:auto;padding:0">本名で表示</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="u_nick_type" value="nick" style="width:auto;padding:0">ニックネームで表示</label>
+        </div>
+        <input type="text" id="unick" placeholder="ニックネーム（例：むねあき）" style="margin-bottom:12px;display:none">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">趣味・キーワード</div>
+        <input type="text" id="uh" placeholder="例：サイクリング・落語・読書" style="margin-bottom:10px">
         <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>更新する
@@ -384,7 +430,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">📌 お知らせを投稿する</div>
-      <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+      <button class="x-btn" onclick="closeBoardModal()" aria-label="閉じる">&times;</button>
     </div>
     <div class="modal-step active" id="b-step1">
       <div style="background:#FFF9E6;border-left:3px solid #c9a96e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
@@ -435,7 +481,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.11　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.12　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -443,6 +489,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
 var boardVerifiedUser = null;
+var updateAuthName = ""; // ← v1.2.12：近況更新の本人確認に使った名前（ニックネーム表示の方は本名）
+
+// ===================================================
+// v1.2.12で追加した共通ユーティリティ
+//  ・S()：数字だけの入力がスプレッドシートで数値型になって返ってきても、
+//    .indexOf()／.slice()などの文字列処理で落ちないよう、必ず文字列にする
+//  ・apiFetch()：GETに毎回異なる_tsを付け、キャッシュ無効で取得する
+//    （同じURLへのGETをブラウザが使い回し、更新が画面に反映されない問題への対策）
+//  ・safeImgSrc()：画像のdata URLとして正しい形のものだけを<img>に入れる
+//  ・toHalfDigits()／digitsVal()：全角数字を半角に直す（確認用の数字欄）
+// ===================================================
+function S(v){ return String(v == null ? "" : v); }
+function apiUrl(qs){ return API_URL + (qs ? "?" + qs + "&" : "?") + "_ts=" + Date.now(); }
+function apiFetch(qs){ return fetch(apiUrl(qs), {cache:"no-store"}); }
+function safeImgSrc(src){
+  var s = S(src);
+  return /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(s) ? s : "";
+}
+function toHalfDigits(s){
+  return S(s).replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+}
+function digitsVal(id){
+  var el = document.getElementById(id);
+  return toHalfDigits(el ? el.value : "").trim();
+}
 
 // ===================================================
 // 部室データをconfig.jsonから読み込む
@@ -463,7 +534,7 @@ var API_URL="https://script.google.com/macros/s/AKfycbz0OpZUvaACrFGdLoxXI7TOXEis
 function gasGet(params,cb){
   document.getElementById("overlay").classList.add("show");
   var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]||"");}).join("&");
-  fetch(API_URL+"?"+qs)
+  apiFetch(qs)
     .then(function(r){return r.json();})
     .then(function(d){document.getElementById("overlay").classList.remove("show");cb(d);})
     .catch(function(){document.getElementById("overlay").classList.remove("show");cb({success:false,error:"通信エラー"});});
@@ -475,13 +546,18 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove("show");},3500);
 }
 
-function av(n,sz){sz=sz||40;var i=(n||"??").slice(0,2);var c=AC[(i.charCodeAt(0)+(i.charCodeAt(1)||0))%AC.length];
-  return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+i+'</div>';}
+// ← v1.2.12：名前の頭文字は必ずエスケープしてからHTMLに入れる（以前はそのまま埋め込んでいた）
+function av(n,sz){
+  sz=sz||40;
+  var raw=S(n||"??").slice(0,2);
+  var c=AC[(raw.charCodeAt(0)+(raw.charCodeAt(1)||0))%AC.length];
+  return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+escHtmlLite(raw)+'</div>';
+}
 
 function sb(st){
   var m={帰省中:"badge-home",帰省予定:"badge-plan",在住:"badge-live"};
   var ic={帰省中:"ti-home",帰省予定:"ti-calendar",在住:"ti-map-pin"};
-  return '<span class="badge '+(m[st]||"badge-live")+'"><i class="ti '+(ic[st]||"ti-map-pin")+'" style="font-size:10px"></i>'+st+'</span>';
+  return '<span class="badge '+(m[st]||"badge-live")+'"><i class="ti '+(ic[st]||"ti-map-pin")+'" style="font-size:10px"></i>'+escHtmlLite(st)+'</span>';
 }
 
 function hc(){document.getElementById("hc").textContent=M.filter(function(m){return m.status==="帰省中"||m.status==="帰省予定";}).length;}
@@ -530,7 +606,8 @@ function renderM(){
     if(fc!=="全部活"&&m.club!==fc)return false;
     if(fa!=="全エリア"&&m.area!==fa)return false;
     if(fs!=="全状態"&&m.status!==fs)return false;
-    if(kw&&m.name.indexOf(kw)<0&&(m.note||"").indexOf(kw)<0&&(m.hobby||"").indexOf(kw)<0)return false;
+    // ← v1.2.12：数字だけの入力が数値型で返ってきても.indexOf()で落ちないよう、S()で文字列にしてから検索する
+    if(kw&&S(m.name).indexOf(kw)<0&&S(m.note).indexOf(kw)<0&&S(m.hobby).indexOf(kw)<0)return false;
     return true;
   });
   f.sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}); // ← V4l：出没レーダーは最終更新日時が新しい順
@@ -568,15 +645,16 @@ function openDet(id){
   selId=id;
   var m=M.find(function(x){return x.id===id;});
   document.getElementById("dn").textContent=m.name;
-  // ← 修正：エリア・状態・帰省期間・ひとことは下の編集フォームと重複するため削除。
-  //   ここには編集対象外の参考情報（期・部活・趣味）だけを残す。
+  // ← v1.2.12：部活・表示名・趣味もこのモーダルで編集できるようになったため、
+  //   上部の参考情報は編集できない「期」だけにした。
   document.getElementById("db").innerHTML=
     '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-sub)">'
     +'<div><span style="color:var(--text-ter)">期</span> '+escHtmlLite(m.period)+'</div>'
-    +'<div><span style="color:var(--text-ter)">部活</span> '+escHtmlLite(m.club)+'</div>'
-    +'<div><span style="color:var(--text-ter)">趣味</span> '+escHtmlLite(m.hobby||"-")+'</div>'
     +'</div>';
   document.getElementById("u_bd").value="";
+  document.getElementById("u_realname").value="";
+  // ← v1.2.12：ニックネームで表示している方だけ、本名の入力欄を出す
+  document.getElementById("u_realname_wrap").style.display = m.nickname ? "block" : "none";
   document.getElementById("u_err1").style.display="none";
   document.getElementById("u_err2").style.display="none";
   showUStep(1);
@@ -599,20 +677,34 @@ function backToUStep1(){
   showUStep(1);
 }
 
+function setUpdateNickUI(isNick){
+  var radios=document.querySelectorAll('input[name="u_nick_type"]');
+  Array.prototype.forEach.call(radios,function(r){ r.checked=(r.value===(isNick?"nick":"real")); });
+  document.getElementById("unick").style.display=isNick?"block":"none";
+  if(!isNick) document.getElementById("unick").value="";
+}
+
 function doVerifyUpdate(){
   var m=M.find(function(x){return x.id===selId;});
-  var bd=(document.getElementById("u_bd").value||"").trim();
+  var bd=digitsVal("u_bd");
   var errEl=document.getElementById("u_err1");
   errEl.style.display="none";
+  // ← v1.2.12：ニックネーム表示の方は、入力してもらった本名で本人確認する（一覧のデータには本名を含めない）
+  var authName = m.nickname ? (document.getElementById("u_realname").value||"").trim() : m.name;
+  if(m.nickname && !authName){
+    errEl.textContent="ニックネームで表示されている方は、登録時の本名を入力してください";
+    errEl.style.display="block";return;
+  }
   if(!bd||!/^[0-9]{4}$/.test(bd)){
     errEl.textContent="誕生日または確認用の数字を4桁で入力してください（例：0315）";
     errEl.style.display="block";return;
   }
   var btn=document.getElementById("u_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
-  gasGet({action:"verify", name:m.name, birthday:bd}, function(res){
+  gasGet({action:"verify", name:authName, birthday:bd}, function(res){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
+      updateAuthName=authName;
       document.getElementById("u_verified_name").textContent=m.name;
       // ← バグ修正：以前は一覧表示用に短縮されたm.status（例：「在住」）を
       //   そのままプルダウンにセットしていたため、選択肢の文字列
@@ -622,8 +714,18 @@ function doVerifyUpdate(){
       document.getElementById("ud").value=res.homecoming||"";
       document.getElementById("ue").value=res.area||"";
       document.getElementById("un").value=res.note||"";
+      // ← v1.2.12：部活（現在の値を表示・変更する時だけ選ぶ）／表示名／趣味
+      document.getElementById("u_club_label").textContent="部活（現在："+(res.club||"未設定")+"　変更する場合のみ選択）";
+      document.getElementById("uc").value="";
+      document.getElementById("uh").value=res.hobby||"";
+      setUpdateNickUI(!!res.nickname);
+      if(res.nickname) document.getElementById("unick").value=res.nickname;
       document.getElementById("u_err2").style.display="none";
       showUStep(2);
+    } else if(res && res.multiple){
+      errEl.textContent="同じ名前・数字の方が複数いるため、ここでは確認できません。「連絡帳に書き込む」ページの「近況を更新する」（期を入力できます）をご利用ください。";
+      errEl.style.display="block";
+      document.getElementById("u_bd").value="";
     } else {
       // ← v1.2.10：総当たり対策でロック中の場合は、サーバーから返る案内文をそのまま表示する
       errEl.textContent=(res&&res.locked&&res.error)?res.error:"誕生日または確認用の数字が一致しません。もう一度入力してください。";
@@ -634,18 +736,26 @@ function doVerifyUpdate(){
 }
 
 function doUpdate(){
-  var m=M.find(function(x){return x.id===selId;});
-  var bd=(document.getElementById("u_bd").value||"").trim();
+  var bd=digitsVal("u_bd");
   var errEl=document.getElementById("u_err2");
   errEl.style.display="none";
+  var nickType=(document.querySelector('input[name="u_nick_type"]:checked')||{}).value;
+  var nickname=(nickType==="nick")?(document.getElementById("unick").value||"").trim():"";
+  if(nickType==="nick" && !nickname){
+    errEl.textContent="ニックネームを入力するか、「本名で表示」を選んでください";
+    errEl.style.display="block";return;
+  }
   var btn=document.getElementById("u_btn");
   btn.disabled=true;btn.textContent="更新中...";
   gasGet({
-    action:"updateStatus",name:m.name,birthday:bd,
+    action:"updateStatus",name:updateAuthName,birthday:bd,
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
     homecoming:document.getElementById("ud").value.trim(),
-    note:document.getElementById("un").value.trim()
+    note:document.getElementById("un").value.trim(),
+    club:document.getElementById("uc").value,
+    hobby:document.getElementById("uh").value.trim(),
+    nickname:nickname
   },function(res){
     btn.disabled=false;btn.textContent="更新する";
     if(res&&res.success){
@@ -670,7 +780,9 @@ function checkBoardName(){
     el.innerHTML='<span style="color:#2d7d46">✓ '+escHtmlLite(found.name)+'さん（'+escHtmlLite(found.period)+'・'+escHtmlLite(found.club)+'）</span>';
     el.style.display="block";
   } else {
-    el.innerHTML='<span style="color:#a32d2d">⚠ メンバーが見つかりません。名前を確認してください。</span>';
+    // ← v1.2.12：一覧のデータには本名を含めなくなったため、ニックネームで表示している方の本名は
+    //   ここでは照合できない。「見つかりません」と断定せず、案内にとどめる。
+    el.innerHTML='<span style="color:var(--text-sub)">ニックネームで表示している方は、登録時の本名を入力してください。</span>';
     el.style.display="block";
   }
 }
@@ -706,7 +818,7 @@ function backToBStep1(){
 
 function doVerifyBoard(){
   var name=(document.getElementById("b_name").value||"").trim();
-  var bd=(document.getElementById("b_bd").value||"").trim();
+  var bd=digitsVal("b_bd");
   var errEl=document.getElementById("b_err1");
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
@@ -860,7 +972,7 @@ function saveCachedMembersToStorage(members){
 }
 
 function escHtmlLite(str){
-  return String(str || '').replace(/[&<>"']/g, function(c){
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
@@ -910,7 +1022,7 @@ function loadGalleryFromAPI(){
   document.getElementById('g_grid').innerHTML =
     '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
 
-  fetch(API_URL + '?action=getGallery&uid=' + encodeURIComponent(uid))
+  apiFetch('action=getGallery&uid=' + encodeURIComponent(uid))
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res || !res.success){
@@ -932,7 +1044,7 @@ function loadGalleryFromAPI(){
 function renderGalleryPeriodPills(){
   var periods = [];
   galleryPhotos.forEach(function(p){
-    var per = (p.period || '').trim();
+    var per = S(p.period).trim();
     if(per && periods.indexOf(per) < 0) periods.push(per);
   });
   periods.sort(function(a,b){ return parseInt(a,10) - parseInt(b,10); });
@@ -959,7 +1071,7 @@ function selectGalleryPeriod(p){
 
 function renderGalleryGrid(){
   var filtered = galleryPhotos.filter(function(p){
-    return gallerySelectedPeriod === '全期' || (p.period || '') === gallerySelectedPeriod;
+    return gallerySelectedPeriod === '全期' || S(p.period) === gallerySelectedPeriod;
   });
 
   if(filtered.length === 0){
@@ -968,10 +1080,11 @@ function renderGalleryGrid(){
     return;
   }
 
+  // ← v1.2.12：サムネイルは、画像のdata URLとして正しい形のものだけを<img>に入れる（safeImgSrc）
   document.getElementById('g_grid').innerHTML = filtered.map(function(p){
     return '<div class="card gallery-thumb" data-photo-id="' + escHtmlLite(p.photoId) + '" style="padding:0;overflow:hidden;cursor:pointer;position:relative">'
       + (p.isMine ? '<button class="gallery-del-btn" data-photo-id="' + escHtmlLite(p.photoId) + '" style="position:absolute;top:4px;right:4px;z-index:2;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer">🗑</button>' : '')
-      + '<img src="' + p.thumbnail + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
+      + '<img src="' + safeImgSrc(p.thumbnail) + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">'
       + '<div style="padding:8px 10px">'
       + '<div style="font-size:11px;color:var(--text-sub)">' + escHtmlLite(p.nickname) + ' ・ ' + escHtmlLite(p.period) + '</div>'
       + (p.caption ? '<div style="font-size:12px;margin-top:2px">' + escHtmlLite(p.caption) + '</div>' : '')
@@ -1017,13 +1130,14 @@ function openGalleryLightbox(photoId){
   overlay.addEventListener('click', function(e){ if(e.target === overlay) closeGalleryLightbox(); });
 
   var uid = getMyUid();
-  fetch(API_URL + '?action=getPhotoFull&uid=' + encodeURIComponent(uid) + '&photoId=' + encodeURIComponent(photoId))
+  apiFetch('action=getPhotoFull&uid=' + encodeURIComponent(uid) + '&photoId=' + encodeURIComponent(photoId))
     .then(function(r){ return r.json(); })
     .then(function(res){
       var body = document.getElementById('gl-body');
       if(!body) return; // 既に閉じられていた場合
-      if(res && res.success){
-        body.innerHTML = '<img src="' + res.imageData + '" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px">';
+      var src = (res && res.success) ? safeImgSrc(res.imageData) : '';
+      if(src){
+        body.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px">';
       } else {
         body.innerHTML = '<div style="color:#fff;font-size:13px">読み込みに失敗しました</div>';
       }
@@ -1177,14 +1291,16 @@ function loadFromAPI(){
     }
   }
 
-  fetch(API_URL)
+  apiFetch("")
     .then(function(r){return r.json();})
     .then(function(data){
+      // ← v1.2.12：どの項目も必ずS()で文字列にする（数字だけの入力が数値型で返っても表示・検索で落ちないように）。
+      //   本名(realName)は一覧のデータに含まれなくなったため、ニックネームの有無(nickname)だけを保持する。
       M=data.filter(function(d){return d.name;}).map(function(d,i){
         return {
-          id:i+1,name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
-          status:(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
-          date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false,
+          id:i+1,name:S(d.name),period:S(d.period),club:S(d.club),area:S(d.area),
+          status:S(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
+          date:S(d.date),hobby:S(d.hobby),note:S(d.note),nickname:S(d.nickname),upd:"最新",fav:false,
           updatedAt:d.updatedAt||0 // ← V4l修正：出没レーダーの並び替え用の値を拾い忘れていたため追加
         };
       });
@@ -1208,7 +1324,7 @@ function loadBoardFromAPI(){
   if(P.length===0){
     document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
   }
-  fetch(API_URL+"?action=getBoard")
+  apiFetch("action=getBoard")
     .then(function(r){return r.json();})
     .then(function(data){P=Array.isArray(data)?data:[];renderP();})
     .catch(function(){
@@ -1260,11 +1376,13 @@ function renderAnnounceList(list){
     return;
   }
   el.innerHTML = list.map(function(a){
-    var thumbHtml = (a.thumbnails||[]).map(function(t){
+    var thumbHtml = (a.thumbnails||[]).map(safeImgSrc).filter(Boolean).map(function(t){
       return '<img src="'+t+'" style="width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:6px">';
     }).join('');
-    var preview = escHtmlLite((a.detail||'').slice(0,60)) + ((a.detail||'').length>60?'…':'');
-    return '<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openAnnounceDetail(\''+a.id+'\')">'
+    // ← v1.2.12：タイトル・詳細に数字だけを入力すると数値型で返り、.slice()で落ちて一覧全体が消えていた。S()で必ず文字列にする
+    var detailText = S(a.detail);
+    var preview = escHtmlLite(detailText.slice(0,60)) + (detailText.length>60?'…':'');
+    return '<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openAnnounceDetail(\''+escHtmlLite(a.id)+'\')">'
       + '<div style="font-size:15px;font-weight:500;margin-bottom:4px">📢 '+escHtmlLite(a.title)+'</div>'
       + '<div style="font-size:11px;color:var(--text-ter);margin-bottom:8px">'+escHtmlLite(a.time)+'</div>'
       + (thumbHtml?'<div style="display:flex;margin-bottom:8px">'+thumbHtml+'</div>':'')
@@ -1277,9 +1395,9 @@ function openAnnounceDetail(id){
   var a = AN_CACHE[id];
   if(!a) return;
   AN_CURRENT_ID = id;
-  document.getElementById('an_d_title').textContent = '📢 ' + a.title;
-  document.getElementById('an_d_time').textContent = a.time;
-  document.getElementById('an_d_detail').textContent = a.detail || '';
+  document.getElementById('an_d_title').textContent = '📢 ' + S(a.title);
+  document.getElementById('an_d_time').textContent = S(a.time);
+  document.getElementById('an_d_detail').textContent = S(a.detail);
   document.getElementById('an_d_images').innerHTML = '<div style="color:var(--text-ter);font-size:12px">画像を読み込み中...</div>';
   document.getElementById('an_c_quickreplies').innerHTML = AN_QUICK_REPLIES.map(function(q){
     return '<button onclick="fillAnnounceComment(\''+q.replace(/'/g,"\\'")+'\')" style="background:var(--gray);border:none;border-radius:16px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">'+escHtmlLite(q)+'</button>';
@@ -1294,8 +1412,9 @@ function openAnnounceDetail(id){
   gasGet({action:'getAnnouncementFull', id:id}, function(res){
     var imgs = (res && res.success) ? res.images : [];
     var imgEl = document.getElementById('an_d_images');
-    imgEl.innerHTML = imgs.length
-      ? imgs.map(function(src){ return '<img src="'+src+'" style="max-height:220px;border-radius:8px;flex-shrink:0">'; }).join('')
+    var safeImgs = (imgs||[]).map(safeImgSrc).filter(Boolean);
+    imgEl.innerHTML = safeImgs.length
+      ? safeImgs.map(function(src){ return '<img src="'+src+'" style="max-height:220px;border-radius:8px;flex-shrink:0">'; }).join('')
       : '';
   });
   loadAnnounceComments(id);
@@ -1328,7 +1447,7 @@ function loadAnnounceComments(id){
 
 function postAnnounceComment(){
   var name = (document.getElementById('an_c_name').value||'').trim();
-  var bd = (document.getElementById('an_c_bd').value||'').trim();
+  var bd = digitsVal('an_c_bd');
   var content = (document.getElementById('an_c_content').value||'').trim();
   var errEl = document.getElementById('an_c_err');
   errEl.style.display = 'none';
@@ -1365,17 +1484,76 @@ function postAnnounceComment(){
     });
 }
 
-// ---- お知らせ投稿（管理者用） ----
+// ---- お知らせ投稿（管理者用）：v1.2.12で2ステップ化 ----
+// ステップ1でパスワードだけをサーバーに確認し、通ってからタイトル・詳細などの入力欄を出す。
+// 通ったパスワードは、この画面が開いている間だけメモリ上（変数）に持ち、投稿を送る時にもう一度
+// サーバーへ送って照合する（画面の切り替えだけに頼らない）。端末には保存しない。
+var AN_ADMIN_PW = '';
+var AN_ADMIN_ERRORS = {
+  unauthorized:'パスワードが違います',
+  locked:'確認の試行回数が多いため、しばらく時間をおいて（15分程度）もう一度お試しください',
+  not_configured:'管理者パスワードがまだ設定されていません（GASのスクリプトプロパティに ANNOUNCE_ADMIN_PASSWORD を設定してください）'
+};
+
+function showAnnounceStep(n){
+  document.getElementById('an_p_step1').className = 'modal-step' + (n===1 ? ' active' : '');
+  document.getElementById('an_p_step2').className = 'modal-step' + (n===2 ? ' active' : '');
+}
 function openAnnouncePostModal(){
+  AN_ADMIN_PW = '';
+  document.getElementById('an_p_pw').value = '';
+  document.getElementById('an_p_err1').style.display = 'none';
   document.getElementById('an_p_err').style.display = 'none';
+  showAnnounceStep(1);
   document.getElementById('modal-announce-post').classList.add('show');
 }
 function closeAnnouncePostModal(){
+  AN_ADMIN_PW = ''; // 閉じたらパスワードの確認は失効する（次に開いた時は、またパスワードから）
+  document.getElementById('an_p_pw').value = '';
   document.getElementById('modal-announce-post').classList.remove('show');
+}
+function backToAnnounceStep1(){
+  AN_ADMIN_PW = '';
+  document.getElementById('an_p_pw').value = '';
+  document.getElementById('an_p_err1').style.display = 'none';
+  showAnnounceStep(1);
+}
+
+function verifyAnnounceAdmin(){
+  var pw = document.getElementById('an_p_pw').value || '';
+  var errEl = document.getElementById('an_p_err1');
+  errEl.style.display = 'none';
+  if(!pw){ errEl.textContent = '管理者パスワードを入力してください'; errEl.style.display = 'block'; return; }
+
+  var btn = document.getElementById('an_p_verify_btn');
+  btn.disabled = true; btn.textContent = '確認中...';
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'verifyAnnounceAdmin', adminPassword: pw })
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false; btn.textContent = '確認する';
+      if(res && res.success){
+        AN_ADMIN_PW = pw;
+        document.getElementById('an_p_pw').value = '';
+        document.getElementById('an_p_err').style.display = 'none';
+        showAnnounceStep(2);
+      } else {
+        errEl.textContent = AN_ADMIN_ERRORS[res && res.error] || '確認に失敗しました。もう一度お試しください。';
+        errEl.style.display = 'block';
+        document.getElementById('an_p_pw').value = '';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = '確認する';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    });
 }
 
 function submitAnnouncePost(){
-  var pw = document.getElementById('an_p_pw').value || '';
+  var pw = AN_ADMIN_PW;
   var title = (document.getElementById('an_p_title').value||'').trim();
   var detail = (document.getElementById('an_p_detail').value||'').trim();
   var notify = document.getElementById('an_p_notify').checked;
@@ -1383,7 +1561,14 @@ function submitAnnouncePost(){
   var errEl = document.getElementById('an_p_err');
   errEl.style.display = 'none';
 
-  if(!pw){ errEl.textContent = '管理者パスワードを入力してください'; errEl.style.display = 'block'; return; }
+  if(!pw){
+    // パスワードの確認が切れている場合は、ステップ1に戻す
+    backToAnnounceStep1();
+    var e1 = document.getElementById('an_p_err1');
+    e1.textContent = 'もう一度、管理者パスワードを確認してください';
+    e1.style.display = 'block';
+    return;
+  }
   if(!title){ errEl.textContent = 'タイトルを入力してください'; errEl.style.display = 'block'; return; }
 
   var btn = document.getElementById('an_p_btn');
@@ -1411,7 +1596,6 @@ function submitAnnouncePost(){
     .then(function(res){
       btn.disabled = false; btn.textContent = '投稿する';
       if(res && res.success){
-        document.getElementById('an_p_pw').value = '';
         document.getElementById('an_p_title').value = '';
         document.getElementById('an_p_detail').value = '';
         document.getElementById('an_p_files').value = '';
@@ -1419,8 +1603,14 @@ function submitAnnouncePost(){
         closeAnnouncePostModal();
         showToast('✓ お知らせを投稿しました！');
         loadAnnounceFromAPI();
+      } else if(res && AN_ADMIN_ERRORS[res.error]){
+        // パスワードの照合に通らなかった場合は、入力した文章は残したままステップ1へ戻す
+        backToAnnounceStep1();
+        var e2 = document.getElementById('an_p_err1');
+        e2.textContent = AN_ADMIN_ERRORS[res.error];
+        e2.style.display = 'block';
       } else {
-        var messages = { unauthorized:'パスワードが違います', title_required:'タイトルを入力してください' };
+        var messages = { title_required:'タイトルを入力してください' };
         errEl.textContent = messages[res && res.error] || '投稿に失敗しました';
         errEl.style.display = 'block';
       }
@@ -1457,7 +1647,7 @@ function hidePwaBanner(){document.getElementById('pwa-banner').style.display='no
 // お気に入りログイン
 function favLogin(){
   var name=(document.getElementById("fv_name").value||"").trim();
-  var bd=(document.getElementById("fv_bd").value||"").trim();
+  var bd=digitsVal("fv_bd");
   var errEl=document.getElementById("fv_err");
   errEl.style.display="none";
   if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
@@ -1496,10 +1686,27 @@ function showFavLoggedOut(){
   document.getElementById("fv_err").style.display="none";
 }
 
+// ===================================================
+// 確認用の数字欄：入力欄から離れた時に全角数字を半角へ直す（v1.2.12）
+// 表示名（ニックネーム）ラジオの切り替えもここで結び付ける
+// ===================================================
+["u_bd","b_bd","fv_bd","an_c_bd"].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el) el.addEventListener("blur",function(){ el.value=toHalfDigits(el.value).trim(); });
+});
+Array.prototype.forEach.call(document.querySelectorAll('input[name="u_nick_type"]'),function(r){
+  r.addEventListener("change",function(){
+    var isNick=(r.value==="nick"&&r.checked);
+    document.getElementById("unick").style.display=isNick?"block":"none";
+    if(!isNick) document.getElementById("unick").value="";
+  });
+});
+
 var hash=window.location.hash;
 if(hash==="#board")go("b");
 else if(hash==="#club")go("c");
 else if(hash==="#gallery")go("g");
+else if(hash==="#news"){ go("g"); switchGalleryTab("news"); } // ← v1.2.12：register.htmlの「View & News」リンクから、お知らせのサブタブを直接開く
 else if(hash==="#fav")go("f");
 else if(hash==="#anshin")go("a");
 else if(hash==="#radar")go("r");
