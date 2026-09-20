@@ -119,36 +119,38 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div class="title">お知らせを投稿する</div>
       <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
     </button>
+    <!-- v1.2.12：LINE VOOMの終了（2026年9月30日）に伴い、公式お知らせの案内先を「View & News」に差し替え -->
     <div class="voom-card">
       <div class="icon">📢</div>
       <div class="info">
-        <div class="title">公式お知らせ（LINE VOOM）</div>
+        <div class="title">公式お知らせ（View &amp; News）</div>
         <div class="desc">チラシ・ポスターなど画像付き告知<br>投稿は管理者のみ・コメントは自由</div>
       </div>
-      <a class="voom-link" href="https://line.me/R/home/public/main?id=711epvso">VOOMを見る</a>
+      <a class="voom-link" href="https://mk18renrakucho.github.io/mk18-renrakucho/#news">見る</a>
     </div>
   </div>
 </div>
 
-<!-- 【登録前ゲート】まだクイズに正解していない・未登録の場合の案内 -->
-<!-- ← v1.2.10で追加：welcome.htmlの合言葉クイズを通っていない状態で
-     直接このページの登録フォームへ到達できてしまっていたのを、
-     ここでいったん止めて案内する -->
+<!-- 【登録前ゲート】入口（welcome.html）を通っていない人への案内 -->
+<!-- ← v1.2.12：LINE公式アカウントはwelcome.htmlを通った人だけが取得できる設計のため、
+     「LINEアプリの中から開かれた」または「LINEの案内リンク（?from=line）から来た」
+     または「登録済み／入口通過済みの印が端末にある」人はそのまま通し、
+     それ以外（URLの直打ちなど）は入口のwelcome.htmlへ案内する -->
 <div class="form-section" id="register-gate">
   <button class="back-btn" onclick="showTop()">← 戻る</button>
   <div class="header">
     <div class="badge">🔑 本人確認</div>
     <h1>まずはこちらから</h1>
-    <p class="sub">メンバー登録の前に、簡単な確認があります</p>
+    <p class="sub">メンバー登録の前に、入口のページでの確認があります</p>
   </div>
   <div class="gate-card">
     <div class="gate-icon">📋</div>
-    <div class="gate-title">北高を知っているか確認します</div>
+    <div class="gate-title">入口のページへお進みください</div>
     <div class="gate-desc">
-      メンバー登録の前に、まず簡単なクイズにお答えいただいています。<br>
-      一度正解すれば、この端末では次回から表示されません。
+      メンバー登録の前に、入口のページで合言葉クイズと利用規約の確認をしています。<br>
+      LINE公式アカウントの追加も、入口のページから行えます。
     </div>
-    <a class="gate-link-btn" href="welcome.html">確認画面へ進む</a>
+    <a class="gate-link-btn" href="welcome.html">入口のページへ進む</a>
   </div>
 </div>
 
@@ -200,7 +202,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <p class="error-msg">4桁の数字で入力してください（例：0315）</p>
     </div>
     <div class="field" id="reg-period">
-      <label>期<span class="req">*</span><span class="hint">例：33期</span></label>
+      <label>期<span class="req">*</span><span class="hint">例：33期（数字だけでも「期」を補います）</span></label>
       <input type="text" id="reg_period" placeholder="例：33期" oninput="this.dataset.fromCalc=''">
       <p class="error-msg">期を入力してください</p>
       <div style="margin-top:8px;background:var(--accent-light);border-radius:8px;padding:10px 12px">
@@ -303,7 +305,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   </div>
   <div class="radar-step active" id="board-step1">
     <div class="card">
-      <div class="notice">📝 画像付きチラシ・ポスターの告知は <b>公式お知らせ（LINE VOOM）</b> をご利用ください。こちらはテキストのみです。</div>
+      <div class="notice">📝 画像付きチラシ・ポスターの告知は、管理者が <b>View &amp; News</b> に掲載します。こちらはテキストのみです。</div>
       <p class="section-label">本人確認</p>
       <div class="field" id="bf-name">
         <label>お名前<span class="req">*</span></label>
@@ -471,7 +473,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.10　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.12　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -498,21 +500,79 @@ function isValidUrl(str){
 }
 
 // ===================================================
-// 登録ゲート判定（v1.2.10で追加）
-// welcome.htmlの合言葉クイズに正解済み（mk18_quiz_passed_at）か、
-// すでに登録済み（mk18_uid）のどちらかがこの端末にあれば、
-// 登録フォームへ直接進める。どちらも無ければゲート案内を表示する。
+// 全角数字の半角化・期の自動補完（v1.2.12で追加）
+// 全角の「３２」は4桁チェックの正規表現に通らず、期欄も「32」のまま保存されて
+// 同姓同名の絞り込みが一致しない原因になるため、入力欄から離れた時と、
+// 送信・確認の直前に半角へ直す。期欄は数字だけなら「期」を補う。
 // ===================================================
-function hasQuizPassedOrRegistered(){
+function toHalfWidthDigits(s){
+  return String(s == null ? '' : s).replace(/[０-９]/g, function(c){
+    return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+  });
+}
+function normalizePeriodValue(s){
+  var t = toHalfWidthDigits(s).trim();
+  if(/^[0-9]+$/.test(t)) return t + '期';
+  return t;
+}
+var DIGIT_FIELD_IDS = ['reg_bd', 'r_bd', 'b_bd', 'birth_year_calc'];
+var PERIOD_FIELD_IDS = ['reg_period', 'r_period_check', 'b_period'];
+function normalizeAllInputs(){
+  DIGIT_FIELD_IDS.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = toHalfWidthDigits(el.value).trim();
+  });
+  PERIOD_FIELD_IDS.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.value.trim()) el.value = normalizePeriodValue(el.value);
+  });
+}
+DIGIT_FIELD_IDS.forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('blur', function(){ el.value = toHalfWidthDigits(el.value).trim(); });
+});
+PERIOD_FIELD_IDS.forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('blur', function(){
+    if(el.value.trim()) el.value = normalizePeriodValue(el.value);
+  });
+});
+
+// ===================================================
+// 登録ゲート判定（v1.2.12で作り直し）
+// LINE公式アカウントはwelcome.htmlを通った人だけが取得できる設計のため、
+// LINEの中から来た人は入口を通過済みとみなす。次のいずれかに当てはまれば通す：
+//   ・LINEアプリ内ブラウザで開かれている（User-Agentに「Line/」が含まれる）
+//   ・LINEの案内リンクから来た（URLに ?from=line が付いている）
+//   ・この端末に、登録済み（mk18_uid）／LINEから来た記録（mk18_line_entry_at）／
+//     入口の通過記録（mk18_quiz_passed_at。Web登録を許す設定の時のみwelcome.htmlが保存）がある
+// どれにも当てはまらない人（URLの直打ちなど）は、入口のwelcome.htmlへ案内する。
+// ===================================================
+function isLineInApp(){
+  try{ return /\bLine\//i.test(navigator.userAgent || ''); }catch(e){ return false; }
+}
+function hasFromLineParam(){
+  try{ return new URLSearchParams(window.location.search).get('from') === 'line'; }catch(e){ return false; }
+}
+function markLineEntry(){
+  try{ localStorage.setItem('mk18_line_entry_at', new Date().toISOString()); }catch(e){}
+}
+function hasEntryPass(){
+  if(isLineInApp() || hasFromLineParam()){
+    markLineEntry();
+    return true;
+  }
   try{
-    return !!(localStorage.getItem('mk18_quiz_passed_at') || localStorage.getItem('mk18_uid'));
+    return !!(localStorage.getItem('mk18_uid') ||
+              localStorage.getItem('mk18_line_entry_at') ||
+              localStorage.getItem('mk18_quiz_passed_at'));
   }catch(e){
     // localStorageが使えない環境では、安全側に倒してゲートを表示する
     return false;
   }
 }
 function goToRegister(){
-  if(hasQuizPassedOrRegistered()){
+  if(hasEntryPass()){
     showSection('register');
   } else {
     showSection('register-gate');
@@ -564,6 +624,7 @@ function reqBirthday(fieldId, val) {
 }
 
 function calcPeriodFromBirth(){
+  normalizeAllInputs();
   var y = parseInt(document.getElementById('birth_year_calc').value, 10);
   var early = document.getElementById('birth_month_calc').value === 'early';
   var resEl = document.getElementById('calc_result2');
@@ -602,6 +663,7 @@ function getTermsAgreedAt() {
 
 // ===== 登録 =====
 function submitRegister() {
+  normalizeAllInputs();
   if(!document.getElementById('reg_agree').checked){
     showErr('reg_err','登録情報の自己申告に同意してください。');
     return;
@@ -653,6 +715,7 @@ function submitRegister() {
 //   重複時にできる操作は「自分の情報として上書き更新する」の1つのみ
 //   （別人の場合は下の案内どおり管理者へ連絡してもらう運用）。
 function submitRegisterOverwrite() {
+  normalizeAllInputs();
   setLoading(true,'reg_btn');
   document.getElementById('dup_box').style.display = 'none';
 
@@ -682,6 +745,7 @@ function submitRegisterOverwrite() {
 
 // ===== 近況更新 ステップ1：本人確認 =====
 function checkRadar() {
+  normalizeAllInputs();
   var ok = true;
   ok = reqField('rf-name', document.getElementById('r_name').value.trim()) && ok;
   ok = reqBirthday('rf-bd', document.getElementById('r_bd').value.trim()) && ok;
@@ -761,6 +825,7 @@ function setRadioValue(name, val) {
 
 // ===== 近況更新 ステップ2：送信 =====
 function submitRadar() {
+  normalizeAllInputs();
   var ok = true;
   ok = reqField('rf-area',   document.getElementById('r_area').value) && ok;
   ok = reqField('rf-status', (document.querySelector('input[name="r_st"]:checked')||{}).value||'') && ok;
@@ -793,6 +858,7 @@ function submitRadar() {
 var boardVerifiedUser = null;
 
 function verifyBoard() {
+  normalizeAllInputs();
   var name = document.getElementById('b_name').value.trim();
   var bd   = document.getElementById('b_bd').value.trim();
   var errEl = document.getElementById('b_err1');
@@ -877,6 +943,9 @@ function submitBoard() {
 
 // ===== 共通送信関数（text/plainでCORSエラー回避）=====
 function send(payload, callback) {
+  // v1.2.12：どの入口から呼ばれても、全角数字と期の表記ゆれを送信直前に必ず整える
+  if(payload.birthday !== undefined) payload.birthday = toHalfWidthDigits(payload.birthday).trim();
+  if(payload.period !== undefined) payload.period = normalizePeriodValue(payload.period);
   document.getElementById('overlay').classList.add('show');
   fetch(GAS_URL, {
     method: 'POST',
