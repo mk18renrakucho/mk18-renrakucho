@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -563,10 +562,15 @@ function showToast(msg){
 }
 
 // ← v1.2.12：名前の頭文字は必ずエスケープしてからHTMLに入れる（以前はそのまま埋め込んでいた）
+// v1.2.13：名前から決まる色を、カードの左帯にも使うため分離
+function personColor(n){
+  var raw=S(n||"??").slice(0,2);
+  return AC[(raw.charCodeAt(0)+(raw.charCodeAt(1)||0))%AC.length];
+}
 function av(n,sz){
   sz=sz||40;
   var raw=S(n||"??").slice(0,2);
-  var c=AC[(raw.charCodeAt(0)+(raw.charCodeAt(1)||0))%AC.length];
+  var c=personColor(n);
   var fs=(sz<30)?9:(sz*0.28); // ← v1.2.13：小さいアバター（22px）でも頭文字が読める大きさにする
   return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+fs+'px;background:'+c+'">'+escHtmlLite(raw)+'</div>';
 }
@@ -621,7 +625,8 @@ function memberCardHTML(m){
   var noteText = S(m.note).trim();
   var hobbyText = S(m.hobby).trim();
   var infoLine = [S(m.period),S(m.club),S(m.area)].filter(function(v){return v;}).join(" · ");
-  return '<div class="card member-card" id="mc'+m.id+'" style="display:flex;flex-direction:column;gap:8px">'
+  var pc = personColor(m.name); // ← v1.2.13：この人の色。左帯と下段の背景に使い、「誰の書き込みか」を一目で分かりやすくする
+  return '<div class="card member-card" id="mc'+m.id+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
     // ▼ 上部：状態と趣味 ▼
     +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       +sb(m.status)
@@ -633,15 +638,15 @@ function memberCardHTML(m){
       :'<p style="font-size:14px;color:var(--text-ter);margin:6px 0">(近況の投稿はありません)</p>')
     +(m.date?'<div style="font-size:11px;color:var(--blue);font-weight:500">📅 '+escHtmlLite(m.date)+'</div>':'')
     // ▼ 下部：小さく名前・期・部活・エリア、ハート、更新ボタン ▼
-    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px dashed #eee;padding-top:10px;margin-top:2px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
         +av(m.name,22)
-        +'<span style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap">'+escHtmlLite(m.name)+'</span>'
+        +'<span style="font-size:11px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、文字自体は目立たせない
         +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:10px;padding:4px 12px;background:var(--blue-light);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit">更新</button>':'')
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:10px;padding:4px 12px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'')
       +'</div>'
     +'</div>'
   +'</div>';
@@ -943,7 +948,8 @@ function renderP(){
     var safeHref = safeUrl(p.url);
     var isNotice = (p.cat==="告知");
     var infoLine = [S(p.period),S(p.time)].filter(function(v){return v;}).join(" · ");
-    return '<div class="card" style="display:flex;flex-direction:column;gap:8px">'
+    var pc = personColor(p.author); // ← v1.2.13：投稿者の色。出没レーダーと同じ考え方で境目をはっきりさせる
+    return '<div class="card" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
       // ▼ 上部：カテゴリ ▼
       +'<div style="display:flex;align-items:center;justify-content:space-between">'
         +'<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+(isNotice?"#e6f1fb":"#eaf3de")+';color:'+(isNotice?"#0c447c":"#27500a")+'">'+escHtmlLite(p.cat)+'</span>'
@@ -955,10 +961,10 @@ function renderP(){
         +(safeHref?'<a href="'+escHtmlLite(safeHref)+'" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:var(--blue-mid);display:inline-block;overflow-wrap:anywhere">🔗 '+escHtmlLite(safeHref)+'</a>':"")
       +'</div>'
       // ▼ 下部：小さく名前・期・時間 ▼
-      +'<div style="display:flex;align-items:center;border-top:1px dashed #eee;padding-top:10px;margin-top:2px">'
+      +'<div style="display:flex;align-items:center;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
         +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
           +av(p.author,22)
-          +'<span style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap">'+escHtmlLite(p.author)+'</span>'
+          +'<span style="font-size:11px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.author)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、文字自体は目立たせない
           +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
         +'</div>'
       +'</div>'
