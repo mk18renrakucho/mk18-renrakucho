@@ -641,7 +641,7 @@ function memberCardHTML(m){
     +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
         +av(m.name,22)
-        +'<span style="font-size:11px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、文字自体は目立たせない
+        +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
         +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
@@ -964,7 +964,7 @@ function renderP(){
       +'<div style="display:flex;align-items:center;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
         +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
           +av(p.author,22)
-          +'<span style="font-size:11px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.author)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、文字自体は目立たせない
+          +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.author)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
           +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
         +'</div>'
       +'</div>'
