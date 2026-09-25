@@ -624,7 +624,7 @@ function memberCardHTML(m){
   var favBtnTitle = favUser ? "" : ' title="お気に入りタブでログインすると保存できます"';
   var noteText = S(m.note).trim();
   var hobbyText = S(m.hobby).trim();
-  var infoLine = [S(m.period),S(m.club),S(m.area)].filter(function(v){return v;}).join(" · ");
+  var clubAreaLine = [S(m.club),S(m.area)].filter(function(v){return v;}).join(" · ");
   var pc = personColor(m.name); // ← v1.2.13：この人の色。左帯と下段の背景に使い、「誰の書き込みか」を一目で分かりやすくする
   return '<div class="card member-card" id="mc'+m.id+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
     // ▼ 上部：状態と趣味 ▼
@@ -642,11 +642,12 @@ function memberCardHTML(m){
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
         +av(m.name,22)
         +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
-        +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
+        +(m.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(m.period)+'</span>':'') // ← v1.2.14：期だけは部活・エリアより濃い色（名前と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
+        +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(clubAreaLine)+'</span>'
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:10px;padding:4px 12px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'')
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.14：位置・色はそのまま、横幅を広げて押しやすくする
       +'</div>'
     +'</div>'
   +'</div>';
