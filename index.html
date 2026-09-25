@@ -642,12 +642,12 @@ function memberCardHTML(m){
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
         +av(m.name,22)
         +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
-        +(m.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(m.period)+'</span>':'') // ← v1.2.14：期だけは部活・エリアより濃い色（名前と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
+        +(m.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(m.period)+'</span>':'') // ← v1.2.13：期だけは部活・エリアより濃い色（名前と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
         +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(clubAreaLine)+'</span>'
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;letter-spacing:3px;text-indent:3px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.14：位置・色はそのまま、横幅を広げ、文字に字間を入れて目立たせる
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;letter-spacing:3px;text-indent:3px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.13：位置・色はそのまま、横幅を広げ、文字に字間を入れて目立たせる
       +'</div>'
     +'</div>'
   +'</div>';
@@ -966,7 +966,7 @@ function renderP(){
         +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
           +av(p.author,22)
           +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.author)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
-          +(p.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(p.period)+'</span>':'') // ← v1.2.14：期だけは時刻より濃い色（投稿者名と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
+          +(p.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(p.period)+'</span>':'') // ← v1.2.13：期だけは時刻より濃い色（投稿者名と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
           +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(timeLine)+'</span>'
         +'</div>'
       +'</div>'
@@ -1433,6 +1433,7 @@ function switchGalleryTab(sub){
 var AN_QUICK_REPLIES = ['参加します','懐かしい！行きたいです','何時からですか','会費はいくらですか'];
 var AN_CURRENT_ID = null;
 var AN_CACHE = {};
+var AN_CURRENT_IMAGES = []; // ← v1.2.13：今開いているお知らせの画像（フルサイズが届くまではサムネイル品質）。拡大表示（ライトボックス）で参照する
 
 function loadAnnounceFromAPI(){
   gasGet({action:'getAnnouncements'}, function(data){
@@ -1482,7 +1483,12 @@ function openAnnounceDetail(id){
     urlEl.innerHTML = '';
     urlEl.style.display = 'none';
   }
-  document.getElementById('an_d_images').innerHTML = '<div style="color:var(--text-ter);font-size:12px">画像を読み込み中...</div>';
+  // ← v1.2.13：詳細を開いた瞬間、まずは一覧で既に持っているサムネイルを即表示する（体感速度アップ）。
+  //   フルサイズ画像は裏側で取りに行き、届き次第、下のrenderAnnounceImages()で静かに差し替える。
+  var thumbs = (a.thumbnails||[]).map(safeImgSrc).filter(Boolean);
+  AN_CURRENT_IMAGES = thumbs;
+  renderAnnounceImages(thumbs);
+
   document.getElementById('an_c_quickreplies').innerHTML = AN_QUICK_REPLIES.map(function(q){
     return '<button onclick="fillAnnounceComment(\''+q.replace(/'/g,"\\'")+'\')" style="background:var(--gray);border:none;border-radius:16px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">'+escHtmlLite(q)+'</button>';
   }).join('');
@@ -1494,19 +1500,58 @@ function openAnnounceDetail(id){
   document.getElementById('modal-announce-detail').classList.add('show');
 
   gasGet({action:'getAnnouncementFull', id:id}, function(res){
+    if(AN_CURRENT_ID !== id) return; // 取得中に別のお知らせへ切り替えられていたら反映しない
     var imgs = (res && res.success) ? res.images : [];
-    var imgEl = document.getElementById('an_d_images');
     var safeImgs = (imgs||[]).map(safeImgSrc).filter(Boolean);
-    imgEl.innerHTML = safeImgs.length
-      ? safeImgs.map(function(src){ return '<img src="'+src+'" style="max-height:220px;border-radius:8px;flex-shrink:0">'; }).join('')
-      : '';
+    if(safeImgs.length){
+      AN_CURRENT_IMAGES = safeImgs;
+      renderAnnounceImages(safeImgs);
+    }
   });
   loadAnnounceComments(id);
+}
+
+// ← v1.2.13：お知らせ詳細の画像を描画する。タップすると拡大表示（写真館のライトボックスと同じ考え方）できる。
+//   最初はサムネイル、フルサイズが届き次第この関数が再度呼ばれ、同じ場所で静かに差し替わる。
+function renderAnnounceImages(imgs){
+  var imgEl = document.getElementById('an_d_images');
+  if(!imgs.length){
+    imgEl.innerHTML = '';
+    return;
+  }
+  imgEl.innerHTML = imgs.map(function(src, i){
+    return '<img src="'+src+'" data-idx="'+i+'" class="an-d-img" style="max-height:220px;border-radius:8px;flex-shrink:0;cursor:pointer">';
+  }).join('');
+  Array.prototype.forEach.call(imgEl.querySelectorAll('.an-d-img'), function(el){
+    el.addEventListener('click', function(){
+      openAnnounceImageLightbox(parseInt(el.getAttribute('data-idx'),10));
+    });
+  });
+}
+
+// ← v1.2.13：お知らせ画像の拡大表示。写真館のライトボックスと同じ考え方で、今手元にある画像をそのまま大きく見せる
+function openAnnounceImageLightbox(idx){
+  var src = AN_CURRENT_IMAGES[idx];
+  if(!src) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'announce-lightbox';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px';
+  overlay.innerHTML =
+    '<button id="an-lb-close" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer">✕</button>'
+    + '<img src="'+src+'" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px">';
+  document.body.appendChild(overlay);
+  document.getElementById('an-lb-close').addEventListener('click', closeAnnounceImageLightbox);
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeAnnounceImageLightbox(); });
+}
+function closeAnnounceImageLightbox(){
+  var overlay = document.getElementById('announce-lightbox');
+  if(overlay) overlay.remove();
 }
 
 function closeAnnounceDetail(){
   document.getElementById('modal-announce-detail').classList.remove('show');
   AN_CURRENT_ID = null;
+  AN_CURRENT_IMAGES = [];
 }
 
 function fillAnnounceComment(text){
