@@ -647,7 +647,7 @@ function memberCardHTML(m){
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.14：位置・色はそのまま、横幅を広げて押しやすくする
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;letter-spacing:3px;text-indent:3px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.14：位置・色はそのまま、横幅を広げ、文字に字間を入れて目立たせる
       +'</div>'
     +'</div>'
   +'</div>';
@@ -948,7 +948,7 @@ function renderP(){
   var h=P.filter(function(p){return pf==="全"||p.cat===pf;}).map(function(p){
     var safeHref = safeUrl(p.url);
     var isNotice = (p.cat==="告知");
-    var infoLine = [S(p.period),S(p.time)].filter(function(v){return v;}).join(" · ");
+    var timeLine = S(p.time);
     var pc = personColor(p.author); // ← v1.2.13：投稿者の色。出没レーダーと同じ考え方で境目をはっきりさせる
     return '<div class="card" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
       // ▼ 上部：カテゴリ ▼
@@ -966,7 +966,8 @@ function renderP(){
         +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
           +av(p.author,22)
           +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.author)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
-          +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(infoLine)+'</span>'
+          +(p.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(p.period)+'</span>':'') // ← v1.2.14：期だけは時刻より濃い色（投稿者名と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
+          +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(timeLine)+'</span>'
         +'</div>'
       +'</div>'
     +'</div>';
