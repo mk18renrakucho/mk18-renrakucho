@@ -1051,6 +1051,29 @@ function escHtmlLite(str){
   });
 }
 
+// ← v1.2.13：お知らせ本文中に書かれたURLも、参考URL欄と同じようにクリックできるリンクにする。
+//   URL以外の部分は必ずescHtmlLiteでエスケープしてから組み立てるため、本文にHTMLタグ等が
+//   含まれていても安全（httpまたはhttps始まりの文字列しかリンク化しない）。
+function linkifyText(text){
+  var s = S(text);
+  var urlPattern = /https?:\/\/[^\s<>"'）】」』\]]+/g;
+  var result = '';
+  var lastIndex = 0;
+  var match;
+  while ((match = urlPattern.exec(s)) !== null) {
+    result += escHtmlLite(s.slice(lastIndex, match.index));
+    var rawUrl = match[0];
+    // 文末の句読点・閉じ括弧などは、URLの一部ではなく地の文として扱う（リンクに含めない）
+    var trimmed = rawUrl.replace(/[。、,.;:!?)）\]】』」]+$/, '');
+    var trailing = rawUrl.slice(trimmed.length);
+    var esc = escHtmlLite(trimmed);
+    result += '<a href="'+esc+'" target="_blank" rel="noopener noreferrer" style="color:var(--blue-mid);word-break:break-all">'+esc+'</a>'+escHtmlLite(trailing);
+    lastIndex = match.index + rawUrl.length;
+  }
+  result += escHtmlLite(s.slice(lastIndex));
+  return result;
+}
+
 // ===================================================
 // URL関連ユーティリティ（V4jで整理）
 // コルクボードのURL欄に、他アプリからコピーした
@@ -1472,7 +1495,7 @@ function openAnnounceDetail(id){
   AN_CURRENT_ID = id;
   document.getElementById('an_d_title').textContent = '📢 ' + S(a.title);
   document.getElementById('an_d_time').textContent = S(a.time);
-  document.getElementById('an_d_detail').textContent = S(a.detail);
+  document.getElementById('an_d_detail').innerHTML = linkifyText(S(a.detail)); // ← v1.2.13：本文中のURLも自動でリンク化する
   // ← v1.2.12：参考URL（管理者が入力した場合のみ）。http/https以外はリンク化しない（safeUrl）
   var urlEl = document.getElementById('an_d_url');
   var hrefSafe = safeUrl(a.url);
