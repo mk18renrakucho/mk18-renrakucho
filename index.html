@@ -624,30 +624,34 @@ function memberCardHTML(m){
   var favBtnTitle = favUser ? "" : ' title="お気に入りタブでログインすると保存できます"';
   var noteText = S(m.note).trim();
   var hobbyText = S(m.hobby).trim();
-  var clubAreaLine = [S(m.club),S(m.area)].filter(function(v){return v;}).join(" · ");
+  var areaText = S(m.area).trim();
+  var clubText = S(m.club).trim();
   var pc = personColor(m.name); // ← v1.2.13：この人の色。左帯と下段の背景に使い、「誰の書き込みか」を一目で分かりやすくする
   return '<div class="card member-card" id="mc'+m.id+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
-    // ▼ 上部：状態と趣味 ▼
-    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-      +sb(m.status)
-      +(hobbyText?'<div style="font-size:12px;font-weight:700;color:var(--blue-mid);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎯 趣味: '+escHtmlLite(hobbyText)+'</div>':'')
+    // ▼ 上部：「出没情報」（状態・エリア・帰省期間をひとまとまりに）と趣味 ▼
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+        +sb(m.status)
+        +(areaText?'<span style="font-size:12px;font-weight:700;color:var(--blue-mid);white-space:nowrap">📍 '+escHtmlLite(areaText)+'</span>':'')
+        +(m.date?'<span style="font-size:12px;font-weight:700;color:var(--blue-mid);white-space:nowrap">🗓 '+escHtmlLite(m.date)+'</span>':'')
+      +'</div>'
+      +(hobbyText?'<div style="font-size:11px;color:var(--text-sub);white-space:nowrap;flex-shrink:0">🎯 '+escHtmlLite(hobbyText)+'</div>':'')
     +'</div>'
-    // ▼ 中部：ひとこと近況（主役）と帰省期間 ▼
+    // ▼ 中部：ひとこと近況（主役） ▼
     +(noteText
       ?'<p style="font-size:18px;color:var(--text);font-weight:700;line-height:1.5;margin:6px 0;letter-spacing:0.02em;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">'+escHtmlLite(noteText)+'</p>'
       :'<p style="font-size:14px;color:var(--text-ter);margin:6px 0">(近況の投稿はありません)</p>')
-    +(m.date?'<div style="font-size:11px;color:var(--blue);font-weight:500">📅 '+escHtmlLite(m.date)+'</div>':'')
-    // ▼ 下部：小さく名前・期・部活・エリア、ハート、更新ボタン ▼
+    // ▼ 下部：小さく名前・期・部活、ハート、更新ボタン ▼
     +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
         +av(m.name,22)
         +'<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(m.name)+'</span>' // ← v1.2.13：名前は色の帯で十分に見分けがつくため、太字にはせず控えめにする（文字サイズは11pxだと小さすぎたため12pxに調整）
-        +(m.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(m.period)+'</span>':'') // ← v1.2.13：期だけは部活・エリアより濃い色（名前と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
-        +'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(clubAreaLine)+'</span>'
+        +(m.period?'<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap;flex-shrink:0">'+escHtmlLite(m.period)+'</span>':'') // ← v1.2.13：期だけは部活より濃い色（名前と同じtext-sub）で独立表示し、薄い色に埋もれないようにする
+        +(clubText?'<span style="font-size:10px;color:var(--text-ter);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+escHtmlLite(clubText)+'</span>':'')
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:64px;letter-spacing:3px;text-indent:3px;background:var(--white);color:var(--blue);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 2px rgba(0,0,0,.12)">更新</button>':'') // ← v1.2.13：位置・色はそのまま、横幅を広げ、文字に字間を入れて目立たせる
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:76px;letter-spacing:2px;text-indent:2px;background:var(--blue);color:var(--white);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.2)">✏️更新</button>':'') // ← v1.2.13：塗りつぶし（青背景・白文字）にし、✏️アイコンを添えて「自分だけが操作できる場所」だと分かりやすくする。幅広・字間は据え置き
       +'</div>'
     +'</div>'
   +'</div>';
