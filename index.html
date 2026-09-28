@@ -14,19 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="北高連絡帳">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-<!-- OneSignal SDK -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "9a1e6979-9af4-4943-97d1-2e39afcc072b",
-      safari_web_id: "",
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-    });
-  });
-</script>
+<!-- v1.2.13：OneSignal（Web Push）は撤去。通知はLINEのみで行う -->
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/iconfont/tabler-icons.min.css">
 <style>
