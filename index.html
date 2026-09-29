@@ -232,6 +232,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button class="x-btn" onclick="closeAnnounceDetail()" aria-label="閉じる">&times;</button>
     </div>
     <div id="an_d_time" style="font-size:11px;color:var(--text-ter);margin-bottom:10px"></div>
+    <div id="an_d_event" style="display:none;margin-bottom:10px"></div>
     <div id="an_d_images" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px"></div>
     <div id="an_d_detail" style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:12px"></div>
     <div id="an_d_url" style="display:none;margin-bottom:16px;font-size:13px;word-break:break-all"></div>
@@ -285,6 +286,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       </div>
       <div style="font-size:11px;color:var(--text-ter);margin-bottom:10px">
         ※他のアプリからコピーした「文字付きリンク」は貼り付けても、URL部分だけ自動で取り出します
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:12px;color:var(--text-sub);display:block;margin-bottom:4px">📅 日時（任意・Googleカレンダーへの追加ボタン用）</label>
+        <div style="display:flex;gap:8px">
+          <input type="date" id="an_p_event_date" style="flex:1">
+          <input type="time" id="an_p_event_time" style="flex:1">
+        </div>
       </div>
       <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
       <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:10px">
@@ -1089,6 +1097,25 @@ function safeUrl(url){
   return '';
 }
 
+// ← v1.2.13：2桁ゼロ埋め（日時表示・カレンダーリンク生成の共通ヘルパー）
+function pad2_(n){ return (n<10?'0':'')+n; }
+
+// ← v1.2.13：お知らせのイベント日時（開始）から、Googleカレンダーの「予定を追加」リンクを組み立てる。
+//   終了時刻は自動で開始の1時間後にする。日時は端末のローカル時刻としてそのまま使う（Asia/Tokyo想定）。
+function buildGoogleCalendarLink_(title, startDate, detail){
+  if(!(startDate instanceof Date) || isNaN(startDate.getTime())) return '';
+  var endDate = new Date(startDate.getTime() + 60*60*1000);
+  function fmt(d){
+    return d.getFullYear()+pad2_(d.getMonth()+1)+pad2_(d.getDate())+'T'+pad2_(d.getHours())+pad2_(d.getMinutes())+'00';
+  }
+  var params = 'action=TEMPLATE'
+    + '&text=' + encodeURIComponent(title)
+    + '&dates=' + fmt(startDate) + '/' + fmt(endDate)
+    + '&details=' + encodeURIComponent(detail)
+    + '&ctz=Asia/Tokyo';
+  return 'https://calendar.google.com/calendar/render?' + params;
+}
+
 function loadGalleryFromAPI(){
   var uid = getMyUid();
   if(!uid){
@@ -1477,6 +1504,19 @@ function openAnnounceDetail(id){
   document.getElementById('an_d_title').textContent = '📢 ' + S(a.title);
   document.getElementById('an_d_time').textContent = S(a.time);
   document.getElementById('an_d_detail').innerHTML = linkifyText(S(a.detail)); // ← v1.2.13：本文中のURLも自動でリンク化する
+  // ← v1.2.13：イベント日時（管理者が入力した場合のみ）。日時の表示とGoogleカレンダー追加ボタンを出す。
+  var eventEl = document.getElementById('an_d_event');
+  if(a.eventDatetime){
+    var d = new Date(a.eventDatetime);
+    var disp = isNaN(d.getTime()) ? '' : (d.getFullYear()+'/'+pad2_(d.getMonth()+1)+'/'+pad2_(d.getDate())+' '+pad2_(d.getHours())+':'+pad2_(d.getMinutes())+'〜（予定）');
+    var calLink = buildGoogleCalendarLink_(S(a.title), d, S(a.detail));
+    eventEl.innerHTML = (disp?'<div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:6px">📅 '+escHtmlLite(disp)+'</div>':'')
+      + (calLink?'<a href="'+calLink+'" target="_blank" rel="noopener noreferrer" style="display:inline-block;font-size:12px;color:var(--blue);border:1px solid var(--blue);border-radius:20px;padding:6px 14px;text-decoration:none;font-weight:500">📅 Googleカレンダーに追加</a>':'');
+    eventEl.style.display = (disp||calLink) ? 'block' : 'none';
+  } else {
+    eventEl.innerHTML = '';
+    eventEl.style.display = 'none';
+  }
   // ← v1.2.12：参考URL（管理者が入力した場合のみ）。http/https以外はリンク化しない（safeUrl）
   var urlEl = document.getElementById('an_d_url');
   var hrefSafe = safeUrl(a.url);
@@ -1637,6 +1677,8 @@ function openAnnouncePostModal(){
   document.getElementById('an_p_pw').value = '';
   document.getElementById('an_p_err1').style.display = 'none';
   document.getElementById('an_p_err').style.display = 'none';
+  document.getElementById('an_p_event_date').value = '';
+  document.getElementById('an_p_event_time').value = '';
   showAnnounceStep(1);
   document.getElementById('modal-announce-post').classList.add('show');
 }
@@ -1692,6 +1734,14 @@ function submitAnnouncePost(){
   var rawUrl = (document.getElementById('an_p_url').value||'').trim();
   var url = extractUrl(rawUrl); // Markdown形式で貼られていてもURL部分だけを取り出す
   var notify = document.getElementById('an_p_notify').checked;
+  // ← v1.2.13：日時（任意）。日付・時刻の両方が入力されていれば、ローカル日時としてISO文字列に変換して送る。
+  var eventDate = (document.getElementById('an_p_event_date').value||'').trim();
+  var eventTime = (document.getElementById('an_p_event_time').value||'').trim();
+  var eventDatetime = '';
+  if(eventDate && eventTime){
+    var localDate = new Date(eventDate+'T'+eventTime+':00');
+    if(!isNaN(localDate.getTime())) eventDatetime = localDate.toISOString();
+  }
   var files = Array.prototype.slice.call(document.getElementById('an_p_files').files||[]).slice(0,3);
   var errEl = document.getElementById('an_p_err');
   errEl.style.display = 'none';
@@ -1728,6 +1778,7 @@ function submitAnnouncePost(){
         title: title,
         detail: detail,
         url: url,
+        eventDatetime: eventDatetime,
         images: images,
         notifyLine: notify
       })
@@ -1739,6 +1790,8 @@ function submitAnnouncePost(){
         document.getElementById('an_p_title').value = '';
         document.getElementById('an_p_detail').value = '';
         document.getElementById('an_p_url').value = '';
+        document.getElementById('an_p_event_date').value = '';
+        document.getElementById('an_p_event_time').value = '';
         document.getElementById('an_p_files').value = '';
         document.getElementById('an_p_notify').checked = false;
         closeAnnouncePostModal();
