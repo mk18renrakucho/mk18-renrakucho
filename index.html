@@ -357,11 +357,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
           <i class="ti ti-lock" style="margin-right:4px"></i>誕生日または確認用の数字4桁を入力して本人確認します
         </div>
-        <!-- v1.2.12：ニックネームで表示している方は、本人確認に登録時の本名を使う（本名は一覧のデータに含まれないため入力してもらう） -->
-        <div id="u_realname_wrap" style="display:none;margin-bottom:8px">
-          <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ニックネームで表示されている方は、登録時の本名も入力してください</div>
-          <input type="text" id="u_realname" placeholder="本名（登録時のお名前）">
-        </div>
         <input type="text" id="u_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
         <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doVerifyUpdate()" style="width:100%" id="u_verify_btn">
@@ -703,9 +698,6 @@ function openDet(id){
     +'<div><span style="color:var(--text-ter)">期</span> '+escHtmlLite(m.period)+'</div>'
     +'</div>';
   document.getElementById("u_bd").value="";
-  document.getElementById("u_realname").value="";
-  // ← v1.2.12：ニックネームで表示している方だけ、本名の入力欄を出す
-  document.getElementById("u_realname_wrap").style.display = m.nickname ? "block" : "none";
   document.getElementById("u_err1").style.display="none";
   document.getElementById("u_err2").style.display="none";
   showUStep(1);
@@ -740,12 +732,9 @@ function doVerifyUpdate(){
   var bd=digitsVal("u_bd");
   var errEl=document.getElementById("u_err1");
   errEl.style.display="none";
-  // ← v1.2.12：ニックネーム表示の方は、入力してもらった本名で本人確認する（一覧のデータには本名を含めない）
-  var authName = m.nickname ? (document.getElementById("u_realname").value||"").trim() : m.name;
-  if(m.nickname && !authName){
-    errEl.textContent="ニックネームで表示されている方は、登録時の本名を入力してください";
-    errEl.style.display="block";return;
-  }
+  // ← v1.2.13：findUserが本名・ニックネームどちらでも照合できるようになったため、
+  //   表示名（ニックネームがあればニックネーム、無ければ本名）をそのまま送ればよい。
+  var authName = m.name;
   if(!bd||!/^[0-9]{4}$/.test(bd)){
     errEl.textContent="誕生日または確認用の数字を4桁で入力してください（例：0315）";
     errEl.style.display="block";return;
@@ -834,9 +823,9 @@ function checkBoardName(){
     el.innerHTML='<span style="color:#2d7d46">✓ '+escHtmlLite(found.name)+'さん（'+escHtmlLite(found.period)+'・'+escHtmlLite(found.club)+'）</span>';
     el.style.display="block";
   } else {
-    // ← v1.2.12：一覧のデータには本名を含めなくなったため、ニックネームで表示している方の本名は
-    //   ここでは照合できない。「見つかりません」と断定せず、案内にとどめる。
-    el.innerHTML='<span style="color:var(--text-sub)">ニックネームで表示している方は、登録時の本名を入力してください。</span>';
+    // ← v1.2.13：本名・ニックネームどちらでも本人確認できるようになったため、ここで一致しなければ
+    //   単純に名前が違う（入力ミス等）扱いでよい。
+    el.innerHTML='<span style="color:var(--text-sub)">この名前は一覧に見当たりません。登録時の名前と同じか確認してください。</span>';
     el.style.display="block";
   }
 }
