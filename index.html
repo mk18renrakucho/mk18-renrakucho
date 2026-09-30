@@ -632,6 +632,9 @@ function memberCardHTML(m){
     +(noteText
       ?'<p style="font-size:18px;color:var(--text);font-weight:700;line-height:1.5;margin:6px 0;letter-spacing:0.02em;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">'+escHtmlLite(noteText)+'</p>'
       :'<p style="font-size:14px;color:var(--text-ter);margin:6px 0">(近況の投稿はありません)</p>')
+    // ← v1.2.13：近況は更新のたびに履歴として残るようになった。件数は開くまで分からないため、
+    //   リンク自体は常に表示し、タップ時に初めて件数（0件の場合を含む）を取得する。
+    +'<button class="note-history-btn" data-id="'+m.id+'" style="align-self:flex-start;background:none;border:none;padding:0;margin:0 0 4px;font-size:12px;color:var(--blue-mid);cursor:pointer;font-family:inherit;text-decoration:underline">📖 過去の近況を見る</button>'
     // ▼ 下部：小さく名前・期・部活、ハート、更新ボタン ▼
     +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'+pc+'14;border-radius:8px;padding:8px 10px;margin-top:2px">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">'
@@ -666,6 +669,7 @@ function renderM(){
   f.sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}); // ← V4l：出没レーダーは最終更新日時が新しい順
   document.getElementById("mc").textContent=f.length+"名 表示中（全"+M.length+"名）";
   document.getElementById("ml").innerHTML=f.map(memberCardHTML).join("")||'<div style="text-align:center;padding:40px 0;color:var(--text-ter)">条件に一致するメンバーが見つかりません</div>';
+  attachNoteHistoryListeners_("ml"); // ← v1.2.13
   hc();
 }
 
@@ -673,6 +677,20 @@ function renderFav(){
   var f=M.filter(function(m){return m.fav;});
   f.sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}); // ← v1.2.12：お気に入りも、出没レーダーと同じく最終更新が新しい順
   document.getElementById("fl").innerHTML=f.length?f.map(memberCardHTML).join(""):'<div style="text-align:center;padding:40px 0;color:var(--text-ter)"><i class="ti ti-heart" style="font-size:32px;display:block;margin-bottom:8px"></i>'+(favUser?"まだお気に入りがいません":"ログインするとお気に入りが表示されます")+'</div>';
+  attachNoteHistoryListeners_("fl"); // ← v1.2.13
+}
+
+// ← v1.2.13：カード内の「過去の近況を見る」ボタンにクリックイベントを付与する（renderM/renderFav共通）
+function attachNoteHistoryListeners_(containerId){
+  var container = document.getElementById(containerId);
+  if(!container) return;
+  Array.prototype.forEach.call(container.querySelectorAll('.note-history-btn'), function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var m = M.find(function(x){ return x.id === parseInt(btn.getAttribute('data-id'),10); });
+      if(m) openNoteHistory_(m.name, m.period);
+    });
+  });
 }
 
 function toggleFav(id,e){
@@ -1255,6 +1273,58 @@ function openGalleryLightbox(photoId){
 
 function closeGalleryLightbox(){
   var overlay = document.getElementById('gallery-lightbox');
+  if(overlay) overlay.remove();
+}
+
+// ===================================================
+// 近況（ひとこと）の履歴モーダル（v1.2.13で追加）
+// カードの「過去の近況を見る」から開く。件数は開くまでサーバーに聞きに行かないと分からないため、
+// まず「読み込み中」を出し、届き次第、件数（直近5件・全何件中）とあわせて差し替える。
+// ===================================================
+function openNoteHistory_(name, period){
+  var overlay = document.createElement('div');
+  overlay.id = 'note-history-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:480px;max-height:75vh;overflow-y:auto">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    + '<div style="font-weight:500;font-size:16px">'+escHtmlLite(name)+'さんの近況</div>'
+    + '<button id="nh-close" class="x-btn" aria-label="閉じる">&times;</button>'
+    + '</div>'
+    + '<div id="nh-body" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('nh-close').addEventListener('click', closeNoteHistory_);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeNoteHistory_(); });
+
+  apiFetch('action=getNoteHistory&name='+encodeURIComponent(name)+'&period='+encodeURIComponent(period))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var body = document.getElementById('nh-body');
+      if(!body) return; // 取得中に閉じられていた場合
+      if(!res || !res.success || !res.items || !res.items.length){
+        body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">まだ過去の近況はありません</div>';
+        return;
+      }
+      var header = (res.total > res.items.length)
+        ? ('直近'+res.items.length+'件・全'+res.total+'件中')
+        : ('全'+res.total+'件');
+      body.innerHTML = '<div style="font-size:11px;color:var(--text-ter);margin-bottom:10px;text-align:right">'+escHtmlLite(header)+'</div>'
+        + res.items.map(function(it){
+            return '<div style="border-bottom:1px solid var(--border);padding:10px 0">'
+              + '<div style="font-size:11px;color:var(--text-ter);margin-bottom:4px">'+escHtmlLite(it.time)+'</div>'
+              + '<div style="font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere">'+escHtmlLite(it.note)+'</div>'
+              + '</div>';
+          }).join('');
+    })
+    .catch(function(){
+      var body = document.getElementById('nh-body');
+      if(body) body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+    });
+}
+
+function closeNoteHistory_(){
+  var overlay = document.getElementById('note-history-modal');
   if(overlay) overlay.remove();
 }
 
