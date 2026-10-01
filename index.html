@@ -52,6 +52,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .filter-sel{font-size:12px;padding:5px 8px;flex:1 1 auto;min-width:70px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--white);color:var(--text)}
 .member-card{transition:border-color 0.15s}
 .member-card:hover{border-color:var(--blue-mid)}
+.member-card .badge{font-size:13px;padding:4px 12px}
+.chip-info{display:inline-flex;align-items:center;font-size:13px;font-weight:700;color:var(--blue);background:var(--blue-light);padding:4px 12px;border-radius:20px;max-width:100%;overflow-wrap:anywhere}
+.status-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.status-btns .pill{font-size:13px;padding:8px 14px}
+.more-box{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;margin-bottom:12px}
+.more-box summary{cursor:pointer;font-size:13px;color:var(--blue-mid);padding:10px 0;font-weight:500}
+.more-box[open] summary{border-bottom:1px solid var(--border);margin-bottom:10px}
 .fav-btn{background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#ddd;transition:color 0.15s}
 .fav-btn.active{color:#e74c3c}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
@@ -378,20 +385,35 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
           <i class="ti ti-user-check" style="font-size:16px"></i>
           <span id="u_verified_name"></span>さんの本人確認ができました
         </div>
-        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">状態</div>
-        <select id="us" style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">いまの状態</div>
+        <select id="us" style="display:none">
           <option value="在住（松山在住）">松山に在住</option>
           <option value="松山以外に在住">松山以外に在住</option>
           <option value="帰省予定">帰省予定あり</option>
           <option value="帰省中">帰省中</option>
         </select>
-        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">帰省期間（任意）</div>
-        <input type="text" id="ud" placeholder="例：8/13〜8/17" style="margin-bottom:12px">
-        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">現在のエリア</div>
+        <div class="status-btns" id="us_btns">
+          <button type="button" class="pill" data-val="在住（松山在住）" onclick="setUpdateStatus_(this.getAttribute('data-val'))">松山に在住</button>
+          <button type="button" class="pill" data-val="松山以外に在住" onclick="setUpdateStatus_(this.getAttribute('data-val'))">松山以外に在住</button>
+          <button type="button" class="pill" data-val="帰省予定" onclick="setUpdateStatus_(this.getAttribute('data-val'))">帰省予定あり</button>
+          <button type="button" class="pill" data-val="帰省中" onclick="setUpdateStatus_(this.getAttribute('data-val'))">帰省中</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 いまのエリア（任意）</div>
         <input type="text" id="ue" placeholder="例：松山・関東・大阪" style="margin-bottom:12px">
-        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと近況</div>
+        <input type="hidden" id="ud">
+        <div id="ud_wrap" style="display:none;margin-bottom:12px">
+          <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🗓 帰省期間（任意）</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="date" id="ud_start" style="flex:1" oninput="clearUpdateRawPeriod_()">
+            <span style="color:var(--text-sub)">〜</span>
+            <input type="date" id="ud_end" style="flex:1" oninput="clearUpdateRawPeriod_()">
+          </div>
+          <div id="ud_raw_note" style="display:none;font-size:12px;color:var(--text-sub);margin-top:6px;line-height:1.6"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">💬 ひとこと近況</div>
         <input type="text" id="un" placeholder="例：〇〇に住んでます、最近は畑仕事にハマってます、など" style="margin-bottom:12px">
         <!-- v1.2.12：部活・表示名・趣味もここから変更できるようにした（これまでは「連絡帳に書き込む」ページからのみ） -->
+        <details class="more-box" id="u_more"><summary>▶ 部活・表示名・趣味を変更する</summary>
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px" id="u_club_label">部活（変更する場合のみ選択）</div>
         <select id="uc" style="margin-bottom:12px">
           <option value="">変更しない</option>
@@ -413,7 +435,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         </div>
         <input type="text" id="unick" placeholder="ニックネーム（例：むねあき）" style="margin-bottom:12px;display:none">
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">趣味・キーワード</div>
-        <input type="text" id="uh" placeholder="例：サイクリング・落語・読書" style="margin-bottom:10px">
+        <input type="text" id="uh" placeholder="例：サイクリング・落語・読書" style="margin-bottom:12px">
+        </details>
         <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>更新する
@@ -623,8 +646,8 @@ function memberCardHTML(m){
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">'
       +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
         +sb(m.status)
-        +(areaText?'<span style="font-size:12px;font-weight:700;color:var(--blue-mid);white-space:nowrap">📍 '+escHtmlLite(areaText)+'</span>':'')
-        +(m.date?'<span style="font-size:12px;font-weight:700;color:var(--blue-mid);white-space:nowrap">🗓 '+escHtmlLite(m.date)+'</span>':'')
+        +(areaText?'<span class="chip-info">📍 '+escHtmlLite(areaText)+'</span>':'')
+        +(m.date?'<span class="chip-info">🗓 '+escHtmlLite(m.date)+'</span>':'')
       +'</div>'
       +(hobbyText?'<div style="font-size:11px;color:var(--text-sub);white-space:nowrap;flex-shrink:0">🎯 '+escHtmlLite(hobbyText)+'</div>':'')
     +'</div>'
@@ -644,7 +667,7 @@ function memberCardHTML(m){
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:76px;letter-spacing:2px;text-indent:2px;background:var(--blue);color:var(--white);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.2)">✏️更新</button>':'') // ← v1.2.13：塗りつぶし（青背景・白文字）にし、✏️アイコンを添えて「自分だけが操作できる場所」だと分かりやすくする。幅広・字間は据え置き
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:96px;letter-spacing:2px;text-indent:2px;background:var(--blue);color:var(--white);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.2)">✏️更新する</button>':'') // ← v1.2.13：塗りつぶし（青背景・白文字）にし、✏️アイコンを添えて「自分だけが操作できる場所」だと分かりやすくする。幅広・字間は据え置き
       +'</div>'
     +'</div>'
   +'</div>';
@@ -752,6 +775,92 @@ function setUpdateNickUI(isNick){
   if(!isNick) document.getElementById("unick").value="";
 }
 
+// ===================================================
+// v1.2.13：近況更新の入力画面（状態ボタン・日付ピッカー・折りたたみ）
+//  ・保存する値の形は従来どおり（状態＝プルダウンと同じ文字列、期間＝「8/13〜8/17」の文字）。サーバー側の変更は不要。
+//  ・「在住」系を選ぶと期間は空にして保存する（帰省が終わった人に古い期間が残らないように）。
+//  ・「お盆」など日付に直せない期間が既に入っている人は、選び直さない限り元の文字をそのまま保持する。
+// ===================================================
+var UD_RAW = '';
+function isTripStatus_(v){ return v==='帰省予定' || v==='帰省中'; }
+function isoFromMD_(m, d, y){ return y+'-'+pad2_(m)+'-'+pad2_(d); }
+function fmtMD_(iso){ var p=S(iso).split('-'); return parseInt(p[1],10)+'/'+parseInt(p[2],10); }
+function parseHomecoming_(txt){
+  var s = S(txt).trim();
+  var y = new Date().getFullYear();
+  var r = s.match(/^(\d{1,2})\/(\d{1,2})\s*[〜~～\-－–ー]\s*(\d{1,2})\/(\d{1,2})$/);
+  if(r){
+    var sm=+r[1], sd=+r[2], em=+r[3], ed=+r[4];
+    var ey = (em<sm || (em===sm && ed<sd)) ? y+1 : y; // 12/28〜1/3 のような年またぎは翌年として扱う
+    return {start:isoFromMD_(sm,sd,y), end:isoFromMD_(em,ed,ey)};
+  }
+  var one = s.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if(one){ var iso=isoFromMD_(+one[1],+one[2],y); return {start:iso,end:iso}; }
+  return null;
+}
+function syncUpdateStatusUI_(){
+  var us = document.getElementById('us');
+  if(!us.value) us.value = '在住（松山在住）';
+  Array.prototype.forEach.call(document.querySelectorAll('#us_btns .pill'), function(b){
+    b.classList.toggle('active', b.getAttribute('data-val')===us.value);
+  });
+  var trip = isTripStatus_(us.value);
+  document.getElementById('ud_wrap').style.display = trip ? 'block' : 'none';
+  if(!trip){
+    document.getElementById('ud_start').value = '';
+    document.getElementById('ud_end').value = '';
+    UD_RAW = '';
+    document.getElementById('ud_raw_note').style.display = 'none';
+  }
+}
+function setUpdateStatus_(v){
+  document.getElementById('us').value = v;
+  syncUpdateStatusUI_();
+}
+function clearUpdateRawPeriod_(){
+  UD_RAW = '';
+  document.getElementById('ud_raw_note').style.display = 'none';
+}
+function initUpdateFormUI_(res){
+  UD_RAW = '';
+  document.getElementById('ud_start').value = '';
+  document.getElementById('ud_end').value = '';
+  var note = document.getElementById('ud_raw_note');
+  note.style.display = 'none';
+  var hc = S(res && res.homecoming).trim();
+  if(hc){
+    var p = parseHomecoming_(hc);
+    if(p){
+      document.getElementById('ud_start').value = p.start;
+      document.getElementById('ud_end').value = p.end;
+    } else {
+      UD_RAW = hc;
+      note.textContent = '現在の期間：' + hc + '（日付を選ぶとこの文字は置き換わります）';
+      note.style.display = 'block';
+    }
+  }
+  document.getElementById('u_more').open = false;
+  syncUpdateStatusUI_();
+}
+function getHomecomingValue_(){
+  var v = document.getElementById('us').value;
+  if(!isTripStatus_(v)) return '';
+  var a = document.getElementById('ud_start').value;
+  var b = document.getElementById('ud_end').value;
+  if(a && b) return (a===b) ? fmtMD_(a) : (fmtMD_(a)+'〜'+fmtMD_(b));
+  if(!a && !b) return UD_RAW;
+  return '';
+}
+function validateHomecoming_(){
+  var v = document.getElementById('us').value;
+  if(!isTripStatus_(v)) return '';
+  var a = document.getElementById('ud_start').value;
+  var b = document.getElementById('ud_end').value;
+  if((a && !b) || (!a && b)) return '帰省期間は、開始日と終了日の両方を選んでください（空のままでも更新できます）';
+  if(a && b && b < a) return '終了日が開始日より前になっています';
+  return '';
+}
+
 function doVerifyUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var bd=digitsVal("u_bd");
@@ -786,7 +895,7 @@ function doVerifyUpdate(){
       setUpdateNickUI(!!res.nickname);
       if(res.nickname) document.getElementById("unick").value=res.nickname;
       document.getElementById("u_err2").style.display="none";
-      showUStep(2);
+      initUpdateFormUI_(res);showUStep(2);
     } else if(res && res.multiple){
       errEl.textContent="同じ名前・数字の方が複数いるため、ここでは確認できません。「連絡帳に書き込む」ページの「近況を更新する」（期を入力できます）をご利用ください。";
       errEl.style.display="block";
@@ -810,13 +919,15 @@ function doUpdate(){
     errEl.textContent="ニックネームを入力するか、「本名で表示」を選んでください";
     errEl.style.display="block";return;
   }
+  var hcErr=validateHomecoming_();
+  if(hcErr){errEl.textContent=hcErr;errEl.style.display="block";return;}
   var btn=document.getElementById("u_btn");
   btn.disabled=true;btn.textContent="更新中...";
   gasGet({
     action:"updateStatus",name:updateAuthName,birthday:bd,
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
-    homecoming:document.getElementById("ud").value.trim(),
+    homecoming:getHomecomingValue_(),
     note:document.getElementById("un").value.trim(),
     club:document.getElementById("uc").value,
     hobby:document.getElementById("uh").value.trim(),
