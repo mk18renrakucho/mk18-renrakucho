@@ -59,6 +59,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .more-box{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;margin-bottom:12px}
 .more-box summary{cursor:pointer;font-size:13px;color:var(--blue-mid);padding:10px 0;font-weight:500}
 .more-box[open] summary{border-bottom:1px solid var(--border);margin-bottom:10px}
+.rcal{border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px}
+.rcal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:14px;font-weight:500}
+.rcal-nav{background:none;border:none;font-size:16px;color:var(--blue-mid);cursor:pointer;padding:4px 12px;font-family:inherit}
+.rcal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px}
+.rcal-w{text-align:center;font-size:11px;color:var(--text-ter);padding:4px 0}
+.rcal-d{border:none;background:none;font-family:inherit;font-size:14px;height:36px;cursor:pointer;color:var(--text)}
+.rcal-d.rc-mid{background:var(--blue-light)}
+.rcal-d.rc-edge{background:var(--blue);color:var(--white);font-weight:700;border-radius:18px}
+.rcal-sel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:var(--text-sub);line-height:1.5}
+.rcal-clear{background:none;border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--text-sub);cursor:pointer;font-family:inherit;flex-shrink:0}
 .fav-btn{background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#ddd;transition:color 0.15s}
 .fav-btn.active{color:#e74c3c}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
@@ -403,11 +413,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <input type="hidden" id="ud">
         <div id="ud_wrap" style="display:none;margin-bottom:12px">
           <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🗓 帰省期間（任意）</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="date" id="ud_start" style="flex:1" oninput="clearUpdateRawPeriod_()">
-            <span style="color:var(--text-sub)">〜</span>
-            <input type="date" id="ud_end" style="flex:1" oninput="clearUpdateRawPeriod_()">
-          </div>
+          <input type="hidden" id="ud_start"><input type="hidden" id="ud_end">
+          <div class="rcal" id="rcal"></div>
           <div id="ud_raw_note" style="display:none;font-size:12px;color:var(--text-sub);margin-top:6px;line-height:1.6"></div>
         </div>
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">💬 ひとこと近況</div>
@@ -806,6 +813,7 @@ function syncUpdateStatusUI_(){
   });
   var trip = isTripStatus_(us.value);
   document.getElementById('ud_wrap').style.display = trip ? 'block' : 'none';
+  if(trip) rcInit_();
   if(!trip){
     document.getElementById('ud_start').value = '';
     document.getElementById('ud_end').value = '';
@@ -842,6 +850,58 @@ function initUpdateFormUI_(res){
   document.getElementById('u_more').open = false;
   syncUpdateStatusUI_();
 }
+// ---- v1.2.13：範囲カレンダー（開始日→終了日の順にタップ） ----
+var RC_Y = 0, RC_M = 0;
+function rcInit_(){
+  var sv = document.getElementById('ud_start').value;
+  var base = sv ? new Date(sv + 'T00:00:00') : new Date();
+  RC_Y = base.getFullYear(); RC_M = base.getMonth() + 1;
+  rcRender_();
+}
+function rcShift_(n){
+  RC_M += n;
+  if(RC_M < 1){ RC_M = 12; RC_Y--; }
+  if(RC_M > 12){ RC_M = 1; RC_Y++; }
+  rcRender_();
+}
+function rcPick_(iso){
+  var st = document.getElementById('ud_start'), en = document.getElementById('ud_end');
+  if(!st.value || en.value){ st.value = iso; en.value = ''; }
+  else if(iso < st.value){ st.value = iso; }
+  else { en.value = iso; }
+  clearUpdateRawPeriod_();
+  rcRender_();
+}
+function rcClear_(){
+  document.getElementById('ud_start').value = '';
+  document.getElementById('ud_end').value = '';
+  clearUpdateRawPeriod_();
+  rcRender_();
+}
+function rcRender_(){
+  var a = document.getElementById('ud_start').value, b = document.getElementById('ud_end').value;
+  var first = new Date(RC_Y, RC_M - 1, 1).getDay();
+  var days = new Date(RC_Y, RC_M, 0).getDate();
+  var h = '<div class="rcal-head"><button type="button" class="rcal-nav" onclick="rcShift_(-1)" aria-label="前の月">◀</button>'
+        + '<span>' + RC_Y + '年' + RC_M + '月</span>'
+        + '<button type="button" class="rcal-nav" onclick="rcShift_(1)" aria-label="次の月">▶</button></div>';
+  h += '<div class="rcal-grid">' + ['日','月','火','水','木','金','土'].map(function(w){ return '<div class="rcal-w">' + w + '</div>'; }).join('');
+  for(var i = 0; i < first; i++) h += '<div></div>';
+  for(var d = 1; d <= days; d++){
+    var iso = RC_Y + '-' + pad2_(RC_M) + '-' + pad2_(d);
+    var cls = 'rcal-d';
+    if(iso === a || iso === b) cls += ' rc-edge';
+    else if(a && b && iso > a && iso < b) cls += ' rc-mid';
+    h += '<button type="button" class="' + cls + '" onclick="rcPick_(\'' + iso + '\')">' + d + '</button>';
+  }
+  h += '</div>';
+  var msg;
+  if(a && b) msg = '選択中：' + ((a === b) ? fmtMD_(a) : (fmtMD_(a) + '〜' + fmtMD_(b)));
+  else if(a) msg = '開始：' + fmtMD_(a) + '　終了日をタップ（1日だけなら同じ日をもう一度）';
+  else msg = '開始日をタップしてください';
+  h += '<div class="rcal-sel"><span>' + msg + '</span>' + (a ? '<button type="button" class="rcal-clear" onclick="rcClear_()">クリア</button>' : '') + '</div>';
+  document.getElementById('rcal').innerHTML = h;
+}
 function getHomecomingValue_(){
   var v = document.getElementById('us').value;
   if(!isTripStatus_(v)) return '';
@@ -856,7 +916,7 @@ function validateHomecoming_(){
   if(!isTripStatus_(v)) return '';
   var a = document.getElementById('ud_start').value;
   var b = document.getElementById('ud_end').value;
-  if((a && !b) || (!a && b)) return '帰省期間は、開始日と終了日の両方を選んでください（空のままでも更新できます）';
+  if((a && !b) || (!a && b)) return '帰省期間は、終了日も選んでください（1日だけなら同じ日をもう一度タップ。空のままでも更新できます）';
   if(a && b && b < a) return '終了日が開始日より前になっています';
   return '';
 }
