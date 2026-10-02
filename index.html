@@ -67,7 +67,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .rcal-d{border:none;background:none;font-family:inherit;font-size:14px;height:36px;cursor:pointer;color:var(--text)}
 .rcal-d.rc-mid{background:var(--blue-light)}
 .rcal-d.rc-edge{background:var(--blue);color:var(--white);font-weight:700;border-radius:18px}
-.rcal-sel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:var(--text-sub);line-height:1.5}
+.rcal-sel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-sub);line-height:1.5}
 .rcal-clear{background:none;border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--text-sub);cursor:pointer;font-family:inherit;flex-shrink:0}
 .fav-btn{background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#ddd;transition:color 0.15s}
 .fav-btn.active{color:#e74c3c}
@@ -882,7 +882,7 @@ function rcRender_(){
   var a = document.getElementById('ud_start').value, b = document.getElementById('ud_end').value;
   var first = new Date(RC_Y, RC_M - 1, 1).getDay();
   var days = new Date(RC_Y, RC_M, 0).getDate();
-  var h = '<div class="rcal-head"><button type="button" class="rcal-nav" onclick="rcShift_(-1)" aria-label="前の月">◀</button>'
+  var h = '@@SEL@@<div class="rcal-head"><button type="button" class="rcal-nav" onclick="rcShift_(-1)" aria-label="前の月">◀</button>'
         + '<span>' + RC_Y + '年' + RC_M + '月</span>'
         + '<button type="button" class="rcal-nav" onclick="rcShift_(1)" aria-label="次の月">▶</button></div>';
   h += '<div class="rcal-grid">' + ['日','月','火','水','木','金','土'].map(function(w){ return '<div class="rcal-w">' + w + '</div>'; }).join('');
@@ -899,8 +899,8 @@ function rcRender_(){
   if(a && b) msg = '選択中：' + ((a === b) ? fmtMD_(a) : (fmtMD_(a) + '〜' + fmtMD_(b)));
   else if(a) msg = '開始：' + fmtMD_(a) + '　終了日をタップ（1日だけなら同じ日をもう一度）';
   else msg = '開始日をタップしてください';
-  h += '<div class="rcal-sel"><span>' + msg + '</span>' + (a ? '<button type="button" class="rcal-clear" onclick="rcClear_()">クリア</button>' : '') + '</div>';
-  document.getElementById('rcal').innerHTML = h;
+  var sel = '<div class="rcal-sel"><span>' + msg + '</span>' + (a ? '<button type="button" class="rcal-clear" onclick="rcClear_()">クリア</button>' : '') + '</div>';
+  document.getElementById('rcal').innerHTML = h.replace('@@SEL@@', sel);
 }
 function getHomecomingValue_(){
   var v = document.getElementById('us').value;
