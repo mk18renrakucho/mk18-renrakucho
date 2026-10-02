@@ -667,7 +667,7 @@ function memberCardHTML(m){
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:12px;flex-shrink:0">'
         +'<button class="'+favBtnClass+'" onclick="toggleFav('+m.id+',event)"'+favBtnTitle+' style="font-size:16px;background:none;border:none;padding:0;cursor:pointer">'+(m.fav?'❤️':'🤍')+'</button>'
-        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:11px;padding:6px 20px;min-width:96px;letter-spacing:2px;text-indent:2px;background:var(--blue);color:var(--white);border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.2)">✏️更新する</button>':'') // ← v1.2.13：塗りつぶし（青背景・白文字）にし、✏️アイコンを添えて「自分だけが操作できる場所」だと分かりやすくする。幅広・字間は据え置き
+        +(isMine(m)?'<button onclick="openDet('+m.id+')" style="font-size:12px;padding:6px 16px;background:#c9a96e;color:white;border:none;border-radius:20px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✏️更新する</button>':'') // ← v1.2.13：塗りつぶし（青背景・白文字）にし、✏️アイコンを添えて「自分だけが操作できる場所」だと分かりやすくする。幅広・字間は据え置き
       +'</div>'
     +'</div>'
   +'</div>';
