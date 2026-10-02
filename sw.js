@@ -1,5 +1,7 @@
 // 北高 連絡帳 Service Worker
-const CACHE_NAME = 'mk18-v1';
+// v1.2.14：保存の名前を更新。あわせて、画面ファイルを取りに行くときにブラウザ側の一時保存（GitHub Pagesは約10分）を
+//   飛ばして、毎回サーバーに「更新があるか」を確認するようにした（cache:'no-cache'）。
+const CACHE_NAME = 'mk18-v1.2.14';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
@@ -36,9 +38,13 @@ self.addEventListener('fetch', function(e) {
   if (e.request.url.includes('script.google.com')) {
     return;
   }
+  // 取得（GET）以外は、Service Workerでは扱わない
+  if (e.request.method !== 'GET') {
+    return;
+  }
 
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then(function(res) {
         // 成功したらキャッシュも更新
         var clone = res.clone();
