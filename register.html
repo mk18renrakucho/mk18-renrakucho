@@ -86,6 +86,17 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .gate-card .gate-desc{font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:22px}
 .gate-link-btn{display:inline-block;width:100%;padding:14px;background:var(--accent);color:#fff;border-radius:var(--radius);font-family:inherit;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:.05em;box-sizing:border-box}
 .gate-link-btn:hover{background:var(--accent-dark)}
+.rcal{border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;background:#fff}
+.rcal-sel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text);line-height:1.5}
+.rcal-clear{background:none;border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--sub);cursor:pointer;font-family:inherit;flex-shrink:0;font-weight:400}
+.rcal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:14px;font-weight:700}
+.rcal-nav{background:none;border:none;font-size:16px;color:var(--accent);cursor:pointer;padding:4px 12px;font-family:inherit}
+.rcal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px}
+.rcal-w{text-align:center;font-size:11px;color:var(--sub);padding:4px 0}
+.rcal-d{border:none;background:none;font-family:inherit;font-size:14px;height:36px;cursor:pointer;color:var(--text)}
+.rcal-d.rc-mid{background:var(--accent-light)}
+.rcal-d.rc-edge{background:var(--accent);color:#fff;font-weight:700;border-radius:18px}
+.rc-note{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.6}
 @media(max-width:480px){.card{padding:20px 16px}.gate-card{padding:24px 18px}}
 </style>
 </head>
@@ -424,9 +435,12 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         </div>
         <p class="error-msg">状態を選択してください</p>
       </div>
-      <div class="field">
-        <label>帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
-        <input type="text" id="r_hc" placeholder="例：8/13〜8/17">
+      <div class="field" id="r_hc_wrap" style="display:none">
+        <label>帰省期間<span class="hint">任意　開始日→終了日の順にタップ</span></label>
+        <input type="hidden" id="r_hc">
+        <input type="hidden" id="r_hc_start"><input type="hidden" id="r_hc_end">
+        <div class="rcal" id="rcal"></div>
+        <div class="rc-note" id="r_hc_raw_note" style="display:none"></div>
       </div>
       <div class="divider"></div>
       <p class="section-label">プロフィール変更（任意）</p>
@@ -473,7 +487,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.13　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.14　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -610,6 +624,139 @@ document.querySelectorAll('input[name="r_nick_type"]').forEach(function(r){
     document.getElementById('r_nick_wrap').classList.toggle('show', r.value === 'nick');
     if(r.value === 'real') document.getElementById('r_nickname').value = '';
   });
+});
+
+// ===================================================
+// v1.2.14：帰省期間は範囲カレンダー（開始日→終了日の順にタップ）。
+//  ・保存する値の形は従来どおり「8/13〜8/17」の文字。サーバー側の変更は不要。
+//  ・「在住」系を選ぶと期間は空にして保存する（帰省が終わった人に古い期間が残らないように）。
+//  ・「お盆」など日付に直せない期間が入っている場合は、日付を選び直さない限り元の文字を保持する。
+// ===================================================
+var RC_RAW = '';
+var RC_Y = 0, RC_M = 0;
+function rcPad_(n){ return (n<10?'0':'')+n; }
+function rcFmtMD_(iso){ var p=String(iso).split('-'); return parseInt(p[1],10)+'/'+parseInt(p[2],10); }
+function rcParse_(txt){
+  var t = String(txt||'').trim();
+  var y = new Date().getFullYear();
+  var r = t.match(/^(\d{1,2})\/(\d{1,2})\s*[〜~～\-－–ー]\s*(\d{1,2})\/(\d{1,2})$/);
+  if(r){
+    var sm=+r[1], sd=+r[2], em=+r[3], ed=+r[4];
+    var ey=(em<sm||(em===sm&&ed<sd))?y+1:y;
+    return {start:y+'-'+rcPad_(sm)+'-'+rcPad_(sd), end:ey+'-'+rcPad_(em)+'-'+rcPad_(ed)};
+  }
+  var one = t.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if(one){ var iso=y+'-'+rcPad_(+one[1])+'-'+rcPad_(+one[2]); return {start:iso,end:iso}; }
+  return null;
+}
+function rcIsTrip_(){
+  var c = document.querySelector('input[name="r_st"]:checked');
+  return !!c && (c.value==='帰省予定' || c.value==='帰省中');
+}
+function rcStoreValue_(){
+  var a=document.getElementById('r_hc_start').value, b=document.getElementById('r_hc_end').value;
+  var v='';
+  if(rcIsTrip_()){
+    if(a && b) v = (a===b) ? rcFmtMD_(a) : (rcFmtMD_(a)+'〜'+rcFmtMD_(b));
+    else if(!a && !b) v = RC_RAW;
+  }
+  document.getElementById('r_hc').value = v;
+}
+function syncRadarPeriodUI_(){
+  var trip = rcIsTrip_();
+  document.getElementById('r_hc_wrap').style.display = trip ? 'block' : 'none';
+  if(!trip){
+    document.getElementById('r_hc_start').value = '';
+    document.getElementById('r_hc_end').value = '';
+    RC_RAW = '';
+    document.getElementById('r_hc_raw_note').style.display = 'none';
+  } else {
+    rcInit_();
+  }
+  rcStoreValue_();
+}
+function initRadarPeriodUI_(hc){
+  RC_RAW = '';
+  document.getElementById('r_hc_start').value = '';
+  document.getElementById('r_hc_end').value = '';
+  var note = document.getElementById('r_hc_raw_note');
+  note.style.display = 'none';
+  var t = String(hc||'').trim();
+  if(t){
+    var p = rcParse_(t);
+    if(p){
+      document.getElementById('r_hc_start').value = p.start;
+      document.getElementById('r_hc_end').value = p.end;
+    } else {
+      RC_RAW = t;
+      note.textContent = '現在の期間：' + t + '（日付を選ぶとこの文字は置き換わります）';
+      note.style.display = 'block';
+    }
+  }
+  syncRadarPeriodUI_();
+}
+function rcInit_(){
+  var sv = document.getElementById('r_hc_start').value;
+  var base = sv ? new Date(sv+'T00:00:00') : new Date();
+  RC_Y = base.getFullYear(); RC_M = base.getMonth()+1;
+  rcRender_();
+}
+function rcShift_(n){
+  RC_M += n;
+  if(RC_M<1){ RC_M=12; RC_Y--; }
+  if(RC_M>12){ RC_M=1; RC_Y++; }
+  rcRender_();
+}
+function rcClearRaw_(){
+  RC_RAW = '';
+  document.getElementById('r_hc_raw_note').style.display = 'none';
+}
+function rcPick_(iso){
+  var st=document.getElementById('r_hc_start'), en=document.getElementById('r_hc_end');
+  if(!st.value || en.value){ st.value=iso; en.value=''; }
+  else if(iso < st.value){ st.value=iso; }
+  else { en.value=iso; }
+  rcClearRaw_();
+  rcStoreValue_();
+  rcRender_();
+}
+function rcClear_(){
+  document.getElementById('r_hc_start').value = '';
+  document.getElementById('r_hc_end').value = '';
+  rcClearRaw_();
+  rcStoreValue_();
+  rcRender_();
+}
+function rcRender_(){
+  var a=document.getElementById('r_hc_start').value, b=document.getElementById('r_hc_end').value;
+  var first=new Date(RC_Y,RC_M-1,1).getDay();
+  var days=new Date(RC_Y,RC_M,0).getDate();
+  var msg;
+  if(a && b) msg='選択中：'+((a===b)?rcFmtMD_(a):(rcFmtMD_(a)+'〜'+rcFmtMD_(b)));
+  else if(a) msg='開始：'+rcFmtMD_(a)+'　終了日をタップ（1日だけなら同じ日をもう一度）';
+  else msg='開始日をタップしてください';
+  var h='<div class="rcal-sel"><span>'+msg+'</span>'+(a?'<button type="button" class="rcal-clear" onclick="rcClear_()">クリア</button>':'')+'</div>';
+  h+='<div class="rcal-head"><button type="button" class="rcal-nav" onclick="rcShift_(-1)" aria-label="前の月">◀</button><span>'+RC_Y+'年'+RC_M+'月</span><button type="button" class="rcal-nav" onclick="rcShift_(1)" aria-label="次の月">▶</button></div>';
+  h+='<div class="rcal-grid">'+['日','月','火','水','木','金','土'].map(function(w){return '<div class="rcal-w">'+w+'</div>';}).join('');
+  for(var i=0;i<first;i++) h+='<div></div>';
+  for(var d=1;d<=days;d++){
+    var iso=RC_Y+'-'+rcPad_(RC_M)+'-'+rcPad_(d);
+    var cls='rcal-d';
+    if(iso===a||iso===b) cls+=' rc-edge';
+    else if(a&&b&&iso>a&&iso<b) cls+=' rc-mid';
+    h+='<button type="button" class="'+cls+'" onclick="rcPick_(\''+iso+'\')">'+d+'</button>';
+  }
+  h+='</div>';
+  document.getElementById('rcal').innerHTML=h;
+}
+function rcValidate_(){
+  if(!rcIsTrip_()) return '';
+  var a=document.getElementById('r_hc_start').value, b=document.getElementById('r_hc_end').value;
+  if((a&&!b)||(!a&&b)) return '帰省期間は、終了日も選んでください（1日だけなら同じ日をもう一度タップ。空のままでも更新できます）';
+  return '';
+}
+document.querySelectorAll('input[name="r_st"]').forEach(function(r){
+  r.addEventListener('change', syncRadarPeriodUI_);
 });
 
 function reqField(fieldId, val) {
@@ -785,7 +932,7 @@ function checkRadar() {
 
     setSelectValue('r_area', res.area);
     setRadioValue('r_st', res.status);
-    document.getElementById('r_hc').value    = res.homecoming || '';
+    initRadarPeriodUI_(res.homecoming);
     document.getElementById('r_hobby').value = res.hobby      || '';
     document.getElementById('r_note').value  = res.note       || '';
 
@@ -831,6 +978,9 @@ function submitRadar() {
   ok = reqField('rf-status', (document.querySelector('input[name="r_st"]:checked')||{}).value||'') && ok;
   if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
 
+  var hcErr = rcValidate_();
+  if(hcErr){ showErr('r_err', hcErr); return; }
+  rcStoreValue_();
   setLoading(true,'r_btn');
   send({
     action:'updateStatus',
