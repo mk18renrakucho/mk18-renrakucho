@@ -512,7 +512,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.13　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.14　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -1646,6 +1646,7 @@ function loadFromAPI(){
           id:i+1,name:S(d.name),period:S(d.period),club:S(d.club),area:S(d.area),
           status:S(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
           date:S(d.date),hobby:S(d.hobby),note:S(d.note),nickname:S(d.nickname),upd:"最新",fav:false,
+          hasNoteHistory:!!d.hasNoteHistory, // ← v1.2.14：サーバーが返す「近況履歴がある」印を引き継ぐ（以前は取り込み忘れで、リンクが誰にも出ていなかった）
           updatedAt:d.updatedAt||0 // ← V4l修正：出没レーダーの並び替え用の値を拾い忘れていたため追加
         };
       });
