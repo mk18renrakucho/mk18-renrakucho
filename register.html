@@ -759,6 +759,15 @@ document.querySelectorAll('input[name="r_st"]').forEach(function(r){
   r.addEventListener('change', syncRadarPeriodUI_);
 });
 
+// v1.2.14：?return=gallery / ?return=radar が付いて開かれた時の、戻り先（決まった2つ以外は無視する）
+function returnUrl_(){
+  var key = '';
+  try{ key = new URLSearchParams(location.search).get('return') || ''; }catch(e){}
+  if(key === 'gallery') return 'index.html#gallery';
+  if(key === 'radar')   return 'index.html#radar';
+  return '';
+}
+
 function reqField(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val){ el.classList.add('has-error'); return false; }
@@ -1000,7 +1009,10 @@ function submitRadar() {
       if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
       // v1.2.12：内容が何も変わっていない更新は、最終更新日時が動かず順番も変わらない。その理由が伝わるよう、メッセージを出し分ける
       showToast(res.changed === false ? '変更はありませんでした（順番はそのまま）' : '✓ 近況を更新しました！');
-      setTimeout(showTop, 1500);
+      // v1.2.14：写真館や出没レーダーから本人確認に来た場合は、確認が終わったら元の画面に戻る
+      var backUrl = returnUrl_();
+      if(backUrl){ setTimeout(function(){ location.href = backUrl; }, 1500); }
+      else { setTimeout(showTop, 1500); }
     }
     else { showErr('r_err', (res && res.error) || '更新に失敗しました。もう一度お試しください。'); }
   });
