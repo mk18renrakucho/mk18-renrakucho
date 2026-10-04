@@ -52,6 +52,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .filter-sel{font-size:12px;padding:5px 8px;flex:1 1 auto;min-width:70px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--white);color:var(--text)}
 .member-card{transition:border-color 0.15s}
 .member-card:hover{border-color:var(--blue-mid)}
+.auth-card{background:var(--blue-light);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.auth-card-title{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:6px}
+.auth-card-text{font-size:12px;color:var(--text-sub);line-height:1.7;margin-bottom:12px}
+.btn-gold{display:inline-block;background:#c9a96e;color:white;border:none;border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;white-space:nowrap}
+.auth-card-sub{font-size:11px;color:var(--text-ter);margin-top:10px}
+.auth-card-sub a{color:var(--blue-mid)}
 .member-card .badge{font-size:13px;padding:4px 12px}
 .chip-info{display:inline-flex;align-items:center;font-size:13px;font-weight:700;color:var(--blue);background:var(--blue-light);padding:4px 12px;border-radius:20px;max-width:100%;overflow-wrap:anywhere}
 .status-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -159,8 +165,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="loading-msg" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;display:none">
     <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
   </div>
-  <div id="my-update-hint" style="display:none;font-size:12px;color:var(--text-sub);background:var(--gray);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px;line-height:1.6">
-    自分の近況の更新は、自分のカードの「近況を更新する」から行います。カードにボタンが出ない場合は、<a href="register.html#radar" style="color:var(--blue-mid)">こちら</a>から名前と確認用の数字で更新できます。
+  <div id="my-update-hint" class="auth-card" style="display:none;margin-bottom:10px">
+    <div class="auth-card-title">🔑 本人確認のお願い</div>
+    <div class="auth-card-text">この環境では、まだ本人確認ができていません。<br>（LINEやSafariなど、開く場所ごとに1回ずつ必要です）</div>
+    <a class="btn-gold" href="register.html?return=radar#radar">本人確認をする</a>
+    <div class="auth-card-sub">未登録の方は <a href="register.html#register">メンバー登録する</a></div>
   </div>
   <div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
   <div id="ml"></div>
@@ -218,7 +227,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <i class="ti ti-info-circle" style="margin-right:4px"></i>登録済みの方なら誰でも投稿・閲覧できます（部活の写真は「部室」タブへ）。
     </div>
 
-    <div class="card" style="margin-bottom:14px">
+    <div class="card" id="g_upload_card" style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:500;margin-bottom:8px">📷 写真を投稿する</div>
       <input type="file" id="g_file" accept="image/*" style="margin-bottom:8px">
       <input type="text" id="g_caption" placeholder="ひとことコメント（任意）" style="margin-bottom:8px">
@@ -1304,12 +1313,24 @@ function buildGoogleCalendarLink_(title, startDate, detail){
   return 'https://calendar.google.com/calendar/render?' + params;
 }
 
+// v1.2.14：本人確認が必要な場面で出す共通の案内カード（写真館用。出没レーダー側は同じ見た目をHTMLに直接書いてある）
+function renderGalleryAuthNeeded_(){
+  var up = document.getElementById('g_upload_card');
+  if(up) up.style.display = 'none';
+  document.getElementById('g_period_pills').innerHTML = '';
+  document.getElementById('g_grid').innerHTML =
+    '<div class="auth-card" style="grid-column:1/-1">'
+    + '<div class="auth-card-title">🔑 本人確認のお願い</div>'
+    + '<div class="auth-card-text">この環境では、まだ本人確認ができていません。<br>（LINEやSafariなど、開く場所ごとに1回ずつ必要です）</div>'
+    + '<a class="btn-gold" href="register.html?return=gallery#radar">本人確認をする</a>'
+    + '<div class="auth-card-sub">未登録の方は <a href="register.html#register">メンバー登録する</a></div>'
+    + '</div>';
+}
+
 function loadGalleryFromAPI(){
   var uid = getMyUid();
   if(!uid){
-    document.getElementById('g_period_pills').innerHTML = '';
-    document.getElementById('g_grid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">登録済みの方のみご利用いただけます</div>';
+    renderGalleryAuthNeeded_();
     return;
   }
   document.getElementById('g_grid').innerHTML =
@@ -1318,11 +1339,14 @@ function loadGalleryFromAPI(){
   apiFetch('action=getGallery&uid=' + encodeURIComponent(uid))
     .then(function(r){ return r.json(); })
     .then(function(res){
+      if(res && res.error === 'not_registered'){ renderGalleryAuthNeeded_(); return; }
       if(!res || !res.success){
         document.getElementById('g_grid').innerHTML =
           '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
         return;
       }
+      var upCard = document.getElementById('g_upload_card');
+      if(upCard) upCard.style.display = '';
       galleryPhotos = res.photos || [];
       gallerySelectedPeriod = '全期';
       renderGalleryPeriodPills();
