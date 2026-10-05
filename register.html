@@ -253,9 +253,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>現在のエリア<span class="req">*</span></label>
       <select id="reg_area">
         <option value="">選択してください</option>
-        <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
-        <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
-        <option>北海道・東北</option><option>海外</option><option>その他</option>
+        <option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
       </select>
       <p class="error-msg">エリアを選択してください</p>
     </div>
@@ -408,6 +406,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <div class="current-info-row"><span class="ci-label">期</span><span class="ci-val" id="ci_period">-</span></div>
         <div class="current-info-row"><span class="ci-label">部活</span><span class="ci-val" id="ci_club">-</span></div>
         <div class="current-info-row"><span class="ci-label">エリア</span><span class="ci-val" id="ci_area">-</span></div>
+        <div class="current-info-row"><span class="ci-label">行き先</span><span class="ci-val" id="ci_dest">-</span></div>
         <div class="current-info-row"><span class="ci-label">状態</span><span class="ci-val" id="ci_status">-</span></div>
         <div class="current-info-row"><span class="ci-label">帰省期間</span><span class="ci-val" id="ci_homecoming">-</span></div>
         <div class="current-info-row"><span class="ci-label">趣味</span><span class="ci-val" id="ci_hobby">-</span></div>
@@ -419,9 +418,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <label>現在のエリア<span class="req">*</span></label>
         <select id="r_area">
           <option value="">選択してください</option>
-          <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
-          <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
-          <option>北海道・東北</option><option>海外</option><option>その他</option>
+          <option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
         </select>
         <p class="error-msg">エリアを選択してください</p>
       </div>
@@ -432,8 +429,14 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
           <label class="radio-item"><input type="radio" name="r_st" value="松山以外に在住"><span>松山以外に在住</span></label>
           <label class="radio-item"><input type="radio" name="r_st" value="帰省予定"><span>帰省予定あり</span></label>
           <label class="radio-item"><input type="radio" name="r_st" value="帰省中"><span>帰省中</span></label>
+          <label class="radio-item"><input type="radio" name="r_st" value="出没予定"><span>出没予定</span></label>
+          <label class="radio-item"><input type="radio" name="r_st" value="出没中"><span>出没中</span></label>
         </div>
         <p class="error-msg">状態を選択してください</p>
+      </div>
+      <div class="field" id="r_dest_wrap" style="display:none">
+        <label>行き先<span class="req">*</span><span class="hint">出没するエリア</span></label>
+        <select id="r_dest"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
       </div>
       <div class="field" id="r_hc_wrap" style="display:none">
         <label>帰省期間<span class="hint">任意　開始日→終了日の順にタップ</span></label>
@@ -487,7 +490,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.14　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.15　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -651,7 +654,7 @@ function rcParse_(txt){
 }
 function rcIsTrip_(){
   var c = document.querySelector('input[name="r_st"]:checked');
-  return !!c && (c.value==='帰省予定' || c.value==='帰省中');
+  return !!c && (c.value==='帰省予定' || c.value==='帰省中' || c.value==='出没予定' || c.value==='出没中');
 }
 function rcStoreValue_(){
   var a=document.getElementById('r_hc_start').value, b=document.getElementById('r_hc_end').value;
@@ -662,8 +665,21 @@ function rcStoreValue_(){
   }
   document.getElementById('r_hc').value = v;
 }
+function rcIsVisit_(){
+  var c = document.querySelector('input[name="r_st"]:checked');
+  return !!c && (c.value==='出没予定' || c.value==='出没中');
+}
+function rcEnsureOption_(sel, val){
+  var t = String(val == null ? '' : val).trim();
+  if(!t) return;
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===t) return; }
+  var o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+}
 function syncRadarPeriodUI_(){
   var trip = rcIsTrip_();
+  var visit = rcIsVisit_();
+  document.getElementById('r_dest_wrap').style.display = visit ? 'block' : 'none';
+  if(!visit) document.getElementById('r_dest').value = '';
   document.getElementById('r_hc_wrap').style.display = trip ? 'block' : 'none';
   if(!trip){
     document.getElementById('r_hc_start').value = '';
@@ -750,6 +766,7 @@ function rcRender_(){
   document.getElementById('rcal').innerHTML=h;
 }
 function rcValidate_(){
+  if(rcIsVisit_() && !document.getElementById('r_dest').value) return '行き先を選んでください';
   if(!rcIsTrip_()) return '';
   var a=document.getElementById('r_hc_start').value, b=document.getElementById('r_hc_end').value;
   if((a&&!b)||(!a&&b)) return '帰省期間は、終了日も選んでください（1日だけなら同じ日をもう一度タップ。空のままでも更新できます）';
@@ -933,6 +950,7 @@ function checkRadar() {
     document.getElementById('ci_period').textContent     = res.period     || '-';
     document.getElementById('ci_club').textContent       = res.club       || '-';
     document.getElementById('ci_area').textContent       = res.area       || '-';
+    document.getElementById('ci_dest').textContent = res.destination || '-';
     document.getElementById('ci_status').textContent     = res.status     || '-';
     document.getElementById('ci_homecoming').textContent = res.homecoming || '-';
     document.getElementById('ci_hobby').textContent      = res.hobby      || '-';
@@ -941,6 +959,9 @@ function checkRadar() {
 
     setSelectValue('r_area', res.area);
     setRadioValue('r_st', res.status);
+    var rd = document.getElementById('r_dest');
+    rcEnsureOption_(rd, res.destination);
+    rd.value = res.destination || '';
     initRadarPeriodUI_(res.homecoming);
     document.getElementById('r_hobby').value = res.hobby      || '';
     document.getElementById('r_note').value  = res.note       || '';
@@ -999,6 +1020,7 @@ function submitRadar() {
     area:document.getElementById('r_area').value,
     status:document.querySelector('input[name="r_st"]:checked').value,
     homecoming:document.getElementById('r_hc').value.trim(),
+    destination:(rcIsVisit_() ? document.getElementById('r_dest').value : ''),
     club:document.getElementById('r_club').value,
     hobby:document.getElementById('r_hobby').value.trim(),
     note:document.getElementById('r_note').value.trim(),
