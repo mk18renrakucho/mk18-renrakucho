@@ -416,7 +416,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <p class="section-label">変更する内容</p>
       <div class="field" id="rf-area">
         <label>現在のエリア<span class="req">*</span></label>
-        <select id="r_area">
+        <select id="r_area" onchange="refreshDestOptionsR_()">
           <option value="">選択してください</option>
           <option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
         </select>
@@ -665,6 +665,23 @@ function rcStoreValue_(){
   }
   document.getElementById('r_hc').value = v;
 }
+var AREA_LIST = ["松山", "愛媛・四国（松山以外）", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"];
+// 行き先の選択肢から、ふだんの住まい（エリア）と同じものを除く（海外・その他は別の国・場所があり得るので除かない）
+function refreshDestOptionsR_(){
+  var cur = document.getElementById('r_area').value;
+  var sel = document.getElementById('r_dest');
+  var keep = sel.value;
+  var vals = AREA_LIST.slice();
+  if(keep && vals.indexOf(keep) < 0) vals.push(keep);
+  var html = '<option value="">選択してください</option>';
+  vals.forEach(function(a){
+    if(a === cur && a !== '海外' && a !== 'その他') return;
+    html += '<option value="'+a+'">'+a+'</option>';
+  });
+  sel.innerHTML = html;
+  sel.value = keep;
+  if(sel.value !== keep) sel.value = '';
+}
 function rcIsVisit_(){
   var c = document.querySelector('input[name="r_st"]:checked');
   return !!c && (c.value==='出没予定' || c.value==='出没中');
@@ -680,6 +697,7 @@ function syncRadarPeriodUI_(){
   var visit = rcIsVisit_();
   document.getElementById('r_dest_wrap').style.display = visit ? 'block' : 'none';
   if(!visit) document.getElementById('r_dest').value = '';
+  if(visit) refreshDestOptionsR_();
   document.getElementById('r_hc_wrap').style.display = trip ? 'block' : 'none';
   if(!trip){
     document.getElementById('r_hc_start').value = '';
