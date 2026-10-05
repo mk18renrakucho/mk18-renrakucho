@@ -422,7 +422,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
           <button type="button" class="pill" data-val="出没中" onclick="setUpdateStatus_(this.getAttribute('data-val'))">出没中</button>
         </div>
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 ふだんの住まい（エリア）</div>
-        <select id="ue" style="margin-bottom:12px"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+        <select id="ue" style="margin-bottom:12px" onchange="refreshDestOptions_()"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
         <div id="ud_dest_wrap" style="display:none;margin-bottom:12px">
           <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🧳 行き先（必須）</div>
           <select id="ud_dest"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
@@ -819,6 +819,22 @@ function setUpdateNickUI(isNick){
 var UD_RAW = '';
 function isTripStatus_(v){ return v==='帰省予定' || v==='帰省中' || v==='出没予定' || v==='出没中'; }
 function isVisitStatus_(v){ return v==='出没予定' || v==='出没中'; }
+// 行き先の選択肢から、ふだんの住まい（エリア）と同じものを除く（海外・その他は別の国・場所があり得るので除かない）
+function refreshDestOptions_(){
+  var cur = document.getElementById('ue').value;
+  var sel = document.getElementById('ud_dest');
+  var keep = sel.value;
+  var vals = AREA_ORDER.slice();
+  if(keep && vals.indexOf(keep) < 0) vals.push(keep); // 過去の自由入力など、一覧に無い値は消さない
+  var html = '<option value="">選択してください</option>';
+  vals.forEach(function(a){
+    if(a === cur && a !== '海外' && a !== 'その他') return;
+    html += '<option value="'+escHtmlLite(a)+'">'+escHtmlLite(a)+'</option>';
+  });
+  sel.innerHTML = html;
+  sel.value = keep;
+  if(sel.value !== keep) sel.value = '';
+}
 function getDestinationValue_(){
   var v = document.getElementById('us').value;
   return isVisitStatus_(v) ? document.getElementById('ud_dest').value : '';
@@ -855,6 +871,7 @@ function syncUpdateStatusUI_(){
   var visit = isVisitStatus_(us.value);
   document.getElementById('ud_dest_wrap').style.display = visit ? 'block' : 'none';
   if(!visit) document.getElementById('ud_dest').value = '';
+  if(visit) refreshDestOptions_();
   document.getElementById('ud_wrap').style.display = trip ? 'block' : 'none';
   if(trip) rcInit_();
   if(!trip){
