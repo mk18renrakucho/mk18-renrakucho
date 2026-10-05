@@ -135,7 +135,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
   <div>
     <div class="header-count-num" id="hc">0</div>
-    <div class="header-count-label">帰省中・予定</div>
+    <div class="header-count-label">出没中・予定</div>
   </div>
 </div>
 
@@ -160,7 +160,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="filters">
     <select class="filter-sel" id="fc" onchange="renderM()"><option>全部活</option></select>
     <select class="filter-sel" id="fa" onchange="renderM()"><option>全エリア</option></select>
-    <select class="filter-sel" id="fs" onchange="renderM()"><option>全状態</option><option>帰省中</option><option>帰省予定</option><option>在住</option></select>
+    <select class="filter-sel" id="fs" onchange="renderM()"><option>全状態</option><option>帰省中</option><option>帰省予定</option><option>出没中</option><option>出没予定</option><option>在住</option></select>
   </div>
   <div id="loading-msg" style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;display:none">
     <i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:8px"></i>メンバーデータを読み込み中...
@@ -410,15 +410,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
           <option value="松山以外に在住">松山以外に在住</option>
           <option value="帰省予定">帰省予定あり</option>
           <option value="帰省中">帰省中</option>
+          <option value="出没予定">出没予定</option>
+          <option value="出没中">出没中</option>
         </select>
         <div class="status-btns" id="us_btns">
           <button type="button" class="pill" data-val="在住（松山在住）" onclick="setUpdateStatus_(this.getAttribute('data-val'))">松山に在住</button>
           <button type="button" class="pill" data-val="松山以外に在住" onclick="setUpdateStatus_(this.getAttribute('data-val'))">松山以外に在住</button>
           <button type="button" class="pill" data-val="帰省予定" onclick="setUpdateStatus_(this.getAttribute('data-val'))">帰省予定あり</button>
           <button type="button" class="pill" data-val="帰省中" onclick="setUpdateStatus_(this.getAttribute('data-val'))">帰省中</button>
+          <button type="button" class="pill" data-val="出没予定" onclick="setUpdateStatus_(this.getAttribute('data-val'))">出没予定</button>
+          <button type="button" class="pill" data-val="出没中" onclick="setUpdateStatus_(this.getAttribute('data-val'))">出没中</button>
         </div>
-        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 いまのエリア（任意）</div>
-        <input type="text" id="ue" placeholder="例：松山・関東・大阪" style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 ふだんの住まい（エリア）</div>
+        <select id="ue" style="margin-bottom:12px"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+        <div id="ud_dest_wrap" style="display:none;margin-bottom:12px">
+          <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🧳 行き先（必須）</div>
+          <select id="ud_dest"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+        </div>
         <input type="hidden" id="ud">
         <div id="ud_wrap" style="display:none;margin-bottom:12px">
           <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🗓 帰省期間（任意）</div>
@@ -521,13 +529,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.14　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.15　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
 <script>
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
+var MOVE_STATUSES = ['帰省中','帰省予定','出没中','出没予定']; // v1.2.15：動き（帰省・出没）の状態
+var AREA_ORDER = ["松山", "愛媛・四国（松山以外）", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"]; // v1.2.15：エリアの並び順（絞り込み用）
 var boardVerifiedUser = null;
 var updateAuthName = ""; // ← v1.2.12：近況更新の本人確認に使った名前（ニックネーム表示の方は本名）
 // ← v1.2.12：この端末に保存されている登録証（mk18_uid）が指す「自分のカード」。
@@ -606,12 +616,12 @@ function av(n,sz){
 }
 
 function sb(st){
-  var m={帰省中:"badge-home",帰省予定:"badge-plan",在住:"badge-live"};
-  var ic={帰省中:"ti-home",帰省予定:"ti-calendar",在住:"ti-map-pin"};
+  var m={帰省中:"badge-home",帰省予定:"badge-plan",出没中:"badge-home",出没予定:"badge-plan",在住:"badge-live"};
+  var ic={帰省中:"ti-home",帰省予定:"ti-calendar",出没中:"ti-plane",出没予定:"ti-calendar",在住:"ti-map-pin"};
   return '<span class="badge '+(m[st]||"badge-live")+'"><i class="ti '+(ic[st]||"ti-map-pin")+'" style="font-size:10px"></i>'+escHtmlLite(st)+'</span>';
 }
 
-function hc(){document.getElementById("hc").textContent=M.filter(function(m){return m.status==="帰省中"||m.status==="帰省予定";}).length;}
+function hc(){document.getElementById("hc").textContent=M.filter(function(m){return MOVE_STATUSES.indexOf(m.status)>=0;}).length;}
 
 function populateFilters(){
   var periods=[...new Set(M.map(function(m){return m.period||"";}).filter(Boolean))];
@@ -625,7 +635,10 @@ function populateFilters(){
   });
   function opts(key,prefix){return[prefix,...new Set(M.map(function(m){return m[key]||"";}).filter(Boolean))].map(function(v){return'<option>'+escHtmlLite(v)+'</option>';}).join("");}
   document.getElementById("fc").innerHTML=opts("club","全部活");
-  document.getElementById("fa").innerHTML=opts("area","全エリア");
+  var areaSet=[];
+  M.forEach(function(m){ [m.area,m.destination].forEach(function(a){ if(a && areaSet.indexOf(a)<0) areaSet.push(a); }); });
+  areaSet.sort(function(a,b){ var ia=AREA_ORDER.indexOf(a), ib=AREA_ORDER.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+  document.getElementById("fa").innerHTML=["全エリア"].concat(areaSet).map(function(v){return '<option>'+escHtmlLite(v)+'</option>';}).join("");
 }
 function selectPeriod(p){selectedPeriod=p;populateFilters();renderM();}
 
@@ -656,13 +669,19 @@ function memberCardHTML(m){
   var hobbyText = S(m.hobby).trim();
   var areaText = S(m.area).trim();
   var clubText = S(m.club).trim();
+  // v1.2.15：動き（帰省・出没）のときは「住まい → 行き先」の形で1つのチップにする
+  var destText = S(m.destination).trim();
+  var placeText = areaText;
+  if(MOVE_STATUSES.indexOf(m.status)>=0 && destText){
+    placeText = (areaText && areaText!==destText) ? (areaText+' → '+destText) : destText;
+  }
   var pc = personColor(m.name); // ← v1.2.13：この人の色。左帯と下段の背景に使い、「誰の書き込みか」を一目で分かりやすくする
   return '<div class="card member-card" id="mc'+m.id+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
     // ▼ 上部：「出没情報」（状態・エリア・帰省期間をひとまとまりに）と趣味 ▼
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">'
       +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
         +sb(m.status)
-        +(areaText?'<span class="chip-info">📍 '+escHtmlLite(areaText)+'</span>':'')
+        +(placeText?'<span class="chip-info">📍 '+escHtmlLite(placeText)+'</span>':'')
         +(m.date?'<span class="chip-info">🗓 '+escHtmlLite(m.date)+'</span>':'')
       +'</div>'
       +(hobbyText?'<div style="font-size:11px;color:var(--text-sub);white-space:nowrap;flex-shrink:0">🎯 '+escHtmlLite(hobbyText)+'</div>':'')
@@ -698,10 +717,10 @@ function renderM(){
   var f=M.filter(function(m){
     if(selectedPeriod!=="全期"&&m.period!==selectedPeriod)return false;
     if(fc!=="全部活"&&m.club!==fc)return false;
-    if(fa!=="全エリア"&&m.area!==fa)return false;
+    if(fa!=="全エリア"&&m.area!==fa&&m.destination!==fa)return false; // v1.2.15：住まいか行き先のどちらかが一致すればよい
     if(fs!=="全状態"&&m.status!==fs)return false;
     // ← v1.2.12：数字だけの入力が数値型で返ってきても.indexOf()で落ちないよう、S()で文字列にしてから検索する
-    if(kw&&S(m.name).indexOf(kw)<0&&S(m.note).indexOf(kw)<0&&S(m.hobby).indexOf(kw)<0)return false;
+    if(kw&&S(m.name).indexOf(kw)<0&&S(m.note).indexOf(kw)<0&&S(m.hobby).indexOf(kw)<0&&S(m.destination).indexOf(kw)<0&&S(m.area).indexOf(kw)<0)return false;
     return true;
   });
   f.sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}); // ← V4l：出没レーダーは最終更新日時が新しい順
@@ -798,7 +817,19 @@ function setUpdateNickUI(isNick){
 //  ・「お盆」など日付に直せない期間が既に入っている人は、選び直さない限り元の文字をそのまま保持する。
 // ===================================================
 var UD_RAW = '';
-function isTripStatus_(v){ return v==='帰省予定' || v==='帰省中'; }
+function isTripStatus_(v){ return v==='帰省予定' || v==='帰省中' || v==='出没予定' || v==='出没中'; }
+function isVisitStatus_(v){ return v==='出没予定' || v==='出没中'; }
+function getDestinationValue_(){
+  var v = document.getElementById('us').value;
+  return isVisitStatus_(v) ? document.getElementById('ud_dest').value : '';
+}
+// 選択肢に無い値（過去の自由入力など）が入っている場合は、その値を選択肢に足して、消えないようにする
+function ensureOption_(sel, val){
+  var t = S(val).trim();
+  if(!t) return;
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===t) return; }
+  var o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+}
 function isoFromMD_(m, d, y){ return y+'-'+pad2_(m)+'-'+pad2_(d); }
 function fmtMD_(iso){ var p=S(iso).split('-'); return parseInt(p[1],10)+'/'+parseInt(p[2],10); }
 function parseHomecoming_(txt){
@@ -821,6 +852,9 @@ function syncUpdateStatusUI_(){
     b.classList.toggle('active', b.getAttribute('data-val')===us.value);
   });
   var trip = isTripStatus_(us.value);
+  var visit = isVisitStatus_(us.value);
+  document.getElementById('ud_dest_wrap').style.display = visit ? 'block' : 'none';
+  if(!visit) document.getElementById('ud_dest').value = '';
   document.getElementById('ud_wrap').style.display = trip ? 'block' : 'none';
   if(trip) rcInit_();
   if(!trip){
@@ -856,6 +890,9 @@ function initUpdateFormUI_(res){
       note.style.display = 'block';
     }
   }
+  var dd = document.getElementById('ud_dest');
+  ensureOption_(dd, res && res.destination);
+  dd.value = S(res && res.destination);
   document.getElementById('u_more').open = false;
   syncUpdateStatusUI_();
 }
@@ -922,6 +959,7 @@ function getHomecomingValue_(){
 }
 function validateHomecoming_(){
   var v = document.getElementById('us').value;
+  if(isVisitStatus_(v) && !document.getElementById('ud_dest').value) return '行き先を選んでください';
   if(!isTripStatus_(v)) return '';
   var a = document.getElementById('ud_start').value;
   var b = document.getElementById('ud_end').value;
@@ -955,6 +993,7 @@ function doVerifyUpdate(){
       //   verify APIが返す加工前の値（res.*）を使うよう修正。
       document.getElementById("us").value=res.status||"在住（松山在住）";
       document.getElementById("ud").value=res.homecoming||"";
+      ensureOption_(document.getElementById("ue"), res.area);
       document.getElementById("ue").value=res.area||"";
       document.getElementById("un").value=res.note||"";
       // ← v1.2.12：部活（現在の値を表示・変更する時だけ選ぶ）／表示名／趣味
@@ -997,6 +1036,7 @@ function doUpdate(){
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
     homecoming:getHomecomingValue_(),
+    destination:getDestinationValue_(),
     note:document.getElementById("un").value.trim(),
     club:document.getElementById("uc").value,
     hobby:document.getElementById("uh").value.trim(),
@@ -1670,6 +1710,7 @@ function loadFromAPI(){
           id:i+1,name:S(d.name),period:S(d.period),club:S(d.club),area:S(d.area),
           status:S(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
           date:S(d.date),hobby:S(d.hobby),note:S(d.note),nickname:S(d.nickname),upd:"最新",fav:false,
+          destination:S(d.destination), // ← v1.2.15：行き先（帰省は松山）
           hasNoteHistory:!!d.hasNoteHistory, // ← v1.2.14：サーバーが返す「近況履歴がある」印を引き継ぐ（以前は取り込み忘れで、リンクが誰にも出ていなかった）
           updatedAt:d.updatedAt||0 // ← V4l修正：出没レーダーの並び替え用の値を拾い忘れていたため追加
         };
