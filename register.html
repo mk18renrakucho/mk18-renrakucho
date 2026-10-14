@@ -490,7 +490,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.15　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.16　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -794,12 +794,13 @@ document.querySelectorAll('input[name="r_st"]').forEach(function(r){
   r.addEventListener('change', syncRadarPeriodUI_);
 });
 
-// v1.2.14：?return=gallery / ?return=radar が付いて開かれた時の、戻り先（決まった2つ以外は無視する）
+// v1.2.14：?return=gallery / ?return=radar が付いて開かれた時の、戻り先（決まった3つ以外は無視する。v1.2.16で ?return=footprint を追加）
 function returnUrl_(){
   var key = '';
   try{ key = new URLSearchParams(location.search).get('return') || ''; }catch(e){}
   if(key === 'gallery') return 'index.html#gallery';
   if(key === 'radar')   return 'index.html#radar';
+  if(key === 'footprint') return 'index.html#footprint'; // ← v1.2.16：足跡のタブから来た場合は、足跡のタブに戻る
   return '';
 }
 
