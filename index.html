@@ -554,7 +554,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">写真（最大4枚・なくても投稿できます）</div>
     <div id="fp_slots" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
-    <input type="file" id="fp_file" accept="image/*" multiple style="display:none" onchange="fpFilesChosen(this)">
+    <!-- v1.2.17：display:none の入力欄は、LINE内ブラウザなどで開かないことがあるため、「見えないだけ」の入力欄にして、＋追加は<label>で開く -->
+    <input type="file" id="fp_file" accept="image/*" multiple tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" onchange="fpFilesChosen(this)">
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと（任意）</div>
     <textarea id="fp_note" rows="2" maxlength="200" oninput="fpUpdateCount()" placeholder="例：松山から海沿いを走ってきた"></textarea>
     <div id="fp_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:10px">0 / 200</div>
@@ -590,7 +591,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.16　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.17　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2292,6 +2293,7 @@ var FP_MAX_PHOTOS = 4, FP_NOTE_MAX = 200;
 var FP_CURRENT_ID = null;
 var fpPicked = [];
 var fpBusy = false;
+var fpLoading = 0; // v1.2.17：写真を読み込み中の枚数（読み込み中の表示用）
 
 function switchRadarTab(sub){
   document.getElementById('r-radar').style.display = sub==='radar' ? 'block' : 'none';
@@ -2495,7 +2497,7 @@ function deleteFootprint(postId){
 // ---- 投稿 ----
 function openFootprintModal(){
   if(!getMyUid()){ renderFootprintAuthNeeded_(); showToast('先に本人確認をお願いします'); return; }
-  fpPicked = []; fpBusy = false;
+  fpPicked = []; fpBusy = false; fpLoading = 0;
   document.getElementById('fp_note').value = '';
   document.getElementById('fp_err').style.display = 'none';
   document.getElementById('fp_btn').disabled = false;
@@ -2517,7 +2519,11 @@ function fpRenderSlots(){
         + '<img src="'+fpPicked[i].preview+'" alt="写真'+(i+1)+'" style="width:100%;height:100%;object-fit:cover;display:block">'
         + '<button type="button" aria-label="写真'+(i+1)+'を外す" onclick="fpRemove('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border:none;border-radius:14px;background:#fff;color:#666;font-size:14px;cursor:pointer">×</button></div>';
     } else if(i === fpPicked.length){
-      h += '<button type="button" onclick="document.getElementById(\'fp_file\').click()" style="aspect-ratio:1/1;border:1.5px dashed #c9a96e;background:#fff;border-radius:8px;font-size:12px;color:var(--text-sub);cursor:pointer;font-family:inherit">＋追加</button>';
+      if(fpLoading > 0){
+        h += '<div style="aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border:1.5px dashed #c9a96e;border-radius:8px;font-size:11px;color:var(--text-sub);text-align:center">読み込み中…</div>';
+      } else {
+        h += '<label for="fp_file" style="aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border:1.5px dashed #c9a96e;background:#fff;border-radius:8px;font-size:12px;color:var(--text-sub);cursor:pointer;font-family:inherit">＋追加</label>';
+      }
     } else {
       h += '<div style="aspect-ratio:1/1;border:1.5px dashed var(--border);border-radius:8px"></div>';
     }
@@ -2531,13 +2537,18 @@ function fpFilesChosen(input){
   var room = FP_MAX_PHOTOS - fpPicked.length;
   if(files.length > room) showToast('写真は最大'+FP_MAX_PHOTOS+'枚までです');
   files = files.slice(0, room);
+  if(files.length === 0) return; // 選ばずに閉じた場合は何もしない
+  fpLoading = files.length; fpRenderSlots(); // 大きい写真は少し時間がかかるため、読み込み中だと分かるようにする
   Promise.all(files.map(function(f){
     return compressImageFile(f, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
       .then(function(preview){ return { file: f, preview: preview }; })
       .catch(function(){ return null; });
   })).then(function(items){
-    items.forEach(function(it){ if(it && safeImgSrc(it.preview)) fpPicked.push(it); });
-    fpRenderSlots();
+    var failed = 0;
+    items.forEach(function(it){ if(it && safeImgSrc(it.preview)) fpPicked.push(it); else failed++; });
+    fpLoading = 0; fpRenderSlots();
+    // v1.2.17：読み込めなかった写真は、黙って消さずに知らせる（以前は何も表示されず、押しても反応がないように見えた）
+    if(failed) showToast('⚠ ' + failed + '枚は読み込めませんでした（JPEG・PNG・WebPの写真をお試しください）');
   });
 }
 
