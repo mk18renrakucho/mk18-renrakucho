@@ -152,6 +152,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <!-- 出没レーダー -->
 <div id="p-r">
+  <!-- v1.2.16：出没／足跡 の切り替え（View & News の「写真／お知らせ」と同じ形） -->
+  <div style="display:flex;gap:8px;margin-bottom:12px;background:var(--gray);border-radius:var(--radius);padding:4px">
+    <button id="rtb-radar" onclick="switchRadarTab('radar')" style="flex:1;padding:11px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)">出没</button>
+    <button id="rtb-foot" onclick="switchRadarTab('foot')" style="flex:1;padding:11px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-sub)">足跡</button>
+  </div>
+  <div id="r-radar">
   <div class="search-wrap">
     <i class="ti ti-search"></i>
     <input type="text" id="kw" placeholder="名前・趣味・ひとことで検索" oninput="renderM()">
@@ -173,6 +179,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
   <div id="mc" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
   <div id="ml"></div>
+  </div><!-- /r-radar -->
+
+  <!-- v1.2.16：足跡（写真つきの近況） -->
+  <div id="r-foot" style="display:none">
+    <div id="fp-period-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+      <select class="filter-sel" id="fp-place" aria-label="場所で絞る" onchange="fpSelectPlace(this.value)" style="flex:1;min-height:44px"><option>全場所</option></select>
+      <button class="btn-gold" onclick="openFootprintModal()" style="min-height:44px;padding:6px 16px">✍️ 足跡を残す</button>
+    </div>
+    <div id="fp-count" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
+    <div id="fp-list"></div>
+  </div>
 </div>
 
 <!-- コルクボード -->
@@ -527,9 +545,52 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- v1.2.16：足跡の投稿（長い入力を誤って消さないよう、背景タップでは閉じない。×ボタンのみ） -->
+<div class="modal-overlay" id="modal-footprint">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px">✍️ 足跡を残す</div>
+      <button class="x-btn" onclick="closeFootprintModal()" aria-label="閉じる">&times;</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">写真（最大4枚・なくても投稿できます）</div>
+    <div id="fp_slots" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+    <input type="file" id="fp_file" accept="image/*" multiple style="display:none" onchange="fpFilesChosen(this)">
+    <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと（任意）</div>
+    <textarea id="fp_note" rows="2" maxlength="200" oninput="fpUpdateCount()" placeholder="例：松山から海沿いを走ってきた"></textarea>
+    <div id="fp_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:10px">0 / 200</div>
+    <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 場所（任意）　日付は自動で入ります</div>
+    <select id="fp_place" style="margin-bottom:12px;min-height:44px"><option value="">選ばない</option></select>
+    <details class="more-box"><summary>▶ 帰省・出没も知らせる（任意）</summary>
+      <div style="font-size:12px;color:var(--text-sub);line-height:1.7;margin-bottom:10px">帰省や出没の予定は、「出没」の自分のカードの「✏️更新する」から入れられます。</div>
+      <button type="button" class="btn" onclick="closeFootprintModal();switchRadarTab('radar')" style="width:100%;margin-bottom:12px;min-height:44px">「出没」を開く</button>
+    </details>
+    <div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;line-height:1.7;color:var(--text-sub);margin-bottom:14px">
+      <span id="fp_who">あなた</span>の名前で、登録メンバーに見えます。<br>顔や住所が写っていないか確認してから投稿してください。
+    </div>
+    <div id="fp_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <button id="fp_btn" onclick="submitFootprint()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:48px">投稿する</button>
+  </div>
+</div>
+
+<!-- v1.2.16：足跡の詳細（背景タップでも閉じる） -->
+<div class="modal-overlay" id="modal-fp-detail" onclick="closeFootprintDetail()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px" id="fp_d_title">足跡</div>
+      <button class="x-btn" onclick="closeFootprintDetail()" aria-label="閉じる">&times;</button>
+    </div>
+    <div id="fp_d_chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div id="fp_d_thumbs" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px"></div>
+    <div id="fp_d_hint" style="font-size:11px;color:var(--text-ter);margin-bottom:12px;display:none">タップで拡大（大きい画像は、その時に読み込みます）</div>
+    <p id="fp_d_note" style="font-size:16px;font-weight:700;line-height:1.5;margin:0 0 6px;overflow-wrap:anywhere"></p>
+    <div id="fp_d_who" style="font-size:12px;color:var(--text-sub);margin-bottom:16px"></div>
+    <button id="fp_d_del" onclick="deleteFootprint(FP_CURRENT_ID)" style="display:none;width:100%;min-height:44px;border:1px solid var(--border);background:var(--white);border-radius:var(--radius-sm);font-size:13px;color:#a32d2d;cursor:pointer;font-family:inherit">この足跡を消す（自分の足跡にだけ表示）</button>
+  </div>
+</div>
+
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.15　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.16　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2220,6 +2281,318 @@ Array.prototype.forEach.call(document.querySelectorAll('input[name="u_nick_type"
   });
 });
 
+// ===================================================
+// v1.2.16：足跡（出没レーダーの「足跡」＝写真つきの近況）
+//  ・一覧／詳細／拡大は、写真館と同じ作り（端末の登録証UIDで本人確認。一覧はサムネイルのみ、拡大した時にフルサイズ）
+//  ・期・場所の絞り込みは、取得済み（最新60件）の中で画面側で行う
+//  ・投稿・削除は footprints.gs（postFootprint／deleteFootprint）に送る
+// ===================================================
+var FP = [], fpPeriod = '全期', fpPlace = '全場所';
+var FP_MAX_PHOTOS = 4, FP_NOTE_MAX = 200;
+var FP_CURRENT_ID = null;
+var fpPicked = [];
+var fpBusy = false;
+
+function switchRadarTab(sub){
+  document.getElementById('r-radar').style.display = sub==='radar' ? 'block' : 'none';
+  document.getElementById('r-foot').style.display = sub==='foot' ? 'block' : 'none';
+  ['radar','foot'].forEach(function(s){
+    var b = document.getElementById('rtb-'+s);
+    b.style.background = (s===sub) ? 'var(--white)' : 'transparent';
+    b.style.color = (s===sub) ? 'var(--text)' : 'var(--text-sub)';
+  });
+  if(sub==='foot') loadFootprints();
+}
+
+function renderFootprintAuthNeeded_(){
+  document.getElementById('fp-period-pills').innerHTML = '';
+  document.getElementById('fp-count').textContent = '';
+  document.getElementById('fp-list').innerHTML =
+    '<div class="auth-card">'
+    + '<div class="auth-card-title">🔑 本人確認のお願い</div>'
+    + '<div class="auth-card-text">この環境では、まだ本人確認ができていません。<br>（LINEやSafariなど、開く場所ごとに1回ずつ必要です）</div>'
+    + '<a class="btn-gold" href="register.html?return=footprint#radar">本人確認をする</a>'
+    + '<div class="auth-card-sub">未登録の方は <a href="register.html#register">メンバー登録する</a></div>'
+    + '</div>';
+}
+
+function loadFootprints(){
+  var uid = getMyUid();
+  if(!uid){ renderFootprintAuthNeeded_(); return; }
+  var listEl = document.getElementById('fp-list');
+  if(FP.length === 0){
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+  }
+  apiFetch('action=getFootprints&uid=' + encodeURIComponent(uid))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.error === 'not_registered'){ renderFootprintAuthNeeded_(); return; }
+      if(!res || !res.success){
+        if(FP.length === 0) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+        return;
+      }
+      FP = res.posts || [];
+      fpPeriod = '全期'; fpPlace = '全場所';
+      renderFootprintFilters_();
+      renderFootprints();
+    })
+    .catch(function(){
+      if(FP.length === 0) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました</div>';
+    });
+}
+
+function renderFootprintFilters_(){
+  var periods = [];
+  FP.forEach(function(p){ var per = S(p.period).trim(); if(per && periods.indexOf(per) < 0) periods.push(per); });
+  periods.sort(function(a,b){ return parseInt(a,10) - parseInt(b,10); });
+  var pillsEl = document.getElementById('fp-period-pills');
+  pillsEl.innerHTML = periods.length ? ['全期'].concat(periods).map(function(p){
+    return '<button class="pill'+(p===fpPeriod?' active':'')+'" style="min-height:32px" data-period="'+escHtmlLite(p)+'">'+escHtmlLite(p)+'</button>';
+  }).join('') : '';
+  Array.prototype.forEach.call(pillsEl.querySelectorAll('button[data-period]'), function(btn){
+    btn.addEventListener('click', function(){ fpPeriod = btn.getAttribute('data-period'); renderFootprintFilters_(); renderFootprints(); });
+  });
+  var sel = document.getElementById('fp-place');
+  sel.innerHTML = ['全場所'].concat(AREA_ORDER).map(function(a){ return '<option>'+escHtmlLite(a)+'</option>'; }).join('');
+  sel.value = fpPlace;
+}
+function fpSelectPlace(v){ fpPlace = v; renderFootprints(); }
+
+function fpCardHTML_(p){
+  var pc = personColor(p.name || '??');
+  var thumb = safeImgSrc(p.thumbnail);
+  var photoHtml = '';
+  if(thumb){
+    var more = p.photoCount > 1 ? '<span style="position:absolute;right:8px;bottom:8px;background:#222;color:#fff;font-size:12px;padding:2px 8px;border-radius:10px">＋'+(p.photoCount-1)+'</span>' : '';
+    photoHtml = '<div style="position:relative"><img src="'+thumb+'" alt="" loading="lazy" style="width:100%;height:150px;object-fit:cover;border-radius:8px;display:block">'+more+'</div>';
+  }
+  return '<div class="card fp-card" data-post-id="'+escHtmlLite(p.postId)+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;cursor:pointer;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      + (p.place ? '<span class="chip-info">📍 '+escHtmlLite(p.place)+'</span>' : '')
+      + '<span class="chip-info">🗓 '+escHtmlLite(p.postedAt)+'</span>'
+    + '</div>'
+    + photoHtml
+    + (S(p.note).trim() ? '<p style="font-size:16px;font-weight:700;line-height:1.5;margin:2px 0;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">'+escHtmlLite(p.note)+'</p>' : '')
+    + '<div style="display:flex;align-items:center;justify-content:space-between;background:'+pc+'14;border-radius:8px;padding:2px 10px">'
+      + '<div style="display:flex;align-items:center;gap:6px;min-width:0">'+av(p.name,22)
+        + '<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.name)+'</span>'
+        + (p.period ? '<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.period)+'</span>' : '')
+      + '</div>'
+      + (p.isMine ? '<button class="fp-del-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
+    + '</div>'
+  + '</div>';
+}
+
+function renderFootprints(){
+  var f = FP.filter(function(p){
+    if(fpPeriod !== '全期' && S(p.period) !== fpPeriod) return false;
+    if(fpPlace !== '全場所' && S(p.place) !== fpPlace) return false;
+    return true;
+  });
+  document.getElementById('fp-count').textContent = f.length + '件 表示中';
+  var listEl = document.getElementById('fp-list');
+  listEl.innerHTML = f.length ? f.map(fpCardHTML_).join('')
+    : '<div style="text-align:center;padding:40px 0;color:var(--text-ter)">まだ足跡がありません</div>';
+  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-card'), function(card){
+    card.addEventListener('click', function(e){
+      if(e.target.closest('.fp-del-btn')) return;
+      openFootprintDetail(card.getAttribute('data-post-id'));
+    });
+  });
+  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-del-btn'), function(btn){
+    btn.addEventListener('click', function(e){ e.stopPropagation(); deleteFootprint(btn.getAttribute('data-post-id')); });
+  });
+}
+
+// ---- 詳細（サムネイル全部。拡大した時だけフルサイズを取得） ----
+function openFootprintDetail(postId){
+  var p = FP.find(function(x){ return x.postId === postId; });
+  if(!p) return;
+  FP_CURRENT_ID = postId;
+  document.getElementById('fp_d_title').textContent = S(p.name) + 'さんの足跡';
+  document.getElementById('fp_d_chips').innerHTML =
+    (p.place ? '<span class="chip-info">📍 '+escHtmlLite(p.place)+'</span>' : '')
+    + '<span class="chip-info">🗓 '+escHtmlLite(p.postedAt)+'</span>';
+  document.getElementById('fp_d_note').textContent = S(p.note);
+  document.getElementById('fp_d_who').textContent = S(p.name) + (p.period ? '　' + S(p.period) : '');
+  document.getElementById('fp_d_del').style.display = p.isMine ? 'block' : 'none';
+  var thumbsEl = document.getElementById('fp_d_thumbs');
+  var hintEl = document.getElementById('fp_d_hint');
+  thumbsEl.innerHTML = ''; hintEl.style.display = 'none';
+  document.getElementById('modal-fp-detail').classList.add('show');
+  if(p.photoCount > 0){
+    thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+    apiFetch('action=getFootprintDetail&uid='+encodeURIComponent(getMyUid())+'&postId='+encodeURIComponent(postId))
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(FP_CURRENT_ID !== postId) return;
+        var imgs = (res && res.success) ? (res.thumbnails || []).map(safeImgSrc).filter(Boolean) : [];
+        if(!imgs.length){ thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-ter)">読み込みに失敗しました</div>'; return; }
+        thumbsEl.innerHTML = imgs.map(function(src, i){
+          return '<img src="'+src+'" alt="" data-idx="'+i+'" class="fp-d-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;display:block">';
+        }).join('');
+        hintEl.style.display = 'block';
+        Array.prototype.forEach.call(thumbsEl.querySelectorAll('.fp-d-img'), function(el){
+          el.addEventListener('click', function(){ openFootprintLightbox(postId, parseInt(el.getAttribute('data-idx'),10), el.getAttribute('src')); });
+        });
+      })
+      .catch(function(){
+        if(FP_CURRENT_ID === postId) thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-ter)">読み込みに失敗しました</div>';
+      });
+  }
+}
+function closeFootprintDetail(){
+  document.getElementById('modal-fp-detail').classList.remove('show');
+  FP_CURRENT_ID = null;
+}
+
+function openFootprintLightbox(postId, idx, thumbSrc){
+  var overlay = document.createElement('div');
+  overlay.id = 'fp-lightbox';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px';
+  overlay.innerHTML =
+    '<button id="fp-lb-close" aria-label="閉じる" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;min-height:44px">✕</button>'
+    + '<img id="fp-lb-img" src="'+escHtmlLite(thumbSrc)+'" alt="" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px">';
+  document.body.appendChild(overlay);
+  document.getElementById('fp-lb-close').addEventListener('click', closeFootprintLightbox);
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeFootprintLightbox(); });
+  apiFetch('action=getFootprintFull&uid='+encodeURIComponent(getMyUid())+'&postId='+encodeURIComponent(postId)+'&index='+idx)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var img = document.getElementById('fp-lb-img');
+      var src = (res && res.success) ? safeImgSrc(res.imageData) : '';
+      if(img && src) img.src = src; // 届き次第、同じ場所でフルサイズに差し替える（失敗してもサムネイルのまま見える）
+    })
+    .catch(function(){ /* サムネイルのまま表示を続ける */ });
+}
+function closeFootprintLightbox(){
+  var overlay = document.getElementById('fp-lightbox');
+  if(overlay) overlay.remove();
+}
+
+// ---- 削除（自分の足跡のみ。サーバー側でも持ち主を確認する） ----
+function deleteFootprint(postId){
+  if(!postId) return;
+  if(!confirm('この足跡を削除しますか？写真もすべて消えます。この操作は取り消せません。')) return;
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'deleteFootprint', uid: getMyUid(), postId: postId })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.success){
+        showToast('✓ 削除しました');
+        closeFootprintDetail();
+        loadFootprints();
+      } else {
+        showToast('⚠ 削除に失敗しました');
+      }
+    })
+    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+}
+
+// ---- 投稿 ----
+function openFootprintModal(){
+  if(!getMyUid()){ renderFootprintAuthNeeded_(); showToast('先に本人確認をお願いします'); return; }
+  fpPicked = []; fpBusy = false;
+  document.getElementById('fp_note').value = '';
+  document.getElementById('fp_err').style.display = 'none';
+  document.getElementById('fp_btn').disabled = false;
+  document.getElementById('fp_btn').textContent = '投稿する';
+  document.getElementById('fp_place').innerHTML = '<option value="">選ばない</option>' + AREA_ORDER.map(function(a){ return '<option value="'+escHtmlLite(a)+'">'+escHtmlLite(a)+'</option>'; }).join('');
+  document.getElementById('fp_who').textContent = MY_CARD ? ('「' + MY_CARD.name + '（' + MY_CARD.period + '）」') : 'あなた';
+  fpUpdateCount(); fpRenderSlots();
+  document.getElementById('modal-footprint').classList.add('show');
+}
+function closeFootprintModal(){ document.getElementById('modal-footprint').classList.remove('show'); }
+function fpUpdateCount(){
+  document.getElementById('fp_count').textContent = document.getElementById('fp_note').value.length + ' / ' + FP_NOTE_MAX;
+}
+function fpRenderSlots(){
+  var h = '';
+  for(var i = 0; i < FP_MAX_PHOTOS; i++){
+    if(fpPicked[i]){
+      h += '<div style="position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:var(--gray)">'
+        + '<img src="'+fpPicked[i].preview+'" alt="写真'+(i+1)+'" style="width:100%;height:100%;object-fit:cover;display:block">'
+        + '<button type="button" aria-label="写真'+(i+1)+'を外す" onclick="fpRemove('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border:none;border-radius:14px;background:#fff;color:#666;font-size:14px;cursor:pointer">×</button></div>';
+    } else if(i === fpPicked.length){
+      h += '<button type="button" onclick="document.getElementById(\'fp_file\').click()" style="aspect-ratio:1/1;border:1.5px dashed #c9a96e;background:#fff;border-radius:8px;font-size:12px;color:var(--text-sub);cursor:pointer;font-family:inherit">＋追加</button>';
+    } else {
+      h += '<div style="aspect-ratio:1/1;border:1.5px dashed var(--border);border-radius:8px"></div>';
+    }
+  }
+  document.getElementById('fp_slots').innerHTML = h;
+}
+function fpRemove(i){ fpPicked.splice(i, 1); fpRenderSlots(); }
+function fpFilesChosen(input){
+  var files = Array.prototype.slice.call(input.files || []);
+  input.value = '';
+  var room = FP_MAX_PHOTOS - fpPicked.length;
+  if(files.length > room) showToast('写真は最大'+FP_MAX_PHOTOS+'枚までです');
+  files = files.slice(0, room);
+  Promise.all(files.map(function(f){
+    return compressImageFile(f, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
+      .then(function(preview){ return { file: f, preview: preview }; })
+      .catch(function(){ return null; });
+  })).then(function(items){
+    items.forEach(function(it){ if(it && safeImgSrc(it.preview)) fpPicked.push(it); });
+    fpRenderSlots();
+  });
+}
+
+function submitFootprint(){
+  if(fpBusy) return;
+  var uid = getMyUid();
+  var errEl = document.getElementById('fp_err');
+  errEl.style.display = 'none';
+  var note = (document.getElementById('fp_note').value || '').trim();
+  var place = document.getElementById('fp_place').value;
+  if(!uid){ errEl.textContent = '登録情報が確認できません'; errEl.style.display = 'block'; return; }
+  if(!note && fpPicked.length === 0){ errEl.textContent = 'ひとこと、または写真を入れてください'; errEl.style.display = 'block'; return; }
+  var btn = document.getElementById('fp_btn');
+  fpBusy = true; btn.disabled = true; btn.textContent = '処理中...';
+  Promise.all(fpPicked.map(function(p){
+    return Promise.all([
+      compressImageFile(p.file, GALLERY_MAX_DIMENSION, GALLERY_JPEG_QUALITY),
+      compressImageFile(p.file, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
+    ]).then(function(r){ return { image: r[0], thumbnail: r[1] }; });
+  })).then(function(images){
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'postFootprint', uid: uid, note: note, place: place, images: images })
+    });
+  }).then(function(r){ return r.json(); })
+    .then(function(res){
+      fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
+      if(res && res.success){
+        closeFootprintModal();
+        showToast('✓ 足跡を残しました！');
+        loadFootprints();
+      } else {
+        var messages = {
+          not_registered: '登録情報が確認できませんでした',
+          note_too_long: 'ひとことが長すぎます（'+FP_NOTE_MAX+'字まで）',
+          invalid_place: '場所の値が正しくありません',
+          too_many_photos: '写真は最大'+FP_MAX_PHOTOS+'枚までです',
+          empty_post: 'ひとこと、または写真を入れてください',
+          daily_limit_exceeded: '本日の投稿上限に達しました',
+          save_failed: '保存に失敗しました。もう一度お試しください'
+        };
+        var msg = res && messages[res.error];
+        if(!msg && res && /^invalid_image_/.test(res.error || '')) msg = '写真が読み込めませんでした（' + res.error.replace('invalid_image_','') + '枚目）';
+        errEl.textContent = msg || ('投稿に失敗しました：' + ((res && res.error) || '不明なエラー'));
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
+      errEl.textContent = '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    });
+}
+
 var hash=window.location.hash;
 if(hash==="#board")go("b");
 else if(hash==="#club")go("c");
@@ -2228,6 +2601,7 @@ else if(hash==="#news"){ go("g"); switchGalleryTab("news"); } // ← v1.2.12：r
 else if(hash==="#fav")go("f");
 else if(hash==="#anshin")go("a");
 else if(hash==="#radar")go("r");
+else if(hash==="#footprint"){ go("r"); switchRadarTab("foot"); } // ← v1.2.16：本人確認ページから、足跡のタブを直接開く
 else go("r");
 
 loadFromAPI();
