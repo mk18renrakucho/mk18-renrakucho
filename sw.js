@@ -2,7 +2,8 @@
 // v1.2.14：保存の名前を更新。あわせて、画面ファイルを取りに行くときにブラウザ側の一時保存（GitHub Pagesは約10分）を
 //   飛ばして、毎回サーバーに「更新があるか」を確認するようにした（cache:'no-cache'）。
 // v1.2.16：足跡（出没レーダーの写真つき近況）を追加したため、保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.16';
+// v1.2.17：足跡の写真選択の不具合対応（index_full.html）。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.17';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
