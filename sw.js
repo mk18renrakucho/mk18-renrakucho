@@ -3,7 +3,8 @@
 //   飛ばして、毎回サーバーに「更新があるか」を確認するようにした（cache:'no-cache'）。
 // v1.2.16：足跡（出没レーダーの写真つき近況）を追加したため、保存の名前を更新。
 // v1.2.17：足跡の写真選択の不具合対応（index_full.html）。保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.17';
+// v1.2.18：足跡の全画面ビューア（左右のスライド）を追加。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.18';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
