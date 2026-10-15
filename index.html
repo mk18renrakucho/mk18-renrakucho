@@ -110,6 +110,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .pwa-banner-text{flex:1}
 .pwa-banner-btn{background:#fff;color:#813100;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 .pwa-banner-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+#fpv-track::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
@@ -561,7 +562,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div id="fp_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:10px">0 / 200</div>
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 場所（任意）　日付は自動で入ります</div>
     <select id="fp_place" style="margin-bottom:12px;min-height:44px"><option value="">選ばない</option></select>
-    <details class="more-box"><summary>▶ 帰省・出没も知らせる（任意）</summary>
+    <details class="more-box"><summary>帰省・出没も知らせる（任意）</summary>
       <div style="font-size:12px;color:var(--text-sub);line-height:1.7;margin-bottom:10px">帰省や出没の予定は、「出没」の自分のカードの「✏️更新する」から入れられます。</div>
       <button type="button" class="btn" onclick="closeFootprintModal();switchRadarTab('radar')" style="width:100%;margin-bottom:12px;min-height:44px">「出没」を開く</button>
     </details>
@@ -591,7 +592,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.17　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.18　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2288,7 +2289,7 @@ Array.prototype.forEach.call(document.querySelectorAll('input[name="u_nick_type"
 //  ・期・場所の絞り込みは、取得済み（最新60件）の中で画面側で行う
 //  ・投稿・削除は footprints.gs（postFootprint／deleteFootprint）に送る
 // ===================================================
-var FP = [], fpPeriod = '全期', fpPlace = '全場所';
+var FP = [], FP_VIEW = [], fpPeriod = '全期', fpPlace = '全場所';
 var FP_MAX_PHOTOS = 4, FP_NOTE_MAX = 200;
 var FP_CURRENT_ID = null;
 var fpPicked = [];
@@ -2366,7 +2367,7 @@ function fpCardHTML_(p){
   var photoHtml = '';
   if(thumb){
     var more = p.photoCount > 1 ? '<span style="position:absolute;right:8px;bottom:8px;background:#222;color:#fff;font-size:12px;padding:2px 8px;border-radius:10px">＋'+(p.photoCount-1)+'</span>' : '';
-    photoHtml = '<div style="position:relative"><img src="'+thumb+'" alt="" loading="lazy" style="width:100%;height:150px;object-fit:cover;border-radius:8px;display:block">'+more+'</div>';
+    photoHtml = '<div class="fp-photo" data-post-id="'+escHtmlLite(p.postId)+'" style="position:relative;cursor:zoom-in"><img src="'+thumb+'" alt="" loading="lazy" style="width:100%;height:150px;object-fit:cover;border-radius:8px;display:block">'+more+'</div>';
   }
   return '<div class="card fp-card" data-post-id="'+escHtmlLite(p.postId)+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;cursor:pointer;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
@@ -2391,10 +2392,14 @@ function renderFootprints(){
     if(fpPlace !== '全場所' && S(p.place) !== fpPlace) return false;
     return true;
   });
+  FP_VIEW = f; // v1.2.18：絞り込んだ中の足跡が、スライド表示の範囲になる
   document.getElementById('fp-count').textContent = f.length + '件 表示中';
   var listEl = document.getElementById('fp-list');
   listEl.innerHTML = f.length ? f.map(fpCardHTML_).join('')
     : '<div style="text-align:center;padding:40px 0;color:var(--text-ter)">まだ足跡がありません</div>';
+  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-photo'), function(ph){
+    ph.addEventListener('click', function(e){ e.stopPropagation(); openFootprintViewer(ph.getAttribute('data-post-id'), 0); });
+  });
   Array.prototype.forEach.call(listEl.querySelectorAll('.fp-card'), function(card){
     card.addEventListener('click', function(e){
       if(e.target.closest('.fp-del-btn')) return;
@@ -2435,7 +2440,7 @@ function openFootprintDetail(postId){
         }).join('');
         hintEl.style.display = 'block';
         Array.prototype.forEach.call(thumbsEl.querySelectorAll('.fp-d-img'), function(el){
-          el.addEventListener('click', function(){ openFootprintLightbox(postId, parseInt(el.getAttribute('data-idx'),10), el.getAttribute('src')); });
+          el.addEventListener('click', function(){ openFootprintViewer(postId, parseInt(el.getAttribute('data-idx'),10)); });
         });
       })
       .catch(function(){
@@ -2448,28 +2453,148 @@ function closeFootprintDetail(){
   FP_CURRENT_ID = null;
 }
 
-function openFootprintLightbox(postId, idx, thumbSrc){
-  var overlay = document.createElement('div');
-  overlay.id = 'fp-lightbox';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px';
-  overlay.innerHTML =
-    '<button id="fp-lb-close" aria-label="閉じる" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;min-height:44px">✕</button>'
-    + '<img id="fp-lb-img" src="'+escHtmlLite(thumbSrc)+'" alt="" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px">';
-  document.body.appendChild(overlay);
-  document.getElementById('fp-lb-close').addEventListener('click', closeFootprintLightbox);
-  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeFootprintLightbox(); });
-  apiFetch('action=getFootprintFull&uid='+encodeURIComponent(getMyUid())+'&postId='+encodeURIComponent(postId)+'&index='+idx)
+// ===================================================
+// v1.2.18：足跡の全画面ビューア（LINEの写真ビューアに近い動き）
+//  ・黒背景で、一覧に出ている足跡（期・場所で絞っていれば、その中）の写真を、左右のスライドで次々と見る
+//  ・見ている写真は、先にサムネイルを出し、フルサイズが届き次第、同じ場所で差し替える
+//  ・前後の写真は先に読み込む。読み込んだ写真は、直近8枚まで端末のメモリに残す
+//  ・写真をタップで、上下の表示を隠す／出す。拡大は、スマホ標準のピンチ
+// ===================================================
+var FPV = { open:false, sid:0, slides:[], idx:0, track:null, full:{}, order:[], inflight:{}, thumbs:{}, keyFn:null };
+
+function openFootprintViewer(postId, k){
+  var slides = [];
+  FP_VIEW.forEach(function(p){ for(var n = 0; n < (p.photoCount || 0); n++) slides.push({ postId: p.postId, k: n, post: p }); });
+  var start = -1;
+  slides.forEach(function(s, i){ if(start < 0 && s.postId === postId && s.k === k) start = i; });
+  if(start < 0) return;
+  closeFootprintViewer();
+  FPV.open = true; FPV.sid++; FPV.slides = slides; FPV.idx = start; FPV.inflight = {};
+  var sid = FPV.sid;
+  var ov = document.createElement('div');
+  ov.id = 'fpv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:600;background:#000;display:flex;flex-direction:column;color:#fff';
+  var chrome = 'position:absolute;left:0;right:0;z-index:2;';
+  ov.innerHTML =
+    '<div id="fpv-top" style="'+chrome+'top:0;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 6px) 8px 14px;background:linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,0))">'
+    + '<button id="fpv-close" aria-label="閉じる" style="width:44px;height:44px;background:none;border:none;color:#fff;font-size:26px;cursor:pointer">✕</button>'
+    + '<span id="fpv-count" style="font-size:14px"></span><span style="width:44px"></span></div>'
+    + '<div id="fpv-track" style="flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x pinch-zoom;scrollbar-width:none"></div>'
+    + '<button id="fpv-prev" aria-label="前の写真" style="display:none;position:absolute;left:8px;top:50%;margin-top:-22px;z-index:2;width:44px;height:44px;border-radius:22px;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:20px;cursor:pointer">◀</button>'
+    + '<button id="fpv-next" aria-label="次の写真" style="display:none;position:absolute;right:8px;top:50%;margin-top:-22px;z-index:2;width:44px;height:44px;border-radius:22px;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:20px;cursor:pointer">▶</button>'
+    + '<div id="fpv-cap" style="'+chrome+'bottom:0;padding:24px 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.7));font-size:13px;line-height:1.6"></div>';
+  document.body.appendChild(ov);
+  document.body.style.overflow = 'hidden';
+  var track = document.getElementById('fpv-track');
+  FPV.track = track;
+  track.innerHTML = slides.map(function(){
+    return '<div class="fpv-slide" style="flex:0 0 100%;width:100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center;position:relative">'
+      + '<img alt="" style="display:none;max-width:100%;max-height:100%;object-fit:contain">'
+      + '<div class="fpv-msg" style="position:absolute;font-size:13px;color:#ccc">読み込み中…</div></div>';
+  }).join('');
+  document.getElementById('fpv-close').addEventListener('click', closeFootprintViewer);
+  if(window.matchMedia && window.matchMedia('(hover: hover)').matches){ // パソコンなど、矢印で進めたい環境だけ矢印を出す
+    var pv = document.getElementById('fpv-prev'), nx = document.getElementById('fpv-next');
+    pv.style.display = 'block'; nx.style.display = 'block';
+    pv.addEventListener('click', function(e){ e.stopPropagation(); fpvScrollTo_(FPV.idx - 1); });
+    nx.addEventListener('click', function(e){ e.stopPropagation(); fpvScrollTo_(FPV.idx + 1); });
+  }
+  var timer = null;
+  track.addEventListener('scroll', function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      if(FPV.sid !== sid) return;
+      var w = track.clientWidth || 1;
+      fpvGo_(Math.round(track.scrollLeft / w));
+    }, 80);
+  });
+  track.addEventListener('click', function(e){ // タップで、上下の表示を隠す／出す
+    if(e.target.closest('.fpv-retry')) return;
+    ['fpv-top','fpv-cap'].forEach(function(id){ var el = document.getElementById(id); if(el) el.style.visibility = (el.style.visibility === 'hidden') ? 'visible' : 'hidden'; });
+  });
+  FPV.keyFn = function(e){
+    if(e.key === 'Escape') closeFootprintViewer();
+    else if(e.key === 'ArrowLeft') fpvScrollTo_(FPV.idx - 1);
+    else if(e.key === 'ArrowRight') fpvScrollTo_(FPV.idx + 1);
+  };
+  document.addEventListener('keydown', FPV.keyFn);
+  track.scrollLeft = start * track.clientWidth;
+  setTimeout(function(){ if(FPV.sid === sid) track.scrollLeft = start * track.clientWidth; }, 0);
+  fpvGo_(start);
+}
+
+function closeFootprintViewer(){
+  var ov = document.getElementById('fpv');
+  if(ov) ov.remove();
+  if(FPV.keyFn){ document.removeEventListener('keydown', FPV.keyFn); FPV.keyFn = null; }
+  FPV.open = false; FPV.track = null;
+  document.body.style.overflow = '';
+}
+
+function fpvScrollTo_(i){
+  if(!FPV.track || i < 0 || i >= FPV.slides.length) return;
+  FPV.track.scrollTo({ left: i * FPV.track.clientWidth, behavior: 'smooth' });
+}
+
+// 今見ている写真が変わった時：番号・キャプションを更新し、今の写真→前後の写真の順に読み込む
+function fpvGo_(i){
+  if(!FPV.open || !FPV.slides.length) return;
+  i = Math.max(0, Math.min(FPV.slides.length - 1, i));
+  FPV.idx = i;
+  var s = FPV.slides[i], p = s.post;
+  document.getElementById('fpv-count').textContent = (i + 1) + ' / ' + FPV.slides.length;
+  document.getElementById('fpv-cap').innerHTML =
+    '<div style="font-weight:700">' + escHtmlLite(p.name) + (p.period ? '　' + escHtmlLite(p.period) : '') + '　<span style="font-weight:400;opacity:.8">' + escHtmlLite(p.postedAt) + (p.place ? '　' + escHtmlLite(p.place) : '') + '</span></div>'
+    + (S(p.note).trim() ? '<div style="margin-top:2px;overflow-wrap:anywhere">' + escHtmlLite(p.note) + '</div>' : '');
+  fpvLoad_(i); fpvLoad_(i + 1); fpvLoad_(i - 1);
+}
+
+function fpvThumb_(s, cb){
+  if(s.k === 0 && s.post.thumbnail){ cb(safeImgSrc(s.post.thumbnail)); return; }
+  if(!FPV.thumbs[s.postId]){
+    FPV.thumbs[s.postId] = apiFetch('action=getFootprintDetail&uid=' + encodeURIComponent(getMyUid()) + '&postId=' + encodeURIComponent(s.postId))
+      .then(function(r){ return r.json(); })
+      .then(function(res){ return (res && res.success) ? (res.thumbnails || []).map(safeImgSrc) : []; })
+      .catch(function(){ return []; });
+  }
+  FPV.thumbs[s.postId].then(function(arr){ cb(arr[s.k] || ''); });
+}
+
+function fpvCacheFull_(key, src){
+  FPV.full[key] = src; FPV.order.push(key);
+  while(FPV.order.length > 8){ delete FPV.full[FPV.order.shift()]; }
+}
+
+function fpvLoad_(i){
+  var s = FPV.slides[i]; if(!s || !FPV.track) return;
+  var el = FPV.track.children[i]; if(!el || el.getAttribute('data-done') === '1') return;
+  var img = el.querySelector('img'), msg = el.querySelector('.fpv-msg');
+  var key = s.postId + ':' + s.k, sid = FPV.sid;
+  function show(src, done){
+    if(FPV.sid !== sid || el.getAttribute('data-done') === '1') return;
+    img.src = src; img.style.display = 'block';
+    if(done){ msg.style.display = 'none'; el.setAttribute('data-done', '1'); }
+  }
+  if(FPV.full[key]){ show(FPV.full[key], true); return; }
+  fpvThumb_(s, function(src){ if(src && !FPV.full[key]) show(src, false); }); // 先に小さい画像を出す
+  if(FPV.inflight[key]) return;
+  FPV.inflight[key] = true;
+  apiFetch('action=getFootprintFull&uid=' + encodeURIComponent(getMyUid()) + '&postId=' + encodeURIComponent(s.postId) + '&index=' + s.k)
     .then(function(r){ return r.json(); })
     .then(function(res){
-      var img = document.getElementById('fp-lb-img');
+      FPV.inflight[key] = false;
+      if(FPV.sid !== sid) return;
       var src = (res && res.success) ? safeImgSrc(res.imageData) : '';
-      if(img && src) img.src = src; // 届き次第、同じ場所でフルサイズに差し替える（失敗してもサムネイルのまま見える）
+      if(src){ fpvCacheFull_(key, src); show(src, true); return; }
+      throw new Error('load');
     })
-    .catch(function(){ /* サムネイルのまま表示を続ける */ });
-}
-function closeFootprintLightbox(){
-  var overlay = document.getElementById('fp-lightbox');
-  if(overlay) overlay.remove();
+    .catch(function(){
+      FPV.inflight[key] = false;
+      if(FPV.sid !== sid || el.getAttribute('data-done') === '1') return;
+      msg.style.display = 'block';
+      msg.innerHTML = '読み込めませんでした<br><button class="fpv-retry" style="margin-top:8px;min-height:44px;padding:0 16px;border:1px solid #888;border-radius:20px;background:none;color:#fff;font-family:inherit;cursor:pointer">もう一度読み込む</button>';
+      msg.querySelector('.fpv-retry').addEventListener('click', function(){ msg.textContent = '読み込み中…'; fpvLoad_(i); });
+    });
 }
 
 // ---- 削除（自分の足跡のみ。サーバー側でも持ち主を確認する） ----
