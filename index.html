@@ -191,6 +191,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div id="fp-count" style="font-size:11px;color:var(--text-ter);margin-bottom:8px"></div>
     <div id="fp-list"></div>
+    <!-- v1.2.19：古い足跡の続きを読み込む（20件ずつ） -->
+    <div id="fp-more" style="display:none;text-align:center;margin:4px 0 16px">
+      <button id="fp-more-btn" class="btn" onclick="fpLoadMore()" style="min-height:44px;padding:0 28px">もっと見る</button>
+    </div>
   </div>
 </div>
 
@@ -592,7 +596,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.18　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.19　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2286,10 +2290,12 @@ Array.prototype.forEach.call(document.querySelectorAll('input[name="u_nick_type"
 // ===================================================
 // v1.2.16：足跡（出没レーダーの「足跡」＝写真つきの近況）
 //  ・一覧／詳細／拡大は、写真館と同じ作り（端末の登録証UIDで本人確認。一覧はサムネイルのみ、拡大した時にフルサイズ）
-//  ・期・場所の絞り込みは、取得済み（最新60件）の中で画面側で行う
+//  ・期・場所の絞り込みは、読み込み済みの足跡（新しい順に20件ずつ。「もっと見る」で続き）の中で画面側で行う
+//  ・v1.2.19：一覧のカードに、写真のサムネイルを枚数分（最大4枚）並べる。タップでその写真から全画面ビューアが開く
 //  ・投稿・削除は footprints.gs（postFootprint／deleteFootprint）に送る
 // ===================================================
 var FP = [], FP_VIEW = [], fpPeriod = '全期', fpPlace = '全場所';
+var FP_HAS_MORE = false, FP_OFFSET = 0, fpMoreBusy = false; // v1.2.19：「もっと見る」の状態
 var FP_MAX_PHOTOS = 4, FP_NOTE_MAX = 200;
 var FP_CURRENT_ID = null;
 var fpPicked = [];
@@ -2335,6 +2341,8 @@ function loadFootprints(){
         return;
       }
       FP = res.posts || [];
+      FP_OFFSET = (typeof res.nextOffset === 'number') ? res.nextOffset : FP.length; // v1.2.19
+      FP_HAS_MORE = !!res.hasMore;
       fpPeriod = '全期'; fpPlace = '全場所';
       renderFootprintFilters_();
       renderFootprints();
@@ -2359,15 +2367,52 @@ function renderFootprintFilters_(){
   sel.innerHTML = ['全場所'].concat(AREA_ORDER).map(function(a){ return '<option>'+escHtmlLite(a)+'</option>'; }).join('');
   sel.value = fpPlace;
 }
+// v1.2.19：古い足跡の続きを読み込んで、今の一覧の後ろに足す（絞り込みの期・場所はそのまま）
+function fpLoadMore(){
+  if(fpMoreBusy || !FP_HAS_MORE) return;
+  var uid = getMyUid();
+  if(!uid) return;
+  var btn = document.getElementById('fp-more-btn');
+  fpMoreBusy = true; btn.disabled = true; btn.textContent = '読み込み中...';
+  apiFetch('action=getFootprints&uid=' + encodeURIComponent(uid) + '&offset=' + FP_OFFSET)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      fpMoreBusy = false; btn.disabled = false; btn.textContent = 'もっと見る';
+      if(!res || !res.success){ showToast('⚠ 読み込みに失敗しました'); return; }
+      var have = {};
+      FP.forEach(function(p){ have[p.postId] = true; });
+      (res.posts || []).forEach(function(p){ if(!have[p.postId]) FP.push(p); }); // 読み込みの間に新しい投稿があっても、重ねて出さない
+      FP_OFFSET = (typeof res.nextOffset === 'number') ? res.nextOffset : FP.length;
+      FP_HAS_MORE = !!res.hasMore;
+      renderFootprintFilters_();
+      renderFootprints();
+    })
+    .catch(function(){
+      fpMoreBusy = false; btn.disabled = false; btn.textContent = 'もっと見る';
+      showToast('⚠ 通信エラーが発生しました');
+    });
+}
+
+// v1.2.19：足跡1件のサムネイル一覧（表示できる形のものだけ）。古いGAS（先頭の1枚だけ返す形）でも動くようにしてある
+function fpPostThumbs_(p){
+  var th = Array.isArray(p.thumbnails) ? p.thumbnails : (p.thumbnail ? [p.thumbnail] : []);
+  return th.map(safeImgSrc).filter(Boolean);
+}
+
 function fpSelectPlace(v){ fpPlace = v; renderFootprints(); }
 
 function fpCardHTML_(p){
   var pc = personColor(p.name || '??');
-  var thumb = safeImgSrc(p.thumbnail);
+  // v1.2.19：写真は、枚数にかかわらず同じ大きさの小さな正方形のサムネイルを、左から並べる（最大4枚）。
+  //   どれかをタップすると、その写真から全画面ビューアが開く。
+  var ths = fpPostThumbs_(p);
   var photoHtml = '';
-  if(thumb){
-    var more = p.photoCount > 1 ? '<span style="position:absolute;right:8px;bottom:8px;background:#222;color:#fff;font-size:12px;padding:2px 8px;border-radius:10px">＋'+(p.photoCount-1)+'</span>' : '';
-    photoHtml = '<div class="fp-photo" data-post-id="'+escHtmlLite(p.postId)+'" style="position:relative;cursor:zoom-in"><img src="'+thumb+'" alt="" loading="lazy" style="width:100%;height:150px;object-fit:cover;border-radius:8px;display:block">'+more+'</div>';
+  if(ths.length){
+    photoHtml = '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">'
+      + ths.map(function(src, i){
+          return '<img class="fp-thumb" data-post-id="'+escHtmlLite(p.postId)+'" data-idx="'+i+'" src="'+src+'" alt="写真'+(i+1)+'" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;display:block;cursor:zoom-in">';
+        }).join('')
+      + '</div>';
   }
   return '<div class="card fp-card" data-post-id="'+escHtmlLite(p.postId)+'" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;cursor:pointer;border-left:4px solid '+pc+';box-shadow:0 1px 3px rgba(0,0,0,.06)">'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
@@ -2393,13 +2438,15 @@ function renderFootprints(){
     return true;
   });
   FP_VIEW = f; // v1.2.18：絞り込んだ中の足跡が、スライド表示の範囲になる
-  document.getElementById('fp-count').textContent = f.length + '件 表示中';
+  document.getElementById('fp-count').textContent = f.length + '件 表示中' + (FP_HAS_MORE ? '（古い足跡はまだあります）' : '');
   var listEl = document.getElementById('fp-list');
   listEl.innerHTML = f.length ? f.map(fpCardHTML_).join('')
-    : '<div style="text-align:center;padding:40px 0;color:var(--text-ter)">まだ足跡がありません</div>';
-  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-photo'), function(ph){
-    ph.addEventListener('click', function(e){ e.stopPropagation(); openFootprintViewer(ph.getAttribute('data-post-id'), 0); });
+    : '<div style="text-align:center;padding:40px 0;color:var(--text-ter)">' + (FP_HAS_MORE ? 'この条件の足跡は、読み込んだ範囲にはありません。「もっと見る」で古い足跡を読み込めます' : 'まだ足跡がありません') + '</div>';
+  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-thumb'), function(img){
+    img.addEventListener('click', function(e){ e.stopPropagation(); openFootprintViewer(img.getAttribute('data-post-id'), parseInt(img.getAttribute('data-idx'), 10)); });
   });
+  var moreEl = document.getElementById('fp-more');
+  if(moreEl) moreEl.style.display = FP_HAS_MORE ? 'block' : 'none';
   Array.prototype.forEach.call(listEl.querySelectorAll('.fp-card'), function(card){
     card.addEventListener('click', function(e){
       if(e.target.closest('.fp-del-btn')) return;
@@ -2427,7 +2474,20 @@ function openFootprintDetail(postId){
   var hintEl = document.getElementById('fp_d_hint');
   thumbsEl.innerHTML = ''; hintEl.style.display = 'none';
   document.getElementById('modal-fp-detail').classList.add('show');
+  function showThumbs(imgs){
+    thumbsEl.innerHTML = imgs.map(function(src, i){
+      return '<img src="'+src+'" alt="" data-idx="'+i+'" class="fp-d-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;display:block">';
+    }).join('');
+    hintEl.style.display = 'block';
+    Array.prototype.forEach.call(thumbsEl.querySelectorAll('.fp-d-img'), function(el){
+      el.addEventListener('click', function(){ openFootprintViewer(postId, parseInt(el.getAttribute('data-idx'),10)); });
+    });
+  }
   if(p.photoCount > 0){
+    // v1.2.19：一覧がすでに全サムネイルを持っていれば、そのまま使う（開くたびの読み込みが要らない）。
+    //   古いGAS（先頭の1枚だけ返す形）の場合だけ、従来どおりサーバーから取る。
+    var own = fpPostThumbs_(p);
+    if(own.length >= p.photoCount){ showThumbs(own); return; }
     thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
     apiFetch('action=getFootprintDetail&uid='+encodeURIComponent(getMyUid())+'&postId='+encodeURIComponent(postId))
       .then(function(r){ return r.json(); })
@@ -2435,13 +2495,7 @@ function openFootprintDetail(postId){
         if(FP_CURRENT_ID !== postId) return;
         var imgs = (res && res.success) ? (res.thumbnails || []).map(safeImgSrc).filter(Boolean) : [];
         if(!imgs.length){ thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-ter)">読み込みに失敗しました</div>'; return; }
-        thumbsEl.innerHTML = imgs.map(function(src, i){
-          return '<img src="'+src+'" alt="" data-idx="'+i+'" class="fp-d-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;display:block">';
-        }).join('');
-        hintEl.style.display = 'block';
-        Array.prototype.forEach.call(thumbsEl.querySelectorAll('.fp-d-img'), function(el){
-          el.addEventListener('click', function(){ openFootprintViewer(postId, parseInt(el.getAttribute('data-idx'),10)); });
-        });
+        showThumbs(imgs);
       })
       .catch(function(){
         if(FP_CURRENT_ID === postId) thumbsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--text-ter)">読み込みに失敗しました</div>';
@@ -2550,7 +2604,8 @@ function fpvGo_(i){
 }
 
 function fpvThumb_(s, cb){
-  if(s.k === 0 && s.post.thumbnail){ cb(safeImgSrc(s.post.thumbnail)); return; }
+  var own = fpPostThumbs_(s.post); // v1.2.19：一覧が持っているサムネイルを、そのまま先に出す
+  if(own[s.k]){ cb(own[s.k]); return; }
   if(!FPV.thumbs[s.postId]){
     FPV.thumbs[s.postId] = apiFetch('action=getFootprintDetail&uid=' + encodeURIComponent(getMyUid()) + '&postId=' + encodeURIComponent(s.postId))
       .then(function(r){ return r.json(); })
