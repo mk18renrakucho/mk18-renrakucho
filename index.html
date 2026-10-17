@@ -44,6 +44,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .btn-primary{background:var(--blue);color:var(--white);border:none}
 .pill{font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--gray);color:var(--text-sub);white-space:nowrap}
 .pill.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
+/* v1.2.20：切り替えタブ（出没／足跡、写真／お知らせ）。選択中は基調色の面＋白文字＋太字、未選択は白＋細い枠で、形で差が分かるようにする（金色は書き込みボタン専用のため使わない） */
+.seg{display:flex;gap:6px;background:var(--gray);border:1px solid var(--border);border-radius:var(--radius);padding:4px}
+.seg-btn{flex:1;min-height:44px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)}
+.seg-btn.on{background:var(--blue);border-color:var(--blue);color:var(--white);font-weight:700}
+.seg-btn:focus-visible{outline:2px solid var(--blue-mid);outline-offset:2px}
 .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
 .search-wrap{position:relative;margin-bottom:10px}
 .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-ter);font-size:15px;pointer-events:none}
@@ -154,9 +159,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <!-- 出没レーダー -->
 <div id="p-r">
   <!-- v1.2.16：出没／足跡 の切り替え（View & News の「写真／お知らせ」と同じ形） -->
-  <div style="display:flex;gap:8px;margin-bottom:12px;background:var(--gray);border-radius:var(--radius);padding:4px">
-    <button id="rtb-radar" onclick="switchRadarTab('radar')" style="flex:1;padding:11px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)">出没</button>
-    <button id="rtb-foot" onclick="switchRadarTab('foot')" style="flex:1;padding:11px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-sub)">足跡</button>
+  <div class="seg" style="margin-bottom:12px">
+    <button id="rtb-radar" class="seg-btn on" aria-pressed="true" onclick="switchRadarTab('radar')">出没</button>
+    <button id="rtb-foot" class="seg-btn" aria-pressed="false" onclick="switchRadarTab('foot')">足跡</button>
   </div>
   <div id="r-radar">
   <div class="search-wrap">
@@ -240,9 +245,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <!-- View & News -->
 <div id="p-g" style="display:none">
-  <div style="display:flex;gap:8px;margin-bottom:14px;background:var(--gray);border-radius:var(--radius);padding:4px">
-    <button id="gtb-photo" class="subtab active" onclick="switchGalleryTab('photo')" style="flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)">📷 写真</button>
-    <button id="gtb-news" class="subtab" onclick="switchGalleryTab('news')" style="flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-sub)">📢 お知らせ</button>
+  <div class="seg" style="margin-bottom:14px">
+    <button id="gtb-photo" class="seg-btn on" aria-pressed="true" onclick="switchGalleryTab('photo')">📷 写真</button>
+    <button id="gtb-news" class="seg-btn" aria-pressed="false" onclick="switchGalleryTab('news')">📢 お知らせ</button>
   </div>
 
   <div id="g-photo">
@@ -557,13 +562,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div style="font-weight:500;font-size:16px">✍️ 足跡を残す</div>
       <button class="x-btn" onclick="closeFootprintModal()" aria-label="閉じる">&times;</button>
     </div>
+    <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">今どうしてる？一言だけでOK（任意）</div>
+    <textarea id="fp_note" rows="2" maxlength="200" oninput="fpUpdateCount()" placeholder="例：久しぶりに○○に行ってきた"></textarea>
+    <div id="fp_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:10px">0 / 200</div>
+    <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">書き出し（タップすると入力欄に入ります）</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+      <button type="button" class="pill" onclick="fpInsertStarter(0)" style="min-height:40px;padding:4px 14px">最近ハマってる</button>
+      <button type="button" class="pill" onclick="fpInsertStarter(1)" style="min-height:40px;padding:4px 14px">久しぶりに</button>
+      <button type="button" class="pill" onclick="fpInsertStarter(2)" style="min-height:40px;padding:4px 14px">今日は</button>
+      <button type="button" class="pill" onclick="fpInsertStarter(3)" style="min-height:40px;padding:4px 14px">思い出した</button>
+      <button type="button" class="pill" onclick="fpInsertStarter(4)" style="min-height:40px;padding:4px 14px">おすすめ</button>
+    </div>
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">写真（最大4枚・なくても投稿できます）</div>
     <div id="fp_slots" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
     <!-- v1.2.17：display:none の入力欄は、LINE内ブラウザなどで開かないことがあるため、「見えないだけ」の入力欄にして、＋追加は<label>で開く -->
     <input type="file" id="fp_file" accept="image/*" multiple tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" onchange="fpFilesChosen(this)">
-    <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと（任意）</div>
-    <textarea id="fp_note" rows="2" maxlength="200" oninput="fpUpdateCount()" placeholder="例：松山から海沿いを走ってきた"></textarea>
-    <div id="fp_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:10px">0 / 200</div>
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 場所（任意）　日付は自動で入ります</div>
     <select id="fp_place" style="margin-bottom:12px;min-height:44px"><option value="">選ばない</option></select>
     <details class="more-box"><summary>帰省・出没も知らせる（任意）</summary>
@@ -1841,8 +1854,8 @@ function switchGalleryTab(sub){
   document.getElementById('g-news').style.display = sub==='news' ? 'block' : 'none';
   ['photo','news'].forEach(function(s){
     var b = document.getElementById('gtb-'+s);
-    b.style.background = (s===sub) ? 'var(--white)' : 'transparent';
-    b.style.color = (s===sub) ? 'var(--text)' : 'var(--text-sub)';
+    b.className = 'seg-btn' + ((s===sub) ? ' on' : '');
+    b.setAttribute('aria-pressed', (s===sub) ? 'true' : 'false');
   });
   if(sub==='photo') loadGalleryFromAPI();
   if(sub==='news') loadAnnounceFromAPI();
@@ -2307,8 +2320,8 @@ function switchRadarTab(sub){
   document.getElementById('r-foot').style.display = sub==='foot' ? 'block' : 'none';
   ['radar','foot'].forEach(function(s){
     var b = document.getElementById('rtb-'+s);
-    b.style.background = (s===sub) ? 'var(--white)' : 'transparent';
-    b.style.color = (s===sub) ? 'var(--text)' : 'var(--text-sub)';
+    b.className = 'seg-btn' + ((s===sub) ? ' on' : '');
+    b.setAttribute('aria-pressed', (s===sub) ? 'true' : 'false');
   });
   if(sub==='foot') loadFootprints();
 }
@@ -2693,6 +2706,19 @@ function openFootprintModal(){
 function closeFootprintModal(){ document.getElementById('modal-footprint').classList.remove('show'); }
 function fpUpdateCount(){
   document.getElementById('fp_count').textContent = document.getElementById('fp_note').value.length + ' / ' + FP_NOTE_MAX;
+}
+// v1.2.20：書き出しの候補。タップすると、入力欄の末尾に足す（すでに書いた内容は消さない）。そのまま消して書き直してよい
+var FP_STARTERS = ['最近ハマってるのは、', '久しぶりに', '今日は', 'ふと思い出した。', 'おすすめは、'];
+function fpInsertStarter(i){
+  var t = document.getElementById('fp_note');
+  var cur = t.value;
+  var sep = (cur && !/\s$/.test(cur)) ? ' ' : '';
+  var next = cur + sep + FP_STARTERS[i];
+  if(next.length > FP_NOTE_MAX){ showToast('これ以上は書けません（' + FP_NOTE_MAX + '字まで）'); return; }
+  t.value = next;
+  fpUpdateCount();
+  t.focus();
+  try{ t.setSelectionRange(next.length, next.length); }catch(e){}
 }
 function fpRenderSlots(){
   var h = '';
