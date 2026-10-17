@@ -596,7 +596,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.19　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.20　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2437,7 +2437,7 @@ function renderFootprints(){
     if(fpPlace !== '全場所' && S(p.place) !== fpPlace) return false;
     return true;
   });
-  FP_VIEW = f; // v1.2.18：絞り込んだ中の足跡が、スライド表示の範囲になる
+  FP_VIEW = f; // 絞り込んだ後の足跡（ビューアは、この中からタップした足跡を探す）
   document.getElementById('fp-count').textContent = f.length + '件 表示中' + (FP_HAS_MORE ? '（古い足跡はまだあります）' : '');
   var listEl = document.getElementById('fp-list');
   listEl.innerHTML = f.length ? f.map(fpCardHTML_).join('')
@@ -2509,7 +2509,7 @@ function closeFootprintDetail(){
 
 // ===================================================
 // v1.2.18：足跡の全画面ビューア（LINEの写真ビューアに近い動き）
-//  ・黒背景で、一覧に出ている足跡（期・場所で絞っていれば、その中）の写真を、左右のスライドで次々と見る
+//  ・黒背景で、タップした足跡の写真を、左右のスライドで見る（v1.2.20：その足跡の最後の写真で終わる。次の人の写真へは続かない）
 //  ・見ている写真は、先にサムネイルを出し、フルサイズが届き次第、同じ場所で差し替える
 //  ・前後の写真は先に読み込む。読み込んだ写真は、直近8枚まで端末のメモリに残す
 //  ・写真をタップで、上下の表示を隠す／出す。拡大は、スマホ標準のピンチ
@@ -2517,11 +2517,14 @@ function closeFootprintDetail(){
 var FPV = { open:false, sid:0, slides:[], idx:0, track:null, full:{}, order:[], inflight:{}, thumbs:{}, keyFn:null };
 
 function openFootprintViewer(postId, k){
+  // v1.2.20：スライドで見られるのは、タップした足跡の写真だけ（その足跡の最後の写真で終わる）。
+  //   以前は、一覧に並んだ全部の足跡の写真が1本につながっていて、次の人の写真へ延々と続いていた。
   var slides = [];
-  FP_VIEW.forEach(function(p){ for(var n = 0; n < (p.photoCount || 0); n++) slides.push({ postId: p.postId, k: n, post: p }); });
-  var start = -1;
-  slides.forEach(function(s, i){ if(start < 0 && s.postId === postId && s.k === k) start = i; });
-  if(start < 0) return;
+  var target = FP_VIEW.find(function(p){ return p.postId === postId; }) || FP.find(function(p){ return p.postId === postId; });
+  if(!target) return;
+  for(var n = 0; n < (target.photoCount || 0); n++) slides.push({ postId: target.postId, k: n, post: target });
+  var start = Math.max(0, Math.min(slides.length - 1, k || 0));
+  if(!slides.length) return;
   closeFootprintViewer();
   FPV.open = true; FPV.sid++; FPV.slides = slides; FPV.idx = start; FPV.inflight = {};
   var sid = FPV.sid;
