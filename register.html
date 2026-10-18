@@ -253,7 +253,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>現在のエリア<span class="req">*</span></label>
       <select id="reg_area">
         <option value="">選択してください</option>
-        <option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
+        <option>松山</option><option>愛媛（松山以外）</option><option>香川</option><option>徳島</option><option>高知</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
       </select>
       <p class="error-msg">エリアを選択してください</p>
     </div>
@@ -418,7 +418,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
         <label>現在のエリア<span class="req">*</span></label>
         <select id="r_area" onchange="refreshDestOptionsR_()">
           <option value="">選択してください</option>
-          <option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
+          <option>松山</option><option>愛媛（松山以外）</option><option>香川</option><option>徳島</option><option>高知</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option>
         </select>
         <p class="error-msg">エリアを選択してください</p>
       </div>
@@ -436,7 +436,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       </div>
       <div class="field" id="r_dest_wrap" style="display:none">
         <label>行き先<span class="req">*</span><span class="hint">出没するエリア</span></label>
-        <select id="r_dest"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+        <select id="r_dest"><option value="">選択してください</option><option>松山</option><option>愛媛（松山以外）</option><option>香川</option><option>徳島</option><option>高知</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
       </div>
       <div class="field" id="r_hc_wrap" style="display:none">
         <label>帰省期間<span class="hint">任意　開始日→終了日の順にタップ</span></label>
@@ -490,7 +490,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.20　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.21　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -665,7 +665,7 @@ function rcStoreValue_(){
   }
   document.getElementById('r_hc').value = v;
 }
-var AREA_LIST = ["松山", "愛媛・四国（松山以外）", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"];
+var AREA_LIST = ["松山", "愛媛（松山以外）", "香川", "徳島", "高知", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"];
 // 行き先の選択肢から、ふだんの住まい（エリア）と同じものを除く（海外・その他は別の国・場所があり得るので除かない）
 function refreshDestOptionsR_(){
   var cur = document.getElementById('r_area').value;
