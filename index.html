@@ -450,10 +450,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
           <button type="button" class="pill" data-val="出没中" onclick="setUpdateStatus_(this.getAttribute('data-val'))">出没中</button>
         </div>
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 ふだんの住まい（エリア）</div>
-        <select id="ue" style="margin-bottom:12px" onchange="refreshDestOptions_()"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+        <select id="ue" style="margin-bottom:12px" onchange="refreshDestOptions_()"><option value="">選択してください</option><option>松山</option><option>愛媛（松山以外）</option><option>香川</option><option>徳島</option><option>高知</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
         <div id="ud_dest_wrap" style="display:none;margin-bottom:12px">
           <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">🧳 行き先（必須）</div>
-          <select id="ud_dest"><option value="">選択してください</option><option>松山</option><option>愛媛・四国（松山以外）</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
+          <select id="ud_dest"><option value="">選択してください</option><option>松山</option><option>愛媛（松山以外）</option><option>香川</option><option>徳島</option><option>高知</option><option>関東</option><option>関西</option><option>名古屋・東海</option><option>広島</option><option>福岡</option><option>九州</option><option>北海道・東北</option><option>海外</option><option>その他</option></select>
         </div>
         <input type="hidden" id="ud">
         <div id="ud_wrap" style="display:none;margin-bottom:12px">
@@ -603,13 +603,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div id="fp_d_hint" style="font-size:11px;color:var(--text-ter);margin-bottom:12px;display:none">タップで拡大（大きい画像は、その時に読み込みます）</div>
     <p id="fp_d_note" style="font-size:16px;font-weight:700;line-height:1.5;margin:0 0 6px;overflow-wrap:anywhere"></p>
     <div id="fp_d_who" style="font-size:12px;color:var(--text-sub);margin-bottom:16px"></div>
+    <!-- v1.2.21：足跡のコメント（足跡にだけ付けられる。古いGASのときは出さない） -->
+    <div id="fp_c_wrap" style="display:none;margin-bottom:16px">
+      <div id="fp_c_head" style="font-size:13px;font-weight:700;color:var(--text-sub);border-top:1px solid var(--border);padding-top:12px;margin-bottom:4px">コメント</div>
+      <div id="fp_c_list"></div>
+      <textarea id="fp_c_input" rows="2" maxlength="100" oninput="fpCommentCount_()" placeholder="一言どうぞ（100字まで）" style="margin-top:10px"></textarea>
+      <div id="fp_c_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:8px">0 / 100</div>
+      <button id="fp_c_btn" onclick="fpCommentSubmit()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:48px">✍️ コメントする</button>
+    </div>
     <button id="fp_d_del" onclick="deleteFootprint(FP_CURRENT_ID)" style="display:none;width:100%;min-height:44px;border:1px solid var(--border);background:var(--white);border-radius:var(--radius-sm);font-size:13px;color:#a32d2d;cursor:pointer;font-family:inherit">この足跡を消す（自分の足跡にだけ表示）</button>
   </div>
 </div>
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.20　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.21　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -617,7 +625,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
 var MOVE_STATUSES = ['帰省中','帰省予定','出没中','出没予定']; // v1.2.15：動き（帰省・出没）の状態
-var AREA_ORDER = ["松山", "愛媛・四国（松山以外）", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"]; // v1.2.15：エリアの並び順（絞り込み用）
+var AREA_ORDER = ["松山", "愛媛（松山以外）", "香川", "徳島", "高知", "関東", "関西", "名古屋・東海", "広島", "福岡", "九州", "北海道・東北", "海外", "その他"]; // v1.2.15：エリアの並び順（絞り込み用）。v1.2.21：四国4県を追加（旧「愛媛・四国（松山以外）」は一覧に無く、登録済みの値だけ末尾に出る）
 var boardVerifiedUser = null;
 var updateAuthName = ""; // ← v1.2.12：近況更新の本人確認に使った名前（ニックネーム表示の方は本名）
 // ← v1.2.12：この端末に保存されている登録証（mk18_uid）が指す「自分のカード」。
@@ -2439,7 +2447,10 @@ function fpCardHTML_(p){
         + '<span style="font-size:12px;font-weight:500;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.name)+'</span>'
         + (p.period ? '<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.period)+'</span>' : '')
       + '</div>'
-      + (p.isMine ? '<button class="fp-del-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + (p.commentCount > 0 ? '<span style="font-size:12px;font-weight:700;color:var(--text-sub);white-space:nowrap">💬 '+p.commentCount+'</span>' : '')
+        + (p.isMine ? '<button class="fp-del-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
+      + '</div>'
     + '</div>'
   + '</div>';
 }
@@ -2487,6 +2498,7 @@ function openFootprintDetail(postId){
   var hintEl = document.getElementById('fp_d_hint');
   thumbsEl.innerHTML = ''; hintEl.style.display = 'none';
   document.getElementById('modal-fp-detail').classList.add('show');
+  fpCommentsOpen_(postId);   // v1.2.21
   function showThumbs(imgs){
     thumbsEl.innerHTML = imgs.map(function(src, i){
       return '<img src="'+src+'" alt="" data-idx="'+i+'" class="fp-d-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;display:block">';
@@ -2518,6 +2530,75 @@ function openFootprintDetail(postId){
 function closeFootprintDetail(){
   document.getElementById('modal-fp-detail').classList.remove('show');
   FP_CURRENT_ID = null;
+}
+
+// ===================================================
+// v1.2.21：足跡のコメント（コメントを付けられるのは足跡だけ。コルクボード・写真館・出没のカードには付けない）
+//  ・一言（100字まで）。消せるのは、書いた本人と、その足跡の持ち主だけ。
+//  ・古いGAS（コメント未対応）のときは、コメント欄ごと出さない。
+// ===================================================
+var FP_COMMENT_MAX = 100;
+function fpCommentCount_(){ document.getElementById('fp_c_count').textContent = document.getElementById('fp_c_input').value.length + ' / ' + FP_COMMENT_MAX; }
+function fpCommentsOpen_(postId){
+  document.getElementById('fp_c_wrap').style.display = 'none';
+  document.getElementById('fp_c_list').innerHTML = '';
+  document.getElementById('fp_c_input').value = '';
+  fpCommentCount_();
+  if(!getMyUid()) return;
+  fpCommentsLoad_(postId);
+}
+function fpCommentsLoad_(postId){
+  apiFetch('action=getFootprintComments&uid='+encodeURIComponent(getMyUid())+'&postId='+encodeURIComponent(postId))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(FP_CURRENT_ID !== postId) return;
+      if(!res || !res.success) return;
+      fpCommentsRender_(postId, res.comments || []);
+    })
+    .catch(function(){});
+}
+function fpCommentsRender_(postId, list){
+  var p = FP.find(function(x){ return x.postId === postId; });
+  if(p && p.commentCount !== list.length){ p.commentCount = list.length; renderFootprints(); }
+  document.getElementById('fp_c_wrap').style.display = 'block';
+  document.getElementById('fp_c_head').textContent = list.length ? 'コメント ' + list.length + '件' : 'コメント';
+  var box = document.getElementById('fp_c_list');
+  box.innerHTML = list.map(function(c){
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        + '<span style="font-size:12px;color:var(--text-sub)">'+escHtmlLite(c.name)+(c.period ? '（'+escHtmlLite(c.period)+'）' : '')+'　'+escHtmlLite(c.postedAt)+'</span>'
+        + (c.canDelete ? '<button class="fp-cdel" data-cid="'+escHtmlLite(c.commentId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
+      + '</div>'
+      + '<div style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap">'+escHtmlLite(c.text)+'</div>'
+    + '</div>';
+  }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('.fp-cdel'), function(el){
+    el.addEventListener('click', function(){ fpCommentDelete_(postId, el.getAttribute('data-cid')); });
+  });
+}
+function fpPostJson_(body){
+  return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(function(r){ return r.json(); });
+}
+function fpCommentSubmit(){
+  var postId = FP_CURRENT_ID, t = document.getElementById('fp_c_input'), text = t.value.trim();
+  if(!postId || !text) return;
+  var btn = document.getElementById('fp_c_btn'); btn.disabled = true;
+  fpPostJson_({ action:'postFootprintComment', uid:getMyUid(), postId:postId, text:text })
+    .then(function(res){
+      btn.disabled = false;
+      if(res && res.success){ t.value = ''; fpCommentCount_(); fpCommentsLoad_(postId); showToast('✓ コメントしました'); }
+      else showToast(res && res.error === 'daily_limit_exceeded' ? '⚠ 今日のコメントは上限に達しました' : '⚠ コメントできませんでした');
+    })
+    .catch(function(){ btn.disabled = false; showToast('⚠ 通信エラーが発生しました'); });
+}
+function fpCommentDelete_(postId, cid){
+  if(!cid || !confirm('このコメントを削除しますか？')) return;
+  fpPostJson_({ action:'deleteFootprintComment', uid:getMyUid(), commentId:cid })
+    .then(function(res){
+      if(res && res.success){ showToast('✓ 削除しました'); fpCommentsLoad_(postId); }
+      else showToast('⚠ 削除できませんでした');
+    })
+    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
 }
 
 // ===================================================
