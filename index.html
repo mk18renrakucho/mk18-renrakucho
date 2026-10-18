@@ -593,31 +593,44 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <!-- v1.2.16：足跡の詳細（背景タップでも閉じる） -->
 <div class="modal-overlay" id="modal-fp-detail" onclick="closeFootprintDetail()">
-  <div class="modal" onclick="event.stopPropagation()">
+  <div class="modal" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;overflow:hidden;padding-bottom:0">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="fp_d_title">足跡</div>
       <button class="x-btn" onclick="closeFootprintDetail()" aria-label="閉じる">&times;</button>
     </div>
+    <div id="fp_d_body" style="flex:1 1 auto;min-height:0;overflow-y:auto;padding-bottom:12px">
     <div id="fp_d_chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
     <div id="fp_d_thumbs" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px"></div>
     <div id="fp_d_hint" style="font-size:11px;color:var(--text-ter);margin-bottom:12px;display:none">タップで拡大（大きい画像は、その時に読み込みます）</div>
     <p id="fp_d_note" style="font-size:16px;font-weight:700;line-height:1.5;margin:0 0 6px;overflow-wrap:anywhere"></p>
     <div id="fp_d_who" style="font-size:12px;color:var(--text-sub);margin-bottom:16px"></div>
-    <!-- v1.2.21：足跡のコメント（足跡にだけ付けられる。古いGASのときは出さない） -->
+    <!-- v1.2.21：足跡のコメント（足跡にだけ付けられる。古いGASのときは出さない）。v1.2.22：入力欄は画面の下に固定 -->
     <div id="fp_c_wrap" style="display:none;margin-bottom:16px">
       <div id="fp_c_head" style="font-size:13px;font-weight:700;color:var(--text-sub);border-top:1px solid var(--border);padding-top:12px;margin-bottom:4px">コメント</div>
       <div id="fp_c_list"></div>
-      <textarea id="fp_c_input" rows="2" maxlength="100" oninput="fpCommentCount_()" placeholder="一言どうぞ（100字まで）" style="margin-top:10px"></textarea>
-      <div id="fp_c_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-bottom:8px">0 / 100</div>
-      <button id="fp_c_btn" onclick="fpCommentSubmit()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:48px">✍️ コメントする</button>
     </div>
     <button id="fp_d_del" onclick="deleteFootprint(FP_CURRENT_ID)" style="display:none;width:100%;min-height:44px;border:1px solid var(--border);background:var(--white);border-radius:var(--radius-sm);font-size:13px;color:#a32d2d;cursor:pointer;font-family:inherit">この足跡を消す（自分の足跡にだけ表示）</button>
+    </div>
+    <div id="fp_c_bar" style="display:none;border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));background:var(--white)">
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:6px;white-space:nowrap">
+        <button type="button" class="pill" onclick="fpReplyStarter(0)" style="min-height:36px;padding:4px 12px;flex:0 0 auto">懐かしい！</button>
+        <button type="button" class="pill" onclick="fpReplyStarter(1)" style="min-height:36px;padding:4px 12px;flex:0 0 auto">私も行きたい</button>
+        <button type="button" class="pill" onclick="fpReplyStarter(2)" style="min-height:36px;padding:4px 12px;flex:0 0 auto">元気そうで何より</button>
+        <button type="button" class="pill" onclick="fpReplyStarter(3)" style="min-height:36px;padding:4px 12px;flex:0 0 auto">いいね！</button>
+        <button type="button" class="pill" onclick="fpReplyStarter(4)" style="min-height:36px;padding:4px 12px;flex:0 0 auto">また会いたい</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="fp_c_input" rows="1" maxlength="100" oninput="fpCommentCount_()" placeholder="一言どうぞ（100字まで）" style="flex:1;min-height:44px;resize:none"></textarea>
+        <button id="fp_c_btn" onclick="fpCommentSubmit()" style="flex:0 0 auto;min-width:72px;min-height:44px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">送る</button>
+      </div>
+      <div id="fp_c_count" style="font-size:11px;color:var(--text-ter);text-align:right;margin-top:2px">0 / 100</div>
+    </div>
   </div>
 </div>
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.21　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.22　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -2448,7 +2461,7 @@ function fpCardHTML_(p){
         + (p.period ? '<span style="font-size:11px;font-weight:700;color:var(--text-sub);white-space:nowrap">'+escHtmlLite(p.period)+'</span>' : '')
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
-        + (p.commentCount > 0 ? '<span style="font-size:12px;font-weight:700;color:var(--text-sub);white-space:nowrap">💬 '+p.commentCount+'</span>' : '')
+        + (typeof p.commentCount === 'number' ? '<button class="fp-cmt-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;border-radius:20px;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;'+(p.commentCount > 0 ? 'border:1px solid var(--blue);background:var(--blue-light);color:var(--blue);font-weight:700' : 'border:1px dashed var(--border);background:var(--white);color:var(--text-sub);font-weight:500')+'">💬 '+(p.commentCount > 0 ? 'コメント '+p.commentCount+'件' : 'コメントする')+'</button>' : '')
         + (p.isMine ? '<button class="fp-del-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
       + '</div>'
     + '</div>'
@@ -2473,9 +2486,12 @@ function renderFootprints(){
   if(moreEl) moreEl.style.display = FP_HAS_MORE ? 'block' : 'none';
   Array.prototype.forEach.call(listEl.querySelectorAll('.fp-card'), function(card){
     card.addEventListener('click', function(e){
-      if(e.target.closest('.fp-del-btn')) return;
+      if(e.target.closest('.fp-del-btn') || e.target.closest('.fp-cmt-btn')) return;
       openFootprintDetail(card.getAttribute('data-post-id'));
     });
+  });
+  Array.prototype.forEach.call(listEl.querySelectorAll('.fp-cmt-btn'), function(btn){   // v1.2.22：コメントボタン → 詳細を開いて、コメント欄まで移動する
+    btn.addEventListener('click', function(e){ e.stopPropagation(); openFootprintDetail(btn.getAttribute('data-post-id'), true); });
   });
   Array.prototype.forEach.call(listEl.querySelectorAll('.fp-del-btn'), function(btn){
     btn.addEventListener('click', function(e){ e.stopPropagation(); deleteFootprint(btn.getAttribute('data-post-id')); });
@@ -2483,7 +2499,7 @@ function renderFootprints(){
 }
 
 // ---- 詳細（サムネイル全部。拡大した時だけフルサイズを取得） ----
-function openFootprintDetail(postId){
+function openFootprintDetail(postId, toComments){
   var p = FP.find(function(x){ return x.postId === postId; });
   if(!p) return;
   FP_CURRENT_ID = postId;
@@ -2498,7 +2514,7 @@ function openFootprintDetail(postId){
   var hintEl = document.getElementById('fp_d_hint');
   thumbsEl.innerHTML = ''; hintEl.style.display = 'none';
   document.getElementById('modal-fp-detail').classList.add('show');
-  fpCommentsOpen_(postId);   // v1.2.21
+  fpCommentsOpen_(postId, toComments);   // v1.2.21／v1.2.22：toComments＝コメントボタンから開いた時は、コメント欄まで移動する
   function showThumbs(imgs){
     thumbsEl.innerHTML = imgs.map(function(src, i){
       return '<img src="'+src+'" alt="" data-idx="'+i+'" class="fp-d-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;display:block">';
@@ -2539,8 +2555,19 @@ function closeFootprintDetail(){
 // ===================================================
 var FP_COMMENT_MAX = 100;
 function fpCommentCount_(){ document.getElementById('fp_c_count').textContent = document.getElementById('fp_c_input').value.length + ' / ' + FP_COMMENT_MAX; }
-function fpCommentsOpen_(postId){
+var FP_REPLIES = ['懐かしい！', '私も行きたい', '元気そうで何より', 'いいね！', 'また会いたい'];   // v1.2.22：返事の例（前向きな言葉だけ）。タップで入力欄に入る（そのまま書き直せる）
+var FP_C_SCROLL = '';   // v1.2.22：読み込み後の移動先（'top'＝コメント欄の先頭／'last'＝いちばん新しいコメント）
+function fpReplyStarter(i){
+  var t = document.getElementById('fp_c_input'), cur = t.value;
+  var next = cur + ((cur && !/\s$/.test(cur)) ? ' ' : '') + FP_REPLIES[i];
+  if(next.length > FP_COMMENT_MAX){ showToast('これ以上は書けません（' + FP_COMMENT_MAX + '字まで）'); return; }
+  t.value = next; fpCommentCount_(); t.focus();
+  try{ t.setSelectionRange(next.length, next.length); }catch(e){}
+}
+function fpCommentsOpen_(postId, toComments){
+  FP_C_SCROLL = toComments ? 'top' : '';
   document.getElementById('fp_c_wrap').style.display = 'none';
+  document.getElementById('fp_c_bar').style.display = 'none';
   document.getElementById('fp_c_list').innerHTML = '';
   document.getElementById('fp_c_input').value = '';
   fpCommentCount_();
@@ -2561,6 +2588,7 @@ function fpCommentsRender_(postId, list){
   var p = FP.find(function(x){ return x.postId === postId; });
   if(p && p.commentCount !== list.length){ p.commentCount = list.length; renderFootprints(); }
   document.getElementById('fp_c_wrap').style.display = 'block';
+  document.getElementById('fp_c_bar').style.display = 'block';
   document.getElementById('fp_c_head').textContent = list.length ? 'コメント ' + list.length + '件' : 'コメント';
   var box = document.getElementById('fp_c_list');
   box.innerHTML = list.map(function(c){
@@ -2572,9 +2600,15 @@ function fpCommentsRender_(postId, list){
       + '<div style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap">'+escHtmlLite(c.text)+'</div>'
     + '</div>';
   }).join('');
+  if(!list.length) box.innerHTML = '<div style="padding:10px 0;font-size:13px;color:var(--text-ter)">最初のコメントをどうぞ</div>';
   Array.prototype.forEach.call(box.querySelectorAll('.fp-cdel'), function(el){
     el.addEventListener('click', function(){ fpCommentDelete_(postId, el.getAttribute('data-cid')); });
   });
+  if(FP_C_SCROLL){
+    var target = (FP_C_SCROLL === 'last' && box.lastElementChild) ? box.lastElementChild : document.getElementById('fp_c_wrap');
+    FP_C_SCROLL = '';
+    try{ target.scrollIntoView({ block: (target === box.lastElementChild) ? 'nearest' : 'start', behavior: 'smooth' }); }catch(e){}
+  }
 }
 function fpPostJson_(body){
   return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(function(r){ return r.json(); });
@@ -2586,7 +2620,7 @@ function fpCommentSubmit(){
   fpPostJson_({ action:'postFootprintComment', uid:getMyUid(), postId:postId, text:text })
     .then(function(res){
       btn.disabled = false;
-      if(res && res.success){ t.value = ''; fpCommentCount_(); fpCommentsLoad_(postId); showToast('✓ コメントしました'); }
+      if(res && res.success){ t.value = ''; fpCommentCount_(); FP_C_SCROLL = 'last'; fpCommentsLoad_(postId); showToast('✓ コメントしました'); }
       else showToast(res && res.error === 'daily_limit_exceeded' ? '⚠ 今日のコメントは上限に達しました' : '⚠ コメントできませんでした');
     })
     .catch(function(){ btn.disabled = false; showToast('⚠ 通信エラーが発生しました'); });
