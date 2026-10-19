@@ -49,6 +49,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .seg-btn{flex:1;min-height:44px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)}
 .seg-btn.on{background:var(--blue-mid);border-color:var(--blue-mid);color:var(--white);font-weight:700}
 .seg-btn:focus-visible{outline:2px solid var(--blue-mid);outline-offset:2px}
+/* v1.2.23：アプリ内の確認画面（標準のconfirmは、環境によって出ないことがあるため使わない） */
+.cf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:20px}
+.cf-overlay.show{display:flex}
 .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
 .search-wrap{position:relative;margin-bottom:10px}
 .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-ter);font-size:15px;pointer-events:none}
@@ -592,6 +595,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- v1.2.16：足跡の詳細（背景タップでも閉じる） -->
+<div class="cf-overlay" id="modal-confirm" onclick="closeConfirm_(false)">
+  <div onclick="event.stopPropagation()" role="alertdialog" aria-modal="true" aria-labelledby="cf_title" style="background:var(--white);border-radius:var(--radius);padding:22px 20px 16px;max-width:360px;width:100%">
+    <div id="cf_title" style="font-size:17px;font-weight:700;margin-bottom:10px"></div>
+    <div id="cf_msg" style="font-size:14px;line-height:1.7;color:var(--text-sub);white-space:pre-line;margin-bottom:18px"></div>
+    <button id="cf_cancel" onclick="closeConfirm_(false)" style="width:100%;min-height:52px;background:var(--blue);color:var(--white);border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px">やめる</button>
+    <button id="cf_ok" onclick="closeConfirm_(true)" style="width:100%;min-height:44px;background:var(--white);color:#a32d2d;border:1px solid #a32d2d;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;font-family:inherit"></button>
+  </div>
+</div>
 <div class="modal-overlay" id="modal-fp-detail" onclick="closeFootprintDetail()">
   <div class="modal" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;overflow:hidden;padding-bottom:0">
     <div class="modal-header">
@@ -609,7 +620,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div id="fp_c_head" style="font-size:13px;font-weight:700;color:var(--text-sub);border-top:1px solid var(--border);padding-top:12px;margin-bottom:4px">コメント</div>
       <div id="fp_c_list"></div>
     </div>
-    <button id="fp_d_del" onclick="deleteFootprint(FP_CURRENT_ID)" style="display:none;width:100%;min-height:44px;border:1px solid var(--border);background:var(--white);border-radius:var(--radius-sm);font-size:13px;color:#a32d2d;cursor:pointer;font-family:inherit">この足跡を消す（自分の足跡にだけ表示）</button>
+    <button id="fp_d_del" onclick="deleteFootprint(FP_CURRENT_ID)" style="display:none;width:100%;min-height:48px;margin-top:32px;border:1px solid #a32d2d;background:var(--white);border-radius:var(--radius-sm);font-size:13px;color:#a32d2d;cursor:pointer;font-family:inherit">⚠ 足跡ごと消す（写真・コメントも全部消えます）</button>
     </div>
     <div id="fp_c_bar" style="display:none;border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));background:var(--white)">
       <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:6px;white-space:nowrap">
@@ -630,7 +641,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.22　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.23　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -1681,23 +1692,24 @@ function closeNoteHistory_(){
 }
 
 function deleteGalleryPhoto(photoId){
-  if(!confirm('この写真を削除しますか？この操作は取り消せません。')) return;
-  var uid = getMyUid();
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'deletePhoto', uid: uid, photoId: photoId })
-  })
-    .then(function(r){ return r.json(); })
-    .then(function(res){
-      if(res && res.success){
-        showToast('✓ 削除しました');
-        loadGalleryFromAPI();
-      } else {
-        showToast('⚠ 削除に失敗しました');
-      }
+  askConfirm_('この写真を消しますか？', '取り消せません。', '写真を消す', function(){
+    var uid = getMyUid();
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'deletePhoto', uid: uid, photoId: photoId })
     })
-    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(res && res.success){
+          showToast('✓ 削除しました');
+          loadGalleryFromAPI();
+        } else {
+          showToast('⚠ 削除に失敗しました');
+        }
+      })
+      .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+  });
 }
 
 // ---- 画像圧縮（メイン画像・サムネイル共通で使う汎用版） ----
@@ -2462,7 +2474,6 @@ function fpCardHTML_(p){
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
         + (typeof p.commentCount === 'number' ? '<button class="fp-cmt-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;border-radius:20px;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;'+(p.commentCount > 0 ? 'border:1px solid var(--blue);background:var(--blue-light);color:var(--blue);font-weight:700' : 'border:1px dashed var(--border);background:var(--white);color:var(--text-sub);font-weight:500')+'">💬 '+(p.commentCount > 0 ? 'コメント '+p.commentCount+'件' : 'コメントする')+'</button>' : '')
-        + (p.isMine ? '<button class="fp-del-btn" data-post-id="'+escHtmlLite(p.postId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
       + '</div>'
     + '</div>'
   + '</div>';
@@ -2595,7 +2606,7 @@ function fpCommentsRender_(postId, list){
     return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
         + '<span style="font-size:12px;color:var(--text-sub)">'+escHtmlLite(c.name)+(c.period ? '（'+escHtmlLite(c.period)+'）' : '')+'　'+escHtmlLite(c.postedAt)+'</span>'
-        + (c.canDelete ? '<button class="fp-cdel" data-cid="'+escHtmlLite(c.commentId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">消す</button>' : '')
+        + (c.canDelete ? '<button class="fp-cdel" data-cid="'+escHtmlLite(c.commentId)+'" style="border:none;background:none;font-size:12px;color:#767676;text-decoration:underline;min-height:44px;cursor:pointer;font-family:inherit">コメントを消す</button>' : '')
       + '</div>'
       + '<div style="font-size:14px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap">'+escHtmlLite(c.text)+'</div>'
     + '</div>';
@@ -2626,13 +2637,15 @@ function fpCommentSubmit(){
     .catch(function(){ btn.disabled = false; showToast('⚠ 通信エラーが発生しました'); });
 }
 function fpCommentDelete_(postId, cid){
-  if(!cid || !confirm('このコメントを削除しますか？')) return;
-  fpPostJson_({ action:'deleteFootprintComment', uid:getMyUid(), commentId:cid })
-    .then(function(res){
-      if(res && res.success){ showToast('✓ 削除しました'); fpCommentsLoad_(postId); }
-      else showToast('⚠ 削除できませんでした');
-    })
-    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+  if(!cid) return;
+  askConfirm_('このコメントを消しますか？', '足跡は消えません。\n取り消せません。', 'コメントを消す', function(){
+    fpPostJson_({ action:'deleteFootprintComment', uid:getMyUid(), commentId:cid })
+      .then(function(res){
+        if(res && res.success){ showToast('✓ コメントを削除しました'); fpCommentsLoad_(postId); }
+        else showToast('⚠ 削除できませんでした');
+      })
+      .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+  });
 }
 
 // ===================================================
@@ -2784,25 +2797,50 @@ function fpvLoad_(i){
 }
 
 // ---- 削除（自分の足跡のみ。サーバー側でも持ち主を確認する） ----
+// ===================================================
+// v1.2.23：アプリ内の確認画面。標準のconfirm()は、LINEのアプリ内ブラウザなどで出ないことがあるため使わない。
+//  「やめる」を大きく、消すほうを赤・小さめにする。画面の外を押す／Escは「やめる」。
+// ===================================================
+var CONFIRM_CB = null;
+function askConfirm_(title, msg, okLabel, onOk){
+  document.getElementById('cf_title').textContent = title;
+  document.getElementById('cf_msg').textContent = msg;
+  document.getElementById('cf_ok').textContent = okLabel;
+  CONFIRM_CB = onOk;
+  document.getElementById('modal-confirm').classList.add('show');
+}
+function closeConfirm_(run){
+  document.getElementById('modal-confirm').classList.remove('show');
+  var cb = CONFIRM_CB; CONFIRM_CB = null;   // 先に空にして、2回押されても1回しか動かさない
+  if(run && cb) cb();
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && CONFIRM_CB) closeConfirm_(false); });
+
 function deleteFootprint(postId){
   if(!postId) return;
-  if(!confirm('この足跡を削除しますか？写真もすべて消えます。この操作は取り消せません。')) return;
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'deleteFootprint', uid: getMyUid(), postId: postId })
-  })
-    .then(function(r){ return r.json(); })
-    .then(function(res){
-      if(res && res.success){
-        showToast('✓ 削除しました');
-        closeFootprintDetail();
-        loadFootprints();
-      } else {
-        showToast('⚠ 削除に失敗しました');
-      }
+  var p = FP.find(function(x){ return x.postId === postId; }) || {};
+  var parts = [];
+  if(p.photoCount > 0) parts.push('写真' + p.photoCount + '枚');
+  if(p.commentCount > 0) parts.push('コメント' + p.commentCount + '件');
+  var msg = (parts.length ? parts.join('と、') + 'も、一緒に消えます。\n' : '') + '取り消せません。\n\n※コメントだけ消したいときは「やめる」を押して、コメントの横の「コメントを消す」を押してください。';
+  askConfirm_('足跡ごと消しますか？', msg, '足跡ごと消す', function(){
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'deleteFootprint', uid: getMyUid(), postId: postId })
     })
-    .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(res && res.success){
+          showToast('✓ 削除しました');
+          closeFootprintDetail();
+          loadFootprints();
+        } else {
+          showToast('⚠ 削除に失敗しました');
+        }
+      })
+      .catch(function(){ showToast('⚠ 通信エラーが発生しました'); });
+  });
 }
 
 // ---- 投稿 ----
