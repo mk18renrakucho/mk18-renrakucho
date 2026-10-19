@@ -8,7 +8,8 @@
 // v1.2.20：足跡の全画面ビューアを、タップした足跡の写真だけで終わるように修正。保存の名前を更新。
 // v1.2.21：足跡にコメントを追加、場所の選択肢に四国4県を追加。保存の名前を更新。
 // v1.2.22：足跡のコメントを、見つけやすく・入れやすく変更（index_full.html）。保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.22';
+// v1.2.23：消す操作の確認を、アプリ内の確認画面に変更（index_full.html）。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.23';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
