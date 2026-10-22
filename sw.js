@@ -10,7 +10,8 @@
 // v1.2.22：足跡のコメントを、見つけやすく・入れやすく変更（index_full.html）。保存の名前を更新。
 // v1.2.23：消す操作の確認を、アプリ内の確認画面に変更（index_full.html）。保存の名前を更新。
 // v1.2.24：足跡のカードに、最新のコメントを1行だけ表示（index_full.html）。保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.24';
+// v1.2.25：入口の土台工事（招待コード・noindex）。register.html／welcome.html／index_full.htmlを更新したため、保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.25';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
