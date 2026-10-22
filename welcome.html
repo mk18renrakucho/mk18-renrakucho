@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
 <title>北高 連絡帳</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
@@ -125,6 +126,11 @@ input[type=text]:focus{border-color:var(--accent)}
       <div class="big-icon">✅</div>
       <div class="ok-title">認証完了！</div>
       <div class="ok-msg">さすが北高卒業生ですね👍<br>ご利用前に以下をご確認ください。</div>
+      <div id="invite-box" style="display:none;background:#FAEEDA;border:1px solid #813100;border-radius:12px;padding:12px 14px;margin-bottom:16px;text-align:center">
+        <div style="font-size:12px;color:#5a2200;font-weight:700;margin-bottom:6px">🎟 あなたの招待コード</div>
+        <div id="invite-code-text" style="font-size:22px;font-weight:700;letter-spacing:.12em;color:#5a2200"></div>
+        <div style="font-size:11px;color:#5a2200;margin-top:6px;line-height:1.6">登録画面でコードの入力が必要になることがあります。控えておいてください。</div>
+      </div>
       <div class="terms-box">
         <p>①本サービスは佐々木宗明（33期・個人）が運営するボランティアサービスです。</p>
         <p>②登録情報（名前・期・部活・エリア・近況）は同窓生間で共有されます。</p>
@@ -152,6 +158,16 @@ input[type=text]:focus{border-color:var(--accent)}
         </p>
       </div>
     </div>
+    <!-- 画面④：招待リンクが使えないとき（v1.2.25） -->
+    <div class="screen" id="sc-invite-bad">
+      <div class="block-icon">🎟</div>
+      <div class="block-title" style="color:var(--accent)">この招待リンクは使えません</div>
+      <div class="block-msg">
+        期限が切れているか、すでに使われています。<br>
+        お手数ですが、誘ってくれた方に<br>
+        新しいリンクをお尋ねください。
+      </div>
+    </div>
     <!-- 画面③：やり直し案内（旧：ブロック画面） -->
     <div class="screen" id="sc-block">
       <div class="block-icon">😌</div>
@@ -169,7 +185,7 @@ input[type=text]:focus{border-color:var(--accent)}
       </div>
     </div>
   </div>
-  <div class="footer">北高 連絡帳 v1.2.24<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+  <div class="footer">北高 連絡帳 v1.2.25<br>© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 </div>
 <script>
 // ===================================================
@@ -257,6 +273,40 @@ function check(){
   document.getElementById('q-input').focus();
 }
 setupWebButton();
+
+// ===================================================
+// v1.2.25：招待コード。招待リンク（welcome.html?code=XXXXXXXX）で開かれた時、
+// コードを端末に控えて（register.htmlが使う）、サーバーで使えるかを確かめる。
+//   ・必須の設定で使えない → 「この招待リンクは使えません」を出す（クイズに進ませない）
+//   ・使える／必須でない設定／通信できない → これまでどおりクイズへ。使える場合は規約画面にコードを表示する
+// ===================================================
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbz0OpZUvaACrFGdLoxXI7TOXEisYz0x4wwLAx3k6uluhWChwlQjtT1pz2F9sbZuODdTow/exec';
+function normCode(s){
+  var t = String(s || '');
+  try{ t = t.normalize('NFKC'); }catch(e){}
+  return t.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+function showInviteBox(code){
+  document.getElementById('invite-code-text').textContent = code;
+  document.getElementById('invite-box').style.display = 'block';
+}
+(function initInvite(){
+  var code = '';
+  try{ code = normCode(new URLSearchParams(window.location.search).get('code')); }catch(e){}
+  if(!code) return;
+  try{ localStorage.setItem('mk18_invite_code', code); }catch(e){}
+  fetch(GAS_URL + '?action=checkInvite&code=' + encodeURIComponent(code))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.success && res.required && !res.valid){
+        try{ localStorage.removeItem('mk18_invite_code'); }catch(e){}
+        show('sc-invite-bad');
+        return;
+      }
+      showInviteBox(code);
+    })
+    .catch(function(){ showInviteBox(code); });
+})();
 </script>
 </body>
 </html>
