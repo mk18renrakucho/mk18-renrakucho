@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
 <title>連絡帳に書き込む</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
@@ -162,6 +163,25 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       LINE公式アカウントの追加も、入口のページから行えます。
     </div>
     <a class="gate-link-btn" href="welcome.html">入口のページへ進む</a>
+  </div>
+</div>
+
+<!-- 招待コードの入力（v1.2.25）：サーバーが招待コードを必須にしている時、コードが無い・使えない人はここで止める -->
+<div class="form-section" id="invite-gate">
+  <button class="back-btn" onclick="showTop()">← 戻る</button>
+  <div class="header">
+    <div class="badge">🎟 招待コード</div>
+    <h1>招待コードを入力</h1>
+    <p class="sub">誘ってくれた方から届いたコードです</p>
+  </div>
+  <div class="card">
+    <div class="field">
+      <label>招待コード<span class="req">*</span><span class="hint">8文字</span></label>
+      <input type="text" id="inv_code" placeholder="例：K7M2QX9P" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <p id="inv_msg" style="display:none;color:#c0392b;font-size:13px;line-height:1.7;margin-top:8px"></p>
+    </div>
+    <button class="submit-btn" id="inv_btn" onclick="submitInviteGate()">次へ</button>
+    <p style="font-size:12px;color:#7a6f65;line-height:1.8;margin-top:14px">コードがない方は、誘ってくれた方にお尋ねください。<br>すでに登録済みの方は、トップの「近況を更新する」からどうぞ。</p>
   </div>
 </div>
 
@@ -490,7 +510,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 </div>
 
 </div>
-<div class="footer">北高 連絡帳 v1.2.24　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.25　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -588,12 +608,76 @@ function hasEntryPass(){
     return false;
   }
 }
+// ===================================================
+// 招待コード（v1.2.25）
+// コードは、URLの ?code= か、この端末の記録（welcome.htmlが保存）から取る。
+// サーバー（checkInvite）が「コード必須の設定か」と「このコードが使えるか」を返す。
+//   ・必須で、コードが使える → そのまま登録フォームへ
+//   ・必須で、コードが無い／使えない → 招待コードの入力画面へ
+//   ・必須でない設定の時／通信できない時 → 従来の入口ゲート（登録の最終判定はサーバーが行う）
+// ===================================================
+function normInviteCode(v){
+  var s = String(v || '');
+  try{ s = s.normalize('NFKC'); }catch(e){}
+  return s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+function getInviteCode(){
+  try{
+    var c = new URLSearchParams(window.location.search).get('code');
+    if(c){ c = normInviteCode(c); if(c){ localStorage.setItem('mk18_invite_code', c); return c; } }
+  }catch(e){}
+  try{ return normInviteCode(localStorage.getItem('mk18_invite_code') || ''); }catch(e){ return ''; }
+}
+function checkInvite(code, cb){
+  fetch(GAS_URL + '?action=checkInvite&code=' + encodeURIComponent(code || ''))
+    .then(function(r){ return r.json(); })
+    .then(function(res){ cb(res); })
+    .catch(function(){ cb(null); });
+}
+var INVITE_MESSAGES = {
+  missing:   '招待コードを入力してください。',
+  not_found: 'このコードは見つかりません。もう一度ご確認ください。',
+  used:      'このコードはすでに使われています。誘った方にお問い合わせください。',
+  expired:   'このコードは有効期限が切れています。誘った方にお問い合わせください。'
+};
+function showInviteGate(reason, serverMessage){
+  var msg = document.getElementById('inv_msg');
+  var text = serverMessage || (reason ? (INVITE_MESSAGES[reason] || '') : '');
+  msg.textContent = text;
+  msg.style.display = text ? 'block' : 'none';
+  document.getElementById('inv_code').value = getInviteCode();
+  showSection('invite-gate');
+}
+function submitInviteGate(){
+  var code = normInviteCode(document.getElementById('inv_code').value);
+  var msg = document.getElementById('inv_msg');
+  if(!code){ msg.textContent = INVITE_MESSAGES.missing; msg.style.display = 'block'; return; }
+  try{ localStorage.setItem('mk18_invite_code', code); }catch(e){}
+  document.getElementById('overlay').classList.add('show');
+  checkInvite(code, function(res){
+    document.getElementById('overlay').classList.remove('show');
+    if(res && res.success && res.valid){ showSection('register'); return; }
+    var reason = (res && res.reason) || 'not_found';
+    msg.textContent = INVITE_MESSAGES[reason] || INVITE_MESSAGES.not_found;
+    msg.style.display = 'block';
+  });
+}
 function goToRegister(){
-  if(hasEntryPass()){
-    showSection('register');
-  } else {
-    showSection('register-gate');
-  }
+  var code = getInviteCode();
+  document.getElementById('overlay').classList.add('show');
+  checkInvite(code, function(res){
+    document.getElementById('overlay').classList.remove('show');
+    if(res && res.success && res.required){
+      if(res.valid){ showSection('register'); }
+      else { showInviteGate(code ? res.reason : '', ''); }
+      return;
+    }
+    if(hasEntryPass()){
+      showSection('register');
+    } else {
+      showSection('register-gate');
+    }
+  });
 }
 
 function showSection(id) {
@@ -885,12 +969,16 @@ function submitRegister() {
     note:document.getElementById('reg_note').value.trim(),
     nickname:getNickname('reg_nick_type','reg_nickname'),
     termsAgreedAt:getTermsAgreedAt(),
+    inviteCode:getInviteCode(),
   }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
       if(res.uid){ try{ localStorage.setItem('mk18_uid', res.uid); }catch(e){} }
+      try{ localStorage.removeItem('mk18_invite_code'); }catch(e){}
       document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
       showSection('done');
+    } else if(res && res.inviteInvalid){
+      showInviteGate('', res.error);
     } else if(res && res.duplicate){
       document.getElementById('dup_box').style.display = 'block';
       document.getElementById('dup_box').scrollIntoView({behavior:'smooth',block:'center'});
