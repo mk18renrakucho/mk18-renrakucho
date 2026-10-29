@@ -98,6 +98,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:300;align-items:center;justify-content:center}
 .overlay.show{display:flex}
+/* v1.2.26：閲覧の鍵（本人確認の専用画面）。サーバーが「本人確認が必要」と返した時だけ、画面いっぱいに出す */
+.auth-gate{display:none;position:fixed;inset:0;z-index:2000;background:#F0F2F5;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.auth-gate-box{max-width:480px;margin:0 auto;min-height:100%;background:var(--white)}
+.auth-gate-body{padding:20px 16px 24px}
+.auth-gate label{display:block;font-size:13px;color:var(--text-sub);margin:12px 0 4px}
+.auth-gate-err{display:none;margin-top:12px;padding:10px 12px;border-radius:var(--radius-sm);background:#FDECEC;border:1px solid #E24B4A;color:#A32D2D;font-size:13px;line-height:1.6}
 .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:#c9a96e;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .fav-login{background:var(--gray);border-radius:var(--radius);padding:16px;margin-bottom:14px}
@@ -641,8 +647,27 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
+<!-- v1.2.26：閲覧の鍵。登録証（mk18_uid）が無い・無効な端末にだけ表示する。更新はせず、確認だけを行う -->
+<div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="agTitle">
+  <div class="auth-gate-box">
+    <div class="header"><div><div class="header-title">北高 連絡帳</div><div class="header-sub">松山北高校 同窓会ネットワーク</div></div></div>
+    <div class="auth-gate-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><i class="ti ti-key" style="font-size:20px;color:var(--blue)"></i><div id="agTitle" style="font-size:16px;font-weight:500">本人確認のお願い</div></div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text-sub)">中身を見るには、名前と4桁の数字の確認が必要です。この端末では、最初の1回だけです。</div>
+      <label for="agName">名前（本名またはニックネーム）</label>
+      <input type="text" id="agName" autocomplete="off" placeholder="登録した名前">
+      <label for="agBd">4桁の数字</label>
+      <input type="text" id="agBd" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の数字">
+      <div id="agPeriodRow" style="display:none"><label for="agPeriod">期</label><input type="text" id="agPeriod" autocomplete="off" placeholder="例：33期"></div>
+      <div class="auth-gate-err" id="agErr" role="alert"></div>
+      <button class="btn-gold" id="agBtn" onclick="authGateSubmit_()" style="width:100%;min-height:44px;margin-top:16px;font-size:14px">本人確認をする</button>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-ter);text-align:center">5回続けて間違えると、15分間は確認できません。</div>
+      <div class="auth-card-sub" style="margin-top:16px;text-align:center">未登録の方は <a href="register.html#register">メンバー登録する</a></div>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.25　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.26　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -670,7 +695,65 @@ var MY_CARD_CHECKED = false;
 // ===================================================
 function S(v){ return String(v == null ? "" : v); }
 function apiUrl(qs){ return API_URL + (qs ? "?" + qs + "&" : "?") + "_ts=" + Date.now(); }
-function apiFetch(qs){ return fetch(apiUrl(qs), {cache:"no-store"}); }
+// v1.2.26：閲覧の鍵。端末の登録証(uid)を、すべての読み出しに自動で付ける（すでに uid が付いている場合は重ねない）。
+//   サーバーが「need_auth」と返したら、本人確認の画面を出して、その先の処理は止める（壊れた表示を出さない）。
+function apiFetch(qs){
+  var q = qs || "";
+  var uid = "";
+  try { uid = localStorage.getItem('mk18_uid') || ""; } catch(e){}
+  if (uid && !/(^|&)uid=/.test(q)) q += (q ? "&" : "") + "uid=" + encodeURIComponent(uid);
+  return fetch(apiUrl(q), {cache:"no-store"}).then(function(r){
+    var origJson = r.json.bind(r);
+    r.json = function(){
+      return origJson().then(function(d){
+        if (d && !Array.isArray(d) && d.error === "need_auth") {
+          authGateShow_();
+          return new Promise(function(){});
+        }
+        return d;
+      });
+    };
+    return r;
+  });
+}
+var AUTH_GATE_BUSY = false;
+function authGateShow_(){
+  try { localStorage.removeItem('mk18_members_cache'); } catch(e){}
+  var ov = document.getElementById('overlay'); if (ov) ov.classList.remove('show');
+  var ld = document.getElementById('loading-msg'); if (ld) ld.style.display = 'none';
+  var g = document.getElementById('authGate'); if (g) g.style.display = 'block';
+}
+function authGateSubmit_(){
+  if (AUTH_GATE_BUSY) return;
+  var errEl = document.getElementById('agErr');
+  function fail(msg){ errEl.textContent = msg; errEl.style.display = 'block'; }
+  errEl.style.display = 'none';
+  var name = S(document.getElementById('agName').value).trim();
+  var bd = digitsVal('agBd');
+  var period = S(document.getElementById('agPeriod').value).trim();
+  if (!name) { fail('名前を入力してください。'); return; }
+  if (!/^[0-9]{4}$/.test(bd)) { fail('4桁の数字で入力してください。'); return; }
+  AUTH_GATE_BUSY = true;
+  var btn = document.getElementById('agBtn');
+  var label = btn.textContent;
+  btn.textContent = '確認しています…';
+  var qs = 'action=verify&name=' + encodeURIComponent(name) + '&birthday=' + encodeURIComponent(bd) + (period ? '&period=' + encodeURIComponent(period) : '');
+  apiFetch(qs).then(function(r){ return r.json(); }).then(function(res){
+    AUTH_GATE_BUSY = false; btn.textContent = label;
+    if (res && res.locked) { fail(res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。'); return; }
+    if (!res || !res.found) { fail('名前または4桁の数字が一致しません。'); return; }
+    if (res.multiple) { document.getElementById('agPeriodRow').style.display = 'block'; fail('同じ名前・数字の方が複数います。期も入力してください。'); return; }
+    if (!res.uid) { fail('確認はできましたが、登録証を受け取れませんでした。管理者に連絡してください。'); return; }
+    try { localStorage.setItem('mk18_uid', res.uid); } catch(e){ fail('この環境では、登録証を保存できませんでした。'); return; }
+    location.reload();
+  }).catch(function(){
+    AUTH_GATE_BUSY = false; btn.textContent = label;
+    fail('通信エラーが発生しました。もう一度お試しください。');
+  });
+}
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && e.target && (e.target.id === 'agName' || e.target.id === 'agBd' || e.target.id === 'agPeriod')) authGateSubmit_();
+});
 function safeImgSrc(src){
   var s = S(src);
   return /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(s) ? s : "";
@@ -1822,7 +1905,7 @@ function loadFromAPI(){
   // ← V4j：前回表示していたスナップショットがあれば即表示（読み込み中表示を出さない）。
   //   無ければ従来どおり「読み込み中」を表示する。
   if(M.length===0){
-    var cachedM = loadCachedMembersFromStorage();
+    var cachedM = getMyUid() ? loadCachedMembersFromStorage() : null; // ← v1.2.26：登録証が無い端末では、前回の一覧を出さない（閲覧の鍵）
     if(cachedM){
       M = cachedM;
       populateFilters();renderM();
