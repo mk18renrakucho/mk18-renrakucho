@@ -11,7 +11,8 @@
 // v1.2.23：消す操作の確認を、アプリ内の確認画面に変更（index_full.html）。保存の名前を更新。
 // v1.2.24：足跡のカードに、最新のコメントを1行だけ表示（index_full.html）。保存の名前を更新。
 // v1.2.25：入口の土台工事（招待コード・noindex）。register.html／welcome.html／index_full.htmlを更新したため、保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.25';
+// v1.2.26：近況更新の不具合を修正（Code_full.gs）、本人確認の専用画面と閲覧の鍵を追加（index_full.html／Code_full.gs）。register.html／welcome.htmlは版数の表記のみ。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.26';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
