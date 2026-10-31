@@ -38,7 +38,11 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#F0F2F5;min-h
 .badge-home{background:#E7F8EE;color:#27500A}
 .badge-plan{background:#FAEEDA;color:#813100}
 .badge-live{background:#F1EFE8;color:#444}
-input,select,textarea{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:14px;font-family:inherit;color:var(--text);background:var(--white)}
+input,select,textarea{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:16px;font-family:inherit;color:var(--text);background:var(--white)}
+/* v1.2.28：入力欄を16px以上にして、iPhoneの自動ズーム（触ると拡大してそのまま戻らない）を起こさない。4桁の入力欄は18px（入力中だけ文字の間を空ける） */
+.pin-input{font-size:18px}
+.pin-input:not(:placeholder-shown){letter-spacing:.15em}
+.pin-input::placeholder{font-size:14px;letter-spacing:0}
 textarea{resize:vertical}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .btn{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;border:1px solid var(--border);background:var(--white);color:var(--text)}
@@ -306,7 +310,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div id="an_c_quickreplies" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
       <div style="margin-bottom:6px">
         <input type="text" id="an_c_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:6px">
-        <input type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
+        <input class="pin-input" type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
         <textarea id="an_c_content" rows="2" placeholder="コメントを書く（上のボタンをタップしても入力できます）"></textarea>
       </div>
       <div id="an_c_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
@@ -380,7 +384,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
     <div class="fav-login-sub">名前と、誕生日または確認用の数字を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
     <input type="text" id="fv_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
-    <input type="text" id="fv_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
+    <input class="pin-input" type="text" id="fv_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
     <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
     <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
   </div>
@@ -429,7 +433,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7D4F00;line-height:1.6">
           <i class="ti ti-lock" style="margin-right:4px"></i>誕生日または確認用の数字4桁を入力して本人確認します
         </div>
-        <input type="text" id="u_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
+        <input class="pin-input" type="text" id="u_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
         <div id="u_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doVerifyUpdate()" style="width:100%" id="u_verify_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>確認する
@@ -532,7 +536,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       </div>
       <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
       <div style="margin-bottom:12px">
-        <input type="text" id="b_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric">
+        <input class="pin-input" type="text" id="b_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric">
       </div>
       <div id="b_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
       <button id="b_verify_btn" onclick="doVerifyBoard()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
@@ -662,7 +666,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <label for="agName">名前（本名またはニックネーム）</label>
       <input type="text" id="agName" autocomplete="off" placeholder="登録した名前">
       <label for="agBd">4桁の数字</label>
-      <input type="text" id="agBd" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の数字">
+      <input class="pin-input" type="text" id="agBd" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の数字">
       <div id="agPeriodRow" style="display:none"><label for="agPeriod">期</label><input type="text" id="agPeriod" autocomplete="off" placeholder="例：33期"></div>
       <div class="auth-gate-err" id="agErr" role="alert"></div>
       <button class="btn-gold" id="agBtn" onclick="authGateSubmit_()" style="width:100%;min-height:44px;margin-top:16px;font-size:14px">本人確認をする</button>
@@ -672,7 +676,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.27　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.28　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
