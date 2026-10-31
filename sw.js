@@ -13,7 +13,8 @@
 // v1.2.25：入口の土台工事（招待コード・noindex）。register.html／welcome.html／index_full.htmlを更新したため、保存の名前を更新。
 // v1.2.26：近況更新の不具合を修正（Code_full.gs）、本人確認の専用画面と閲覧の鍵を追加（index_full.html／Code_full.gs）。register.html／welcome.htmlは版数の表記のみ。保存の名前を更新。
 // v1.2.27：コードの中の誕生日の復元用データと復元処理を削除（Code_full.gs）。ほかのファイルは版数の表記のみ。保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.27';
+// v1.2.28：入力欄の文字を16px以上にして、iPhoneの自動ズームが起きないようにした（index_full.html）。ほかのファイルは版数の表記のみ。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.28';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
