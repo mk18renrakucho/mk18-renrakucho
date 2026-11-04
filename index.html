@@ -203,6 +203,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
   <!-- v1.2.16：足跡（写真つきの近況） -->
   <div id="r-foot" style="display:none">
+    <div id="fp-outbox" style="display:none;margin-bottom:10px"></div><!-- v1.2.29：送れていない足跡 -->
     <div id="fp-period-pills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
       <select class="filter-sel" id="fp-place" aria-label="場所で絞る" onchange="fpSelectPlace(this.value)" style="flex:1;min-height:44px"><option>全場所</option></select>
@@ -606,6 +607,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <span id="fp_who">あなた</span>の名前で、登録メンバーに見えます。<br>顔や住所が写っていないか確認してから投稿してください。
     </div>
     <div id="fp_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+    <!-- v1.2.29：送っている途中・送れなかったときの表示（専門用語なし。ボタンは「もう一度送る」だけ） -->
+    <div id="fp_stat" role="status" aria-live="polite" style="display:none;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px"></div>
+    <button id="fp_retry" onclick="fpRetryCurrent_()" style="display:none;width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:48px">もう一度送る</button>
     <button id="fp_btn" onclick="submitFootprint()" style="width:100%;padding:13px;background:#c9a96e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;min-height:48px">投稿する</button>
   </div>
 </div>
@@ -676,7 +680,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.28　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.29　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -3104,6 +3108,7 @@ function deleteFootprint(postId){
 function openFootprintModal(){
   if(!getMyUid()){ renderFootprintAuthNeeded_(); showToast('先に本人確認をお願いします'); return; }
   fpPicked = []; fpBusy = false; fpLoading = 0;
+  fpCurrent = null; fpResetStat_(); // ← v1.2.29
   document.getElementById('fp_note').value = '';
   document.getElementById('fp_err').style.display = 'none';
   document.getElementById('fp_btn').disabled = false;
@@ -3111,9 +3116,10 @@ function openFootprintModal(){
   document.getElementById('fp_place').innerHTML = '<option value="">選ばない</option>' + AREA_ORDER.map(function(a){ return '<option value="'+escHtmlLite(a)+'">'+escHtmlLite(a)+'</option>'; }).join('');
   document.getElementById('fp_who').textContent = MY_CARD ? ('「' + MY_CARD.name + '（' + MY_CARD.period + '）」') : 'あなた';
   fpUpdateCount(); fpRenderSlots();
+  fpRestoreDraft_(); // ← v1.2.29：前回、写真を端末に残せずに終わった投稿のひとことを戻す
   document.getElementById('modal-footprint').classList.add('show');
 }
-function closeFootprintModal(){ document.getElementById('modal-footprint').classList.remove('show'); }
+function closeFootprintModal(){ document.getElementById('modal-footprint').classList.remove('show'); if(typeof renderOutboxBanner_==='function') renderOutboxBanner_(); } // v1.2.29：閉じたあとも、送れていない足跡は帯で残す
 function fpUpdateCount(){
   document.getElementById('fp_count').textContent = document.getElementById('fp_note').value.length + ' / ' + FP_NOTE_MAX;
 }
@@ -3171,6 +3177,252 @@ function fpFilesChosen(input){
   });
 }
 
+// ===================================================
+// v1.2.29：足跡の投稿を、通信が弱くても失敗しにくくする
+//  ①写真を1枚ずつ加工（失敗したら小さくして再試行）→ 端末に控えを残す → ②自動でやり直しながら送る
+//  ・投稿ごとの番号（clientPostId）で、サーバーが二重投稿を防ぐ
+//  ・送れなかった投稿は端末（IndexedDB）に残り、電波が戻ったとき・次に開いたときにも自動で送る（アプリを閉じている間は送れない）
+//  ・失敗の記録（機種・版数・失敗した場所・写真の大きさ）を、自動で管理用シートに送る（ひとことと写真の中身は送らない）
+// ===================================================
+var FP_APP_VERSION = 'v1.2.29';
+var FP_RETRY_DELAYS = [2000, 6000, 15000];          // 自動でやり直すまでの待ち時間（最初の1回のあと、3回まで）
+var FP_SEND_TIMEOUT_MS = 60000;                      // 1回の送信を待つ上限
+var FP_PHOTO_LEVELS = [[1600, 0.8], [1280, 0.7], [1024, 0.6], [800, 0.6]]; // 最初は今まで通り。加工に失敗したときだけ、順に小さくする
+var FP_OB_MEM = {};                                  // 端末の保管場所が使えないときの、画面の中の控え
+var fpCurrent = null;                                // いま投稿画面で送っている投稿
+var fpSending = {};                                  // 送信中の投稿（番号 → true）
+var FP_FLUSHING = false;
+
+function fpNewId_(){
+  try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16);
+  });
+}
+
+// ---- 端末の保管場所（IndexedDB）。使えなければ、画面の中だけで持つ ----
+function obOpen_(){
+  return new Promise(function(resolve, reject){
+    try{
+      if(!window.indexedDB){ reject(new Error('no_idb')); return; }
+      var rq = indexedDB.open('mk18_outbox', 1);
+      rq.onupgradeneeded = function(){ rq.result.createObjectStore('items', { keyPath: 'id' }); };
+      rq.onsuccess = function(){ resolve(rq.result); };
+      rq.onerror = function(){ reject(rq.error || new Error('idb_error')); };
+      rq.onblocked = function(){ reject(new Error('idb_blocked')); };
+    }catch(e){ reject(e); }
+  });
+}
+function obTx_(mode, fn){
+  return obOpen_().then(function(db){
+    return new Promise(function(resolve, reject){
+      var req;
+      try{ var tx = db.transaction('items', mode); req = fn(tx.objectStore('items'));
+        tx.oncomplete = function(){ db.close(); resolve(req ? req.result : undefined); };
+        tx.onerror = tx.onabort = function(){ db.close(); reject(tx.error || new Error('idb_tx')); };
+      }catch(e){ try{ db.close(); }catch(e2){} reject(e); }
+    });
+  });
+}
+function obPut_(item){
+  FP_OB_MEM[item.id] = item;
+  return obTx_('readwrite', function(s){ return s.put(item); }).then(function(){ return true; }, function(){ return false; });
+}
+function obDel_(id){
+  delete FP_OB_MEM[id];
+  return obTx_('readwrite', function(s){ return s.delete(id); }).then(function(){}, function(){});
+}
+function obAll_(){
+  return obTx_('readonly', function(s){ return s.getAll(); }).then(function(a){ return a || []; }, function(){ return []; })
+    .then(function(list){
+      var seen = {}; list.forEach(function(it){ seen[it.id] = true; });
+      Object.keys(FP_OB_MEM).forEach(function(k){ if(!seen[k]) list.push(FP_OB_MEM[k]); });
+      return list.sort(function(a, b){ return (a.createdAt || 0) - (b.createdAt || 0); });
+    });
+}
+
+// ひとこと・場所だけの控え（写真を端末に残せなかったときの最後の備え）
+function fpSaveDraft_(item){ try{ localStorage.setItem('mk18_fp_draft', JSON.stringify({ id: item.id, note: item.note, place: item.place })); }catch(e){} }
+function fpClearDraft_(id){ try{ var d = JSON.parse(localStorage.getItem('mk18_fp_draft') || 'null'); if(d && (!id || d.id === id)) localStorage.removeItem('mk18_fp_draft'); }catch(e){} }
+function fpRestoreDraft_(){
+  var d = null; try{ d = JSON.parse(localStorage.getItem('mk18_fp_draft') || 'null'); }catch(e){}
+  if(!d || FP_OB_MEM[d.id]) return;
+  obAll_().then(function(list){
+    if(list.some(function(it){ return it.id === d.id; })) return; // 控えが残っている投稿は、帯から送り直す
+    if(document.getElementById('fp_note').value) return;
+    document.getElementById('fp_note').value = d.note || '';
+    if(d.place) document.getElementById('fp_place').value = d.place;
+    fpUpdateCount();
+    fpShowStat_('note', '前回、送れなかったひとことを戻しました', '写真は、もう一度選んでください');
+  });
+}
+
+// ---- 写真の加工（1枚ずつ。失敗したら小さくして再試行） ----
+function fpLoadImage_(file){
+  return new Promise(function(resolve, reject){
+    var url;
+    try{ url = URL.createObjectURL(file); }catch(e){ reject(e); return; }
+    var img = new Image();
+    img.onload = function(){ resolve({ img: img, url: url }); };
+    img.onerror = function(){ try{ URL.revokeObjectURL(url); }catch(e){} reject(new Error('image_load_failed')); };
+    img.src = url;
+  });
+}
+function fpDraw_(img, maxDim, quality){
+  var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if(!w || !h) throw new Error('image_size_zero');
+  var scale = Math.min(1, maxDim / Math.max(w, h));
+  var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+  var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  var ctx = c.getContext('2d'); if(!ctx) throw new Error('no_canvas');
+  ctx.drawImage(img, 0, 0, cw, ch);
+  var url = c.toDataURL('image/jpeg', quality);
+  c.width = 0; c.height = 0; // 使い終わった領域を手放す
+  if(!/^data:image\/jpeg;base64,/.test(url) || url.length < 200) throw new Error('canvas_empty');
+  return url;
+}
+function fpPrepareOne_(file){
+  return fpLoadImage_(file).then(function(L){
+    var res = null, lastErr = null;
+    for(var i = 0; i < FP_PHOTO_LEVELS.length; i++){
+      try{
+        var full = fpDraw_(L.img, FP_PHOTO_LEVELS[i][0], FP_PHOTO_LEVELS[i][1]);
+        if(full.length > 3600000) throw new Error('too_big'); // サーバーの上限（3MB）の手前
+        var thumb = fpDraw_(L.img, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY);
+        res = { image: full, thumbnail: thumb, level: i, w: L.img.naturalWidth, h: L.img.naturalHeight,
+                fileKB: Math.round(file.size / 1024), outKB: Math.round(full.length * 0.75 / 1024) };
+        break;
+      }catch(e){ lastErr = e; }
+    }
+    L.img.onload = L.img.onerror = null;
+    try{ URL.revokeObjectURL(L.url); }catch(e){}
+    L.img.src = '';
+    if(!res) throw (lastErr || new Error('prepare_failed'));
+    return res;
+  });
+}
+function fpPrepareAll_(files){
+  var out = [];
+  return files.reduce(function(p, f, idx){
+    return p.then(function(){
+      return fpPrepareOne_(f).then(function(r){ out.push(r); }, function(e){
+        var er = new Error('photo' + (idx + 1) + ':' + ((e && e.message) || e)); er.fpStage = 'photo'; throw er;
+      });
+    });
+  }, Promise.resolve()).then(function(){ return out; });
+}
+
+// ---- 送信（1回）と、自動でやり直しながらの送信 ----
+function fpIsPermanentError_(code){
+  code = String(code || '');
+  return ['not_registered', 'note_too_long', 'invalid_place', 'too_many_photos', 'empty_post', 'daily_limit_exceeded'].indexOf(code) >= 0 || /^invalid_image_/.test(code);
+}
+function fpPlainError_(code){
+  code = String(code || '');
+  if(code === 'daily_limit_exceeded') return '今日は、これ以上送れません。明日、またお試しください';
+  if(code === 'not_registered') return '登録の確認ができませんでした。「出没」のページで、本人確認をお願いします';
+  if(code === 'note_too_long') return 'ひとことが長すぎます（' + FP_NOTE_MAX + '字まで）';
+  if(code === 'too_many_photos') return '写真は最大' + FP_MAX_PHOTOS + '枚までです';
+  if(/^invalid_image_/.test(code)) return '写真が読み込めませんでした。別の写真でお試しください';
+  return '送れませんでした。内容を確かめて、もう一度お試しください';
+}
+function fpSendOnce_(item){
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, FP_SEND_TIMEOUT_MS) : null;
+  return fetch(API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, signal: ctrl ? ctrl.signal : undefined,
+    body: JSON.stringify({ action: 'postFootprint', uid: item.uid, note: item.note, place: item.place, images: item.images, clientPostId: item.id })
+  }).then(function(r){
+    if(timer) clearTimeout(timer);
+    return r.text().then(function(t){
+      var d; try{ d = JSON.parse(t); }catch(e){ return { ok: false, stage: 'reply', retry: true, error: 'reply_unreadable:' + r.status }; }
+      if(d && d.success) return { ok: true, res: d };
+      var code = (d && d.error) || 'unknown';
+      return { ok: false, stage: 'server', retry: !fpIsPermanentError_(code), error: String(code) };
+    }, function(e){ return { ok: false, stage: 'reply', retry: true, error: 'reply_read:' + ((e && e.name) || '') }; });
+  }, function(e){
+    if(timer) clearTimeout(timer);
+    return { ok: false, stage: 'send', retry: true, error: ((e && e.name) || '') + ':' + String((e && e.message) || '').slice(0, 80) };
+  });
+}
+function fpSendWithRetry_(item, onRetry){
+  var attempt = 0, started = Date.now(), firstFail = null;
+  function go(){
+    attempt++; item.tries = (item.tries || 0) + 1;
+    return fpSendOnce_(item).then(function(r){
+      if(r.ok) return { ok: true, attempts: attempt, firstFail: firstFail, ms: Date.now() - started };
+      if(!firstFail) firstFail = r;
+      if(!r.retry) return { ok: false, permanent: true, fail: r, attempts: attempt, ms: Date.now() - started };
+      if(attempt > FP_RETRY_DELAYS.length) return { ok: false, permanent: false, fail: r, attempts: attempt, ms: Date.now() - started };
+      if(onRetry) onRetry(attempt);
+      return new Promise(function(res){ setTimeout(res, FP_RETRY_DELAYS[attempt - 1]); }).then(go);
+    });
+  }
+  return go();
+}
+
+// ---- 失敗の記録（端末に取っておき、送れたら消す。ひとことと写真の中身は入れない） ----
+var FP_LOG_BUSY = false;
+function fpLogError_(item, o){
+  var meta = (item && item.meta) || [];
+  var net = ''; try{ var c = navigator.connection; net = (navigator.onLine === false ? 'offline' : 'online') + (c ? '/' + (c.effectiveType || '') + '/' + (c.downlink || '') : ''); }catch(e){}
+  var rec = {
+    at: Date.now(), op: 'postFootprint', stage: o.stage || '', outcome: o.outcome || '',
+    ua: String(navigator.userAgent || '').slice(0, 200), net: net,
+    nPhotos: item && item.images ? item.images.length : (o.nPhotos || 0),
+    fileKB: meta.map(function(m){ return m.fileKB; }).join(','), outKB: meta.map(function(m){ return m.outKB; }).join(','),
+    level: meta.map(function(m){ return m.level; }).join(','),
+    tries: o.tries || (item && item.tries) || 0, ms: o.ms || 0, error: o.error || '',
+    storage: item ? (item.stored === false ? 'ng' : 'ok') : ''
+  };
+  var q = []; try{ q = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
+  q.push(rec); if(q.length > 20) q = q.slice(-20);
+  try{ localStorage.setItem('mk18_errlog', JSON.stringify(q)); }catch(e){}
+  fpFlushLog_();
+}
+function fpFlushLog_(){
+  if(FP_LOG_BUSY) return;
+  var uid = getMyUid(); if(!uid) return;
+  var q = []; try{ q = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
+  if(!q.length) return;
+  FP_LOG_BUSY = true;
+  fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'logClientError', uid: uid, version: FP_APP_VERSION, records: q }) })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      FP_LOG_BUSY = false;
+      if(res && (res.success || res.error === 'not_registered')){
+        var cur = []; try{ cur = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
+        try{ localStorage.setItem('mk18_errlog', JSON.stringify(cur.slice(q.length))); }catch(e){}
+      }
+    }, function(){ FP_LOG_BUSY = false; });
+}
+
+// ---- 投稿画面の表示（送っている途中・送れなかったとき） ----
+function fpShowStat_(kind, title, sub){
+  var el = document.getElementById('fp_stat'); if(!el) return;
+  var warn = (kind === 'fail');
+  el.style.background = warn ? '#FFF9E6' : 'var(--blue-light)';
+  el.style.borderLeft = warn ? '3px solid #E6A817' : 'none';
+  el.style.color = warn ? '#7D4F00' : 'var(--text-sub)';
+  el.innerHTML = '<div style="font-size:13px;font-weight:700">' + escHtmlLite(title) + '</div>'
+    + (sub ? '<div style="font-size:12px;line-height:1.7;margin-top:2px">' + escHtmlLite(sub) + '</div>' : '');
+  el.style.display = 'block';
+}
+function fpResetStat_(){
+  var el = document.getElementById('fp_stat'); if(el) el.style.display = 'none';
+  var rb = document.getElementById('fp_retry'); if(rb) rb.style.display = 'none';
+  var mb = document.getElementById('fp_btn'); if(mb) mb.style.display = 'block';
+  var nt = document.getElementById('fp_note'); if(nt) nt.readOnly = false;
+  var sl = document.getElementById('fp_slots'); if(sl){ sl.style.pointerEvents = ''; sl.style.opacity = ''; }
+}
+function fpLockForm_(locked){
+  var nt = document.getElementById('fp_note'); if(nt) nt.readOnly = !!locked;
+  var sl = document.getElementById('fp_slots'); if(sl){ sl.style.pointerEvents = locked ? 'none' : ''; sl.style.opacity = locked ? '.6' : ''; }
+}
+function fpModalOpen_(){ var m = document.getElementById('modal-footprint'); return !!(m && m.classList.contains('show')); }
+
+// ---- 投稿ボタン ----
 function submitFootprint(){
   if(fpBusy) return;
   var uid = getMyUid();
@@ -3182,46 +3434,136 @@ function submitFootprint(){
   if(!note && fpPicked.length === 0){ errEl.textContent = 'ひとこと、または写真を入れてください'; errEl.style.display = 'block'; return; }
   var btn = document.getElementById('fp_btn');
   fpBusy = true; btn.disabled = true; btn.textContent = '処理中...';
-  Promise.all(fpPicked.map(function(p){
-    return Promise.all([
-      compressImageFile(p.file, GALLERY_MAX_DIMENSION, GALLERY_JPEG_QUALITY),
-      compressImageFile(p.file, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
-    ]).then(function(r){ return { image: r[0], thumbnail: r[1] }; });
-  })).then(function(images){
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'postFootprint', uid: uid, note: note, place: place, images: images })
+  var files = fpPicked.map(function(p){ return p.file; });
+  if(files.length) fpShowStat_('work', '写真を準備しています…', '');
+  fpPrepareAll_(files).then(function(prepared){
+    var item = {
+      id: fpNewId_(), uid: uid, note: note, place: place, createdAt: Date.now(), tries: 0,
+      images: prepared.map(function(x){ return { image: x.image, thumbnail: x.thumbnail }; }),
+      meta: prepared.map(function(x){ return { fileKB: x.fileKB, outKB: x.outKB, level: x.level, w: x.w, h: x.h }; })
+    };
+    fpCurrent = item;
+    return obPut_(item).then(function(saved){
+      item.stored = saved;
+      if(!saved){ fpSaveDraft_(item); fpLogError_(item, { stage: 'storage', outcome: 'not_kept', error: 'idb_unavailable' }); }
+      if(prepared.some(function(x){ return x.level > 0; })) fpLogError_(item, { stage: 'photo', outcome: 'smaller', error: 'level>0' });
+      return item;
     });
-  }).then(function(r){ return r.json(); })
-    .then(function(res){
-      fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
-      if(res && res.success){
-        closeFootprintModal();
-        showToast('✓ 足跡を残しました！');
-        loadFootprints();
-      } else {
-        var messages = {
-          not_registered: '登録情報が確認できませんでした',
-          note_too_long: 'ひとことが長すぎます（'+FP_NOTE_MAX+'字まで）',
-          invalid_place: '場所の値が正しくありません',
-          too_many_photos: '写真は最大'+FP_MAX_PHOTOS+'枚までです',
-          empty_post: 'ひとこと、または写真を入れてください',
-          daily_limit_exceeded: '本日の投稿上限に達しました',
-          save_failed: '保存に失敗しました。もう一度お試しください'
-        };
-        var msg = res && messages[res.error];
-        if(!msg && res && /^invalid_image_/.test(res.error || '')) msg = '写真が読み込めませんでした（' + res.error.replace('invalid_image_','') + '枚目）';
-        errEl.textContent = msg || ('投稿に失敗しました：' + ((res && res.error) || '不明なエラー'));
-        errEl.style.display = 'block';
-      }
-    })
-    .catch(function(){
-      fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
-      errEl.textContent = '通信エラーが発生しました';
-      errEl.style.display = 'block';
-    });
+  }).then(function(item){
+    fpRunSend_(item, true);
+  }, function(e){
+    // 写真の加工が、一番小さい大きさでも失敗した（送ってはいない）。投稿画面に戻し、別の写真を選んでもらう
+    fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
+    fpResetStat_();
+    errEl.textContent = '写真がうまく読み込めませんでした。別の写真でお試しください';
+    errEl.style.display = 'block';
+    fpLogError_(null, { stage: 'photo', outcome: 'failed', error: String((e && e.message) || e).slice(0, 120), nPhotos: files.length });
+  });
 }
+
+// 1件を送る。fromModal＝投稿画面から（画面に状態を出す）／帯や自動送信から（出さない）
+function fpRunSend_(item, fromModal){
+  if(fpSending[item.id]) return Promise.resolve();
+  fpSending[item.id] = true;
+  var isCur = function(){ return !!(fpCurrent && fpCurrent.id === item.id); };           // いま投稿画面が扱っている投稿か（画面から押した場合も、帯・自動送信の場合も同じ）
+  var inModal = function(){ return isCur() && fpModalOpen_(); };
+  if(inModal()){ fpLockForm_(true); document.getElementById('fp_retry').style.display = 'none'; document.getElementById('fp_btn').style.display = 'none'; fpShowStat_('work', '送っています…', ''); }
+  renderOutboxBanner_();
+  return fpSendWithRetry_(item, function(){
+    if(inModal()) fpShowStat_('retry', '送っています…', '電波が弱いようです。自動でやり直しています');
+  }).then(function(r){
+    delete fpSending[item.id];
+    var btn = document.getElementById('fp_btn');
+    if(r.ok){
+      obDel_(item.id); fpClearDraft_(item.id);
+      if(r.attempts > 1 && r.firstFail) fpLogError_(item, { stage: r.firstFail.stage, outcome: 'recovered', error: r.firstFail.error, tries: r.attempts, ms: r.ms });
+      if(isCur()){ fpBusy = false; fpCurrent = null; if(btn){ btn.disabled = false; btn.textContent = '投稿する'; } fpResetStat_(); if(fpModalOpen_()) closeFootprintModal(); }
+      showToast('✓ 足跡を残しました！');
+      FP = []; FP_EXTRA = []; loadFootprints(); renderOutboxBanner_();
+      return;
+    }
+    if(r.permanent){
+      var code = r.fail.error, msg = fpPlainError_(code);
+      fpLogError_(item, { stage: 'server', outcome: 'rejected', error: code, tries: r.attempts, ms: r.ms });
+      if(isCur()){
+        // 断られた：やり直しても通らないので、元の投稿画面に戻す（内容と写真は、そのまま残っている）
+        obDel_(item.id); fpClearDraft_(item.id); fpBusy = false; fpCurrent = null;
+        if(btn){ btn.disabled = false; btn.textContent = '投稿する'; }
+        fpResetStat_();
+        var errEl = document.getElementById('fp_err'); errEl.textContent = msg; errEl.style.display = 'block';
+      } else if(code === 'daily_limit_exceeded'){
+        item.blocked = msg; item.blockedDay = new Date().toDateString(); obPut_(item);
+      } else {
+        obDel_(item.id); fpClearDraft_(item.id); showToast('⚠ ' + msg);
+      }
+      renderOutboxBanner_();
+      return;
+    }
+    // 自動で何回かやり直しても、送れなかった：端末に残したまま、「もう一度送る」を出す
+    item.lastError = r.fail.error; item.lastStage = r.fail.stage; obPut_(item);
+    fpLogError_(item, { stage: r.fail.stage, outcome: 'gave_up', error: r.fail.error, tries: r.attempts, ms: r.ms });
+    if(isCur()){
+      fpBusy = false;
+      if(fpModalOpen_()){
+        fpShowStat_('fail', 'まだ送れていません', item.stored === false
+          ? 'アプリを閉じなければ、書いた内容と写真は残っています。電波のよいところで、もう一度押してください'
+          : '書いた内容と写真は、このスマホに残してあります。電波のよいところで、もう一度押してください');
+        document.getElementById('fp_retry').style.display = 'block';
+        document.getElementById('fp_btn').style.display = 'none';
+        fpLockForm_(true);
+      }
+    }
+    renderOutboxBanner_();
+  });
+}
+function fpRetryCurrent_(){
+  if(!fpCurrent || fpSending[fpCurrent.id]) return;
+  fpBusy = true;
+  fpRunSend_(fpCurrent, true);
+}
+
+// ---- 送れていない足跡の帯（足跡の一覧の上） ----
+function renderOutboxBanner_(){
+  var el = document.getElementById('fp-outbox'); if(!el) return;
+  var uid = getMyUid();
+  obAll_().then(function(items){
+    items = items.filter(function(it){
+      if(!it || it.uid !== uid) return false;
+      if(fpCurrent && fpCurrent.id === it.id && fpModalOpen_()) return false; // 投稿画面が自分で状態を出している
+      return true;
+    });
+    if(!items.length){ el.innerHTML = ''; el.style.display = 'none'; return; }
+    var first = items[0];
+    var sending = items.some(function(it){ return fpSending[it.id]; });
+    var snippet = first.note ? first.note.slice(0, 30) : '（写真だけの足跡）';
+    var sub = (first.blocked && first.blockedDay === new Date().toDateString()) ? first.blocked : snippet;
+    el.style.display = 'block';
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px">'
+      + '<div style="min-width:0"><div style="font-size:13px;font-weight:700;color:#7D4F00">' + (sending ? '送っています…' : '送れていない足跡が' + items.length + '件あります') + '</div>'
+      + '<div style="font-size:12px;color:#7D4F00;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtmlLite(sub) + '</div></div>'
+      + (sending ? '' : '<button type="button" onclick="fpRetryOutbox_()" class="btn-gold" style="flex:none;min-height:40px;padding:6px 14px">もう一度送る</button>')
+      + '</div>';
+  });
+}
+function fpRetryOutbox_(){ fpFlushOutbox_(true); }
+// 送れていない投稿を、順番に送る。manual＝本人が押したとき（1日の上限で止まっている分も、もう一度試す）
+function fpFlushOutbox_(manual){
+  if(FP_FLUSHING) return;
+  var uid = getMyUid(); if(!uid) return;
+  FP_FLUSHING = true;
+  obAll_().then(function(items){
+    items = items.filter(function(it){
+      if(!it || it.uid !== uid || fpSending[it.id]) return false;
+      if(!manual && it.blockedDay === new Date().toDateString()) return false; // 今日の上限で止まった分は、自動では送らない
+      return true;
+    });
+    return items.reduce(function(p, it){ return p.then(function(){ return fpRunSend_(it, false); }); }, Promise.resolve());
+  }).then(function(){ FP_FLUSHING = false; renderOutboxBanner_(); }, function(){ FP_FLUSHING = false; });
+}
+// 電波が戻ったとき・アプリを開き直したとき・起動時に、自動で送る／記録を送る
+window.addEventListener('online', function(){ fpFlushOutbox_(false); fpFlushLog_(); });
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ fpFlushOutbox_(false); fpFlushLog_(); } });
+function fpOnStart_(){ renderOutboxBanner_(); fpFlushOutbox_(false); fpFlushLog_(); }
 
 var hash=window.location.hash;
 if(hash==="#board")go("b");
@@ -3236,6 +3578,7 @@ else go("r");
 
 loadFromAPI();
 loadMyCard();
+setTimeout(fpOnStart_, 1500); // ← v1.2.29：送れていない足跡があれば自動で送る
 </script>
 </body>
 </html>
