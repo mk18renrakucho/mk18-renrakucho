@@ -15,7 +15,8 @@
 // v1.2.27：コードの中の誕生日の復元用データと復元処理を削除（Code_full.gs）。ほかのファイルは版数の表記のみ。保存の名前を更新。
 // v1.2.28：入力欄の文字を16px以上にして、iPhoneの自動ズームが起きないようにした（index_full.html）。ほかのファイルは版数の表記のみ。保存の名前を更新。
 // v1.2.29：足跡の投稿の通信エラー対策（index_full.html・footprints.gs・Code_full.gs）。保存の名前を更新。
-const CACHE_NAME = 'mk18-v1.2.29';
+// v1.2.30：足跡の写真の加工の見直し・失敗画面の文言・新しい版の自動読み込み直し（index_full.html・Code_full.gs）。保存の名前を更新。
+const CACHE_NAME = 'mk18-v1.2.30';
 const STATIC_ASSETS = [
   '/mk18-renrakucho/',
   '/mk18-renrakucho/index.html',
