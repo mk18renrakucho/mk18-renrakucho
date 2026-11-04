@@ -595,6 +595,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:6px">写真（最大4枚・なくても投稿できます）</div>
     <div id="fp_slots" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+    <!-- v1.2.30：読み込めなかった写真があるときの案内（電波とは言わない） -->
+    <div id="fp_photo_notice" role="status" style="display:none;background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:8px 12px;margin:-6px 0 12px;font-size:12px;color:#7D4F00;line-height:1.7">この写真は読み込めませんでした。別の写真を選ぶか、写真なしで投稿できます</div>
     <!-- v1.2.17：display:none の入力欄は、LINE内ブラウザなどで開かないことがあるため、「見えないだけ」の入力欄にして、＋追加は<label>で開く -->
     <input type="file" id="fp_file" accept="image/*" multiple tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" onchange="fpFilesChosen(this)">
     <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">📍 場所（任意）　日付は自動で入ります</div>
@@ -680,7 +682,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.29　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.30　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -3115,7 +3117,7 @@ function openFootprintModal(){
   document.getElementById('fp_btn').textContent = '投稿する';
   document.getElementById('fp_place').innerHTML = '<option value="">選ばない</option>' + AREA_ORDER.map(function(a){ return '<option value="'+escHtmlLite(a)+'">'+escHtmlLite(a)+'</option>'; }).join('');
   document.getElementById('fp_who').textContent = MY_CARD ? ('「' + MY_CARD.name + '（' + MY_CARD.period + '）」') : 'あなた';
-  fpUpdateCount(); fpRenderSlots();
+  fpUpdateCount(); fpRenderSlots(); fpUpdatePhotoNotice_();
   fpRestoreDraft_(); // ← v1.2.29：前回、写真を端末に残せずに終わった投稿のひとことを戻す
   document.getElementById('modal-footprint').classList.add('show');
 }
@@ -3139,7 +3141,12 @@ function fpInsertStarter(i){
 function fpRenderSlots(){
   var h = '';
   for(var i = 0; i < FP_MAX_PHOTOS; i++){
-    if(fpPicked[i]){
+    if(fpPicked[i] && fpPicked[i].failed){
+      // v1.2.30：読み込めなかった写真。枠に出して、外せるようにする（ほかの写真とひとことは、そのまま投稿できる）
+      h += '<div style="position:relative;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:8px;background:#FFF9E6;border:0.5px solid #E6A817">'
+        + '<i class="ti ti-photo-off" style="font-size:20px;color:#7D4F00" aria-hidden="true"></i><span style="font-size:10px;color:#7D4F00">読めません</span>'
+        + '<button type="button" aria-label="写真'+(i+1)+'を外す" onclick="fpRemove('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border:none;border-radius:14px;background:#fff;color:#666;font-size:14px;cursor:pointer">×</button></div>';
+    } else if(fpPicked[i]){
       h += '<div style="position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:var(--gray)">'
         + '<img src="'+fpPicked[i].preview+'" alt="写真'+(i+1)+'" style="width:100%;height:100%;object-fit:cover;display:block">'
         + '<button type="button" aria-label="写真'+(i+1)+'を外す" onclick="fpRemove('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border:none;border-radius:14px;background:#fff;color:#666;font-size:14px;cursor:pointer">×</button></div>';
@@ -3155,39 +3162,20 @@ function fpRenderSlots(){
   }
   document.getElementById('fp_slots').innerHTML = h;
 }
-function fpRemove(i){ fpPicked.splice(i, 1); fpRenderSlots(); }
-function fpFilesChosen(input){
-  var files = Array.prototype.slice.call(input.files || []);
-  input.value = '';
-  var room = FP_MAX_PHOTOS - fpPicked.length;
-  if(files.length > room) showToast('写真は最大'+FP_MAX_PHOTOS+'枚までです');
-  files = files.slice(0, room);
-  if(files.length === 0) return; // 選ばずに閉じた場合は何もしない
-  fpLoading = files.length; fpRenderSlots(); // 大きい写真は少し時間がかかるため、読み込み中だと分かるようにする
-  Promise.all(files.map(function(f){
-    return compressImageFile(f, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY)
-      .then(function(preview){ return { file: f, preview: preview }; })
-      .catch(function(){ return null; });
-  })).then(function(items){
-    var failed = 0;
-    items.forEach(function(it){ if(it && safeImgSrc(it.preview)) fpPicked.push(it); else failed++; });
-    fpLoading = 0; fpRenderSlots();
-    // v1.2.17：読み込めなかった写真は、黙って消さずに知らせる（以前は何も表示されず、押しても反応がないように見えた）
-    if(failed) showToast('⚠ ' + failed + '枚は読み込めませんでした（JPEG・PNG・WebPの写真をお試しください）');
-  });
-}
-
+function fpRemove(i){ fpPicked.splice(i, 1); fpRenderSlots(); fpUpdatePhotoNotice_(); }
 // ===================================================
+// v1.2.30：写真の加工を、端末に負担をかけず・読めない写真があっても投稿を止めない作りに。失敗画面の文言を状況別に
+//  ・写真は、選んだ直後に1枚ずつ加工する（開く操作は1回だけ）。高画素の写真は、縮小しながら開く。読めない写真は枠に出し、ほかの写真とひとことは投稿できる
+//  ・失敗画面：電波に触れるのは、つながっていないと確認できたときだけ。つながっているのに送れない状態が続いたら、自動のやり直しは3まとまりで止める
+//  ・新しい版が届いたら、安全なときに自動で読み込み直す
 // v1.2.29：足跡の投稿を、通信が弱くても失敗しにくくする
-//  ①写真を1枚ずつ加工（失敗したら小さくして再試行）→ 端末に控えを残す → ②自動でやり直しながら送る
-//  ・投稿ごとの番号（clientPostId）で、サーバーが二重投稿を防ぐ
-//  ・送れなかった投稿は端末（IndexedDB）に残り、電波が戻ったとき・次に開いたときにも自動で送る（アプリを閉じている間は送れない）
+//  ・投稿ごとの番号（clientPostId）で、サーバーが二重投稿を防ぐ／送れなかった投稿は端末（IndexedDB）に残り、電波が戻ったとき・次に開いたときにも自動で送る（アプリを閉じている間は送れない）
 //  ・失敗の記録（機種・版数・失敗した場所・写真の大きさ）を、自動で管理用シートに送る（ひとことと写真の中身は送らない）
 // ===================================================
-var FP_APP_VERSION = 'v1.2.29';
+var FP_APP_VERSION = 'v1.2.30';
 var FP_RETRY_DELAYS = [2000, 6000, 15000];          // 自動でやり直すまでの待ち時間（最初の1回のあと、3回まで）
 var FP_SEND_TIMEOUT_MS = 60000;                      // 1回の送信を待つ上限
-var FP_PHOTO_LEVELS = [[1600, 0.8], [1280, 0.7], [1024, 0.6], [800, 0.6]]; // 最初は今まで通り。加工に失敗したときだけ、順に小さくする
+var FP_MAX_AUTO_ROUNDS = 3;                          // つながっているのに送れない状態が続いたとき、自動で送るのは、この回数のまとまりまで
 var FP_OB_MEM = {};                                  // 端末の保管場所が使えないときの、画面の中の控え
 var fpCurrent = null;                                // いま投稿画面で送っている投稿
 var fpSending = {};                                  // 送信中の投稿（番号 → true）
@@ -3257,7 +3245,82 @@ function fpRestoreDraft_(){
   });
 }
 
-// ---- 写真の加工（1枚ずつ。失敗したら小さくして再試行） ----
+// ---- 写真の加工（選んだ直後に、1枚ずつ。端末に負担をかけず、読めない写真があっても止めない） ----
+// 流れ：先頭を読んで形式・縦横・向きを調べる（画像は開かない）→ 開く（大きい写真は、縮小しながら開く）→ 縮小して書き出す（失敗したら小さくして再試行）
+// ==== FP_IMG_BEGIN ====
+var FP_PHOTO_LEVELS = [[1600, 0.8], [1280, 0.7], [1024, 0.6], [800, 0.6]]; // 最初は今まで通り。書き出しに失敗したときだけ、順に小さくする
+var FP_BIG_PIXELS = 25000000;   // これより画素数の多い写真は、縮小しながら開く方法を先に試す
+var FP_PROBE_JPEG_B64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAYAAAAAAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7+/ZO/wCTWPg3/wBiZo3/AKQw0UUUAf/Z';   // 向き6の2×1画素のJPEG（端末の createImageBitmap が向きの情報をどう扱うかの確認用）
+var FP_BMP_PROBE = null;
+
+function fpReadBuf_(blob){
+  return new Promise(function(resolve, reject){
+    try{
+      var r = new FileReader();
+      r.onload = function(){ resolve(r.result); };
+      r.onerror = function(){ reject(r.error || new Error('read_failed')); };
+      r.readAsArrayBuffer(blob);
+    }catch(e){ reject(e); }
+  });
+}
+// 形式・縦横・向きを、ファイルの先頭から読む（画像は開かない）。読めなくても例外にしない
+function fpParseHead_(dv){
+  var len = dv.byteLength;
+  function u8(o){ return o >= 0 && o < len ? dv.getUint8(o) : 0; }
+  function str(o, n){ var s = ''; for(var i = 0; i < n; i++) s += String.fromCharCode(u8(o + i)); return s; }
+  if(len >= 4 && u8(0) === 0xFF && u8(1) === 0xD8){
+    var info = { type: 'jpeg', w: 0, h: 0, orient: 0 };
+    try{
+      var o = 2;
+      while(o + 4 <= len){
+        if(u8(o) !== 0xFF) break;
+        var m = u8(o + 1);
+        if(m === 0xFF){ o++; continue; }
+        if(m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)){ o += 2; continue; }
+        var segLen = dv.getUint16(o + 2);
+        if(m === 0xE1 && str(o + 4, 4) === 'Exif' && !info.orient){
+          var t = o + 10, le = (dv.getUint16(t) === 0x4949);
+          var ifd = t + dv.getUint32(t + 4, le);
+          var n = dv.getUint16(ifd, le);
+          for(var k = 0; k < n; k++){
+            var e = ifd + 2 + k * 12;
+            if(e + 12 > len) break;
+            if(dv.getUint16(e, le) === 0x0112){ var ov = dv.getUint16(e + 8, le); info.orient = (ov >= 1 && ov <= 8) ? ov : 0; break; }
+          }
+        }
+        if((m >= 0xC0 && m <= 0xC3) || (m >= 0xC5 && m <= 0xC7) || (m >= 0xC9 && m <= 0xCB) || (m >= 0xCD && m <= 0xCF)){
+          info.h = dv.getUint16(o + 5); info.w = dv.getUint16(o + 7); break;
+        }
+        o += 2 + segLen;
+      }
+    }catch(e){}
+    return info;
+  }
+  if(len >= 24 && u8(0) === 0x89 && str(1, 3) === 'PNG') return { type: 'png', w: dv.getUint32(16), h: dv.getUint32(20), orient: 0 };
+  if(len >= 10 && str(0, 4) === 'GIF8') return { type: 'gif', w: dv.getUint16(6, true), h: dv.getUint16(8, true), orient: 0 };
+  if(len >= 30 && str(0, 4) === 'RIFF' && str(8, 4) === 'WEBP'){
+    var ck = str(12, 4), w = 0, h = 0;
+    try{
+      if(ck === 'VP8 '){ w = dv.getUint16(26, true) & 0x3FFF; h = dv.getUint16(28, true) & 0x3FFF; }
+      else if(ck === 'VP8L'){ var bits = dv.getUint32(21, true); w = (bits & 0x3FFF) + 1; h = ((bits >> 14) & 0x3FFF) + 1; }
+      else if(ck === 'VP8X'){ w = 1 + (u8(24) | (u8(25) << 8) | (u8(26) << 16)); h = 1 + (u8(27) | (u8(28) << 8) | (u8(29) << 16)); }
+    }catch(e){}
+    return { type: 'webp', w: w, h: h, orient: 0 };
+  }
+  if(len >= 12 && str(4, 4) === 'ftyp'){
+    var br = str(8, 4);
+    if(br === 'avif' || br === 'avis') return { type: 'avif', w: 0, h: 0, orient: 0 };
+    if(['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'mif1', 'msf1'].indexOf(br) >= 0) return { type: 'heic', w: 0, h: 0, orient: 0 };
+  }
+  return { type: 'unknown', w: 0, h: 0, orient: 0 };
+}
+function fpSniff_(file){
+  return fpReadBuf_(file.slice(0, 262144)).then(function(buf){
+    try{ return fpParseHead_(new DataView(buf)); }catch(e){ return { type: 'unknown', w: 0, h: 0, orient: 0 }; }
+  }, function(){ return { type: 'unknown', w: 0, h: 0, orient: 0 }; });
+}
+
+// 方法A：画像として開く（これまでと同じ。ほとんどの写真はこれで開く）
 function fpLoadImage_(file){
   return new Promise(function(resolve, reject){
     var url;
@@ -3281,36 +3344,119 @@ function fpDraw_(img, maxDim, quality){
   if(!/^data:image\/jpeg;base64,/.test(url) || url.length < 200) throw new Error('canvas_empty');
   return url;
 }
-function fpPrepareOne_(file){
+function fpOpenA_(file){
   return fpLoadImage_(file).then(function(L){
+    return { path: 'A',
+      draw: function(m, q){ return fpDraw_(L.img, m, q); },
+      release: function(){ L.img.onload = L.img.onerror = null; try{ URL.revokeObjectURL(L.url); }catch(e){} L.img.src = ''; } };
+  });
+}
+
+// 方法B：縮小しながら開く（高画素の写真向け。大きいままメモリに広げない）。向きは、端末の動きを確かめてから決める
+function fpProbeBitmap_(){
+  if(FP_BMP_PROBE) return Promise.resolve(FP_BMP_PROBE);
+  if(typeof createImageBitmap !== 'function'){ FP_BMP_PROBE = 'unsupported'; return Promise.resolve(FP_BMP_PROBE); }
+  return new Promise(function(resolve){
+    var finish = function(v){ FP_BMP_PROBE = v; resolve(v); };
+    try{
+      var bin = atob(FP_PROBE_JPEG_B64), arr = new Uint8Array(bin.length);
+      for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      createImageBitmap(new Blob([arr], { type: 'image/jpeg' }), { imageOrientation: 'none' }).then(function(b){
+        var v = (b.width === 2 && b.height === 1) ? 'ignores' : ((b.width === 1 && b.height === 2) ? 'applies' : 'unsupported');
+        try{ b.close(); }catch(e){}
+        finish(v);
+      }, function(){ finish('unsupported'); });
+    }catch(e){ finish('unsupported'); }
+  });
+}
+function fpDrawBitmap_(bmp, orient, maxDim, quality){
+  var ow = orient >= 5 ? bmp.height : bmp.width, oh = orient >= 5 ? bmp.width : bmp.height;
+  var scale = Math.min(1, maxDim / Math.max(ow, oh));
+  var cw = Math.max(1, Math.round(ow * scale)), ch = Math.max(1, Math.round(oh * scale));
+  var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  var ctx = c.getContext('2d'); if(!ctx) throw new Error('no_canvas');
+  switch(orient){
+    case 2: ctx.transform(-1, 0, 0, 1, cw, 0); break;
+    case 3: ctx.transform(-1, 0, 0, -1, cw, ch); break;
+    case 4: ctx.transform(1, 0, 0, -1, 0, ch); break;
+    case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+    case 6: ctx.transform(0, 1, -1, 0, cw, 0); break;
+    case 7: ctx.transform(0, -1, -1, 0, cw, ch); break;
+    case 8: ctx.transform(0, -1, 1, 0, 0, ch); break;
+  }
+  ctx.drawImage(bmp, 0, 0, orient >= 5 ? ch : cw, orient >= 5 ? cw : ch);
+  var url = c.toDataURL('image/jpeg', quality);
+  c.width = 0; c.height = 0;
+  if(!/^data:image\/jpeg;base64,/.test(url) || url.length < 200) throw new Error('canvas_empty');
+  return url;
+}
+function fpOpenB_(file, info){
+  if(!info || !info.w || !info.h) return Promise.reject(new Error('dims_unknown'));
+  return fpProbeBitmap_().then(function(mode){
+    if(mode === 'unsupported') throw new Error('bitmap_unsupported');
+    var orient = info.orient || 1;
+    if(mode === 'applies' && orient > 1) throw new Error('orientation_unsure'); // 向きの扱いが確かでない組み合わせは、方法Aに任せる
+    var scale = Math.min(1, FP_PHOTO_LEVELS[0][0] / Math.max(info.w, info.h));
+    var rw = Math.max(1, Math.round(info.w * scale)), rh = Math.max(1, Math.round(info.h * scale));
+    return createImageBitmap(file, { imageOrientation: 'none', resizeWidth: rw, resizeHeight: rh, resizeQuality: 'medium' }).then(function(bmp){
+      if(bmp.width !== rw || bmp.height !== rh){ try{ bmp.close(); }catch(e){} throw new Error('resize_ignored'); } // 端末が縮小の指定を無視した
+      var useOrient = (mode === 'ignores') ? orient : 1;
+      return { path: 'B',
+        draw: function(m, q){ return fpDrawBitmap_(bmp, useOrient, m, q); },
+        release: function(){ try{ bmp.close(); }catch(e){} } };
+    });
+  });
+}
+function fpOpenFirst_(file, info, order, meta){
+  var errs = [];
+  return order.reduce(function(p, path){
+    return p.then(function(src){
+      if(src) return src;
+      return (path === 'B' ? fpOpenB_(file, info) : fpOpenA_(file)).then(function(s){ meta.path = s.path; return s; },
+        function(e){ errs.push(path + ':' + ((e && e.message) || e)); return null; });
+    });
+  }, Promise.resolve(null)).then(function(src){
+    if(src) return src;
+    meta.path = order.join('>');
+    var er = new Error(errs.join(' / ') || 'open_failed');
+    var known = info && (info.type === 'jpeg' || info.type === 'png' || info.type === 'webp' || info.type === 'gif');
+    er.fpStage = known ? 'load' : 'format';   // format＝形式が読めない（HEICなど）／load＝読める形式なのに開けない（大きすぎるなど）
+    throw er;
+  });
+}
+// 1枚を加工する。成功：{ image, thumbnail, meta }／失敗：Error（fpStage と fpMeta が付く）
+function fpPrepareOne_(file){
+  var t0 = Date.now();
+  var meta = { fileKB: Math.round(file.size / 1024), type: 'unknown', w: 0, h: 0, mp: 0, orient: 0, path: '', level: -1, outKB: 0, ms: 0 };
+  return fpSniff_(file).then(function(info){
+    meta.type = info.type; meta.w = info.w || 0; meta.h = info.h || 0; meta.orient = info.orient || 0;
+    var px = meta.w * meta.h;
+    meta.mp = px ? Math.round(px / 10000) / 100 : 0;
+    var order = px > FP_BIG_PIXELS ? ['B', 'A'] : (px > 8000000 ? ['A', 'B'] : ['A']);
+    return fpOpenFirst_(file, info, order, meta);
+  }).then(function(src){
     var res = null, lastErr = null;
     for(var i = 0; i < FP_PHOTO_LEVELS.length; i++){
       try{
-        var full = fpDraw_(L.img, FP_PHOTO_LEVELS[i][0], FP_PHOTO_LEVELS[i][1]);
+        var full = src.draw(FP_PHOTO_LEVELS[i][0], FP_PHOTO_LEVELS[i][1]);
         if(full.length > 3600000) throw new Error('too_big'); // サーバーの上限（3MB）の手前
-        var thumb = fpDraw_(L.img, GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY);
-        res = { image: full, thumbnail: thumb, level: i, w: L.img.naturalWidth, h: L.img.naturalHeight,
-                fileKB: Math.round(file.size / 1024), outKB: Math.round(full.length * 0.75 / 1024) };
+        var thumb = src.draw(GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY);
+        res = { full: full, thumb: thumb, level: i };
         break;
       }catch(e){ lastErr = e; }
     }
-    L.img.onload = L.img.onerror = null;
-    try{ URL.revokeObjectURL(L.url); }catch(e){}
-    L.img.src = '';
-    if(!res) throw (lastErr || new Error('prepare_failed'));
-    return res;
+    src.release();
+    if(!res){ var er = new Error('encode_failed:' + ((lastErr && lastErr.message) || '')); er.fpStage = 'encode'; throw er; }
+    meta.level = res.level; meta.outKB = Math.round(res.full.length * 0.75 / 1024); meta.ms = Date.now() - t0;
+    return { image: res.full, thumbnail: res.thumb, meta: meta };
+  }).then(null, function(e){
+    meta.ms = Date.now() - t0;
+    if(e && typeof e === 'object'){ e.fpMeta = meta; if(!e.fpStage) e.fpStage = 'load'; }
+    else { var er2 = new Error(String(e)); er2.fpMeta = meta; er2.fpStage = 'load'; throw er2; }
+    throw e;
   });
 }
-function fpPrepareAll_(files){
-  var out = [];
-  return files.reduce(function(p, f, idx){
-    return p.then(function(){
-      return fpPrepareOne_(f).then(function(r){ out.push(r); }, function(e){
-        var er = new Error('photo' + (idx + 1) + ':' + ((e && e.message) || e)); er.fpStage = 'photo'; throw er;
-      });
-    });
-  }, Promise.resolve()).then(function(){ return out; });
-}
+// ==== FP_IMG_END ====
 
 // ---- 送信（1回）と、自動でやり直しながらの送信 ----
 function fpIsPermanentError_(code){
@@ -3345,60 +3491,89 @@ function fpSendOnce_(item){
     return { ok: false, stage: 'send', retry: true, error: ((e && e.name) || '') + ':' + String((e && e.message) || '').slice(0, 80) };
   });
 }
-function fpSendWithRetry_(item, onRetry){
+// 1回のまとまり＝最初の1回＋自動のやり直し3回。電波がないと確認できたら、回数を使わずに止める（manual＝本人が「もう一度送る」を押したときは、必ず1回は送ってみる）
+function fpSendWithRetry_(item, onRetry, manual){
   var attempt = 0, started = Date.now(), firstFail = null;
+  function offline(){ return navigator.onLine === false; }
+  function done(o){ o.attempts = attempt; o.ms = Date.now() - started; o.firstFail = firstFail; return o; }
   function go(){
+    if(!manual && attempt === 0 && offline()) return Promise.resolve(done({ ok: false, offline: true }));
     attempt++; item.tries = (item.tries || 0) + 1;
     return fpSendOnce_(item).then(function(r){
-      if(r.ok) return { ok: true, attempts: attempt, firstFail: firstFail, ms: Date.now() - started };
+      if(r.ok) return done({ ok: true });
       if(!firstFail) firstFail = r;
-      if(!r.retry) return { ok: false, permanent: true, fail: r, attempts: attempt, ms: Date.now() - started };
-      if(attempt > FP_RETRY_DELAYS.length) return { ok: false, permanent: false, fail: r, attempts: attempt, ms: Date.now() - started };
+      if(!r.retry) return done({ ok: false, permanent: true, fail: r });
+      if(offline()) return done({ ok: false, offline: true, fail: r });
+      if(attempt > FP_RETRY_DELAYS.length) return done({ ok: false, permanent: false, fail: r });
       if(onRetry) onRetry(attempt);
-      return new Promise(function(res){ setTimeout(res, FP_RETRY_DELAYS[attempt - 1]); }).then(go);
+      return new Promise(function(res){ setTimeout(res, FP_RETRY_DELAYS[attempt - 1]); }).then(function(){
+        if(offline()) return done({ ok: false, offline: true, fail: r });
+        return go();
+      });
     });
   }
   return go();
 }
 
 // ---- 失敗の記録（端末に取っておき、送れたら消す。ひとことと写真の中身は入れない） ----
-var FP_LOG_BUSY = false;
-function fpLogError_(item, o){
-  var meta = (item && item.meta) || [];
+var FP_LOG_P = null;
+function fpNet_(){
   var net = ''; try{ var c = navigator.connection; net = (navigator.onLine === false ? 'offline' : 'online') + (c ? '/' + (c.effectiveType || '') + '/' + (c.downlink || '') : ''); }catch(e){}
-  var rec = {
-    at: Date.now(), op: 'postFootprint', stage: o.stage || '', outcome: o.outcome || '',
-    ua: String(navigator.userAgent || '').slice(0, 200), net: net,
-    nPhotos: item && item.images ? item.images.length : (o.nPhotos || 0),
-    fileKB: meta.map(function(m){ return m.fileKB; }).join(','), outKB: meta.map(function(m){ return m.outKB; }).join(','),
-    level: meta.map(function(m){ return m.level; }).join(','),
-    tries: o.tries || (item && item.tries) || 0, ms: o.ms || 0, error: o.error || '',
-    storage: item ? (item.stored === false ? 'ng' : 'ok') : ''
-  };
+  return net;
+}
+function fpPushLog_(rec){
+  rec.at = Date.now(); rec.ua = String(navigator.userAgent || '').slice(0, 200); rec.net = fpNet_();
+  if(!rec.online) rec.online = navigator.onLine === false ? 'no' : 'yes';
   var q = []; try{ q = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
   q.push(rec); if(q.length > 20) q = q.slice(-20);
   try{ localStorage.setItem('mk18_errlog', JSON.stringify(q)); }catch(e){}
-  fpFlushLog_();
+  return fpFlushLog_();   // 届いたかどうか（true／false）を返す
+}
+// 送信の失敗の記録
+function fpLogError_(item, o){
+  var meta = (item && item.meta) || [];
+  return fpPushLog_({
+    op: 'postFootprint', stage: o.stage || '', outcome: o.outcome || '',
+    nPhotos: item && item.images ? item.images.length : (o.nPhotos || 0),
+    fileKB: meta.map(function(m){ return m.fileKB; }).join(','), outKB: meta.map(function(m){ return m.outKB; }).join(','),
+    level: meta.map(function(m){ return m.level; }).join(','),
+    format: meta.map(function(m){ return m.type; }).join(','), mp: meta.length ? Math.max.apply(null, meta.map(function(m){ return m.mp || 0; })) : 0,
+    dim: meta.map(function(m){ return (m.w || 0) + 'x' + (m.h || 0); }).join(','), path: meta.map(function(m){ return m.path; }).join(','),
+    tries: o.tries || (item && item.tries) || 0, ms: o.ms || 0, error: o.error || '', round: o.round || 0,
+    online: o.online || '', storage: item ? (item.stored === false ? 'ng' : 'ok') : ''
+  });
+}
+// 写真の加工の記録（読めなかった／小さくして通した／縮小しながら開いた）
+function fpLogPhoto_(meta, outcome, e){
+  meta = meta || {};
+  return fpPushLog_({
+    op: 'photo', stage: (e && e.fpStage) ? e.fpStage : (meta.level > 0 ? 'smaller' : 'bigpath'), outcome: outcome,
+    nPhotos: 1, fileKB: meta.fileKB || 0, outKB: meta.outKB || 0, level: meta.level == null ? '' : meta.level,
+    format: meta.type || '', mp: meta.mp || 0, dim: (meta.w || 0) + 'x' + (meta.h || 0) + (meta.orient ? '/o' + meta.orient : ''), path: meta.path || '',
+    tries: 0, ms: meta.ms || 0, error: e ? String((e && e.message) || e).slice(0, 120) : '', round: 0, storage: ''
+  });
 }
 function fpFlushLog_(){
-  if(FP_LOG_BUSY) return;
-  var uid = getMyUid(); if(!uid) return;
+  if(FP_LOG_P) return FP_LOG_P.then(function(){ return fpFlushLog_(); });
+  var uid = getMyUid(); if(!uid) return Promise.resolve(false);
   var q = []; try{ q = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
-  if(!q.length) return;
-  FP_LOG_BUSY = true;
-  fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  if(!q.length) return Promise.resolve(true);
+  FP_LOG_P = fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ action: 'logClientError', uid: uid, version: FP_APP_VERSION, records: q }) })
     .then(function(r){ return r.json(); })
     .then(function(res){
-      FP_LOG_BUSY = false;
-      if(res && (res.success || res.error === 'not_registered')){
+      var ok = !!(res && (res.success || res.error === 'not_registered'));
+      if(ok){
         var cur = []; try{ cur = JSON.parse(localStorage.getItem('mk18_errlog') || '[]'); }catch(e){}
         try{ localStorage.setItem('mk18_errlog', JSON.stringify(cur.slice(q.length))); }catch(e){}
       }
-    }, function(){ FP_LOG_BUSY = false; });
+      return ok;
+    }, function(){ return false; })
+    .then(function(ok){ FP_LOG_P = null; return ok; });
+  return FP_LOG_P;
 }
 
-// ---- 投稿画面の表示（送っている途中・送れなかったとき） ----
+// ---- 投稿画面の表示（送っている途中・送れなかったとき）。分かっていること以上は言わない：電波に触れるのは、つながっていないと確認できたときだけ ----
 function fpShowStat_(kind, title, sub){
   var el = document.getElementById('fp_stat'); if(!el) return;
   var warn = (kind === 'fail');
@@ -3421,6 +3596,49 @@ function fpLockForm_(locked){
   var sl = document.getElementById('fp_slots'); if(sl){ sl.style.pointerEvents = locked ? 'none' : ''; sl.style.opacity = locked ? '.6' : ''; }
 }
 function fpModalOpen_(){ var m = document.getElementById('modal-footprint'); return !!(m && m.classList.contains('show')); }
+// 失敗の状態：offline（つながっていないと確認できた）／online1（つながっているのに送れなかった。1〜2回目）／online3（それが続いている。3回目以降）
+function fpFailText_(item, state, ack){
+  var kept = (item && item.stored === false);
+  if(state === 'offline') return { title: '電波が届いていないようです', sub: 'つながると自動で送ります。' + (kept ? 'アプリを閉じなければ、内容は残っています' : '内容は残っています') };
+  if(state === 'online3') return { title: 'うまく送れない状態が続いています',
+    sub: (ack ? '状況は管理者に自動で届いています。' : '状況は記録してあり、つながり次第、管理者に届きます。')
+       + (kept ? 'アプリを閉じなければ内容は残っているので、しばらくしてからまたお試しください' : '内容は残っているので、しばらくしてからまたお試しください') };
+  return { title: 'まだ送れていません', sub: kept ? 'アプリを閉じなければ、内容は残っています' : '内容は残っています' };
+}
+function fpShowFail_(item, state, ack){
+  var t = fpFailText_(item, state, ack);
+  fpShowStat_('fail', t.title, t.sub);
+  document.getElementById('fp_retry').style.display = 'block';
+  document.getElementById('fp_btn').style.display = 'none';
+  fpLockForm_(true);
+}
+
+// ---- 写真を選んだ直後に、1枚ずつ加工する（開く操作は1回だけ。読めない写真は枠に出して、投稿は止めない） ----
+function fpUpdatePhotoNotice_(){
+  var el = document.getElementById('fp_photo_notice'); if(!el) return;
+  var any = fpPicked.some(function(p){ return p && p.failed; });
+  el.style.display = any ? 'block' : 'none';
+}
+function fpFilesChosen(input){
+  var files = Array.prototype.slice.call(input.files || []);
+  input.value = '';
+  var room = FP_MAX_PHOTOS - fpPicked.length;
+  if(files.length > room) showToast('写真は最大'+FP_MAX_PHOTOS+'枚までです');
+  files = files.slice(0, room);
+  if(files.length === 0) return; // 選ばずに閉じた場合は何もしない
+  fpLoading = files.length; fpRenderSlots(); // 大きい写真は少し時間がかかるため、読み込み中だと分かるようにする
+  files.reduce(function(p, f){
+    return p.then(function(){
+      return fpPrepareOne_(f).then(function(r){
+        fpPicked.push({ preview: r.thumbnail, prepared: { image: r.image, thumbnail: r.thumbnail }, meta: r.meta });
+        if(r.meta.level > 0 || r.meta.path === 'B') fpLogPhoto_(r.meta, r.meta.level > 0 ? 'smaller' : 'bigpath', null); // 小さくして通した／縮小しながら開いた
+      }, function(e){
+        fpPicked.push({ failed: true, preview: '', meta: (e && e.fpMeta) || {} });
+        fpLogPhoto_((e && e.fpMeta) || {}, 'failed', e);
+      }).then(function(){ fpLoading--; fpRenderSlots(); fpUpdatePhotoNotice_(); });
+    });
+  }, Promise.resolve());
+}
 
 // ---- 投稿ボタン ----
 function submitFootprint(){
@@ -3430,61 +3648,56 @@ function submitFootprint(){
   errEl.style.display = 'none';
   var note = (document.getElementById('fp_note').value || '').trim();
   var place = document.getElementById('fp_place').value;
+  var good = fpPicked.filter(function(p){ return p && !p.failed && p.prepared; });
   if(!uid){ errEl.textContent = '登録情報が確認できません'; errEl.style.display = 'block'; return; }
-  if(!note && fpPicked.length === 0){ errEl.textContent = 'ひとこと、または写真を入れてください'; errEl.style.display = 'block'; return; }
+  if(fpLoading > 0){ showToast('写真を読み込んでいます。少しお待ちください'); return; }
+  if(!note && good.length === 0){ errEl.textContent = 'ひとこと、または写真を入れてください'; errEl.style.display = 'block'; return; }
   var btn = document.getElementById('fp_btn');
   fpBusy = true; btn.disabled = true; btn.textContent = '処理中...';
-  var files = fpPicked.map(function(p){ return p.file; });
-  if(files.length) fpShowStat_('work', '写真を準備しています…', '');
-  fpPrepareAll_(files).then(function(prepared){
-    var item = {
-      id: fpNewId_(), uid: uid, note: note, place: place, createdAt: Date.now(), tries: 0,
-      images: prepared.map(function(x){ return { image: x.image, thumbnail: x.thumbnail }; }),
-      meta: prepared.map(function(x){ return { fileKB: x.fileKB, outKB: x.outKB, level: x.level, w: x.w, h: x.h }; })
-    };
-    fpCurrent = item;
-    return obPut_(item).then(function(saved){
-      item.stored = saved;
-      if(!saved){ fpSaveDraft_(item); fpLogError_(item, { stage: 'storage', outcome: 'not_kept', error: 'idb_unavailable' }); }
-      if(prepared.some(function(x){ return x.level > 0; })) fpLogError_(item, { stage: 'photo', outcome: 'smaller', error: 'level>0' });
-      return item;
-    });
-  }).then(function(item){
-    fpRunSend_(item, true);
-  }, function(e){
-    // 写真の加工が、一番小さい大きさでも失敗した（送ってはいない）。投稿画面に戻し、別の写真を選んでもらう
-    fpBusy = false; btn.disabled = false; btn.textContent = '投稿する';
-    fpResetStat_();
-    errEl.textContent = '写真がうまく読み込めませんでした。別の写真でお試しください';
-    errEl.style.display = 'block';
-    fpLogError_(null, { stage: 'photo', outcome: 'failed', error: String((e && e.message) || e).slice(0, 120), nPhotos: files.length });
+  var item = {
+    id: fpNewId_(), uid: uid, note: note, place: place, createdAt: Date.now(), tries: 0, rounds: 0,
+    images: good.map(function(p){ return { image: p.prepared.image, thumbnail: p.prepared.thumbnail }; }),
+    meta: good.map(function(p){ return p.meta; })
+  };
+  fpCurrent = item;
+  obPut_(item).then(function(saved){
+    item.stored = saved;
+    if(!saved){ fpSaveDraft_(item); fpLogError_(item, { stage: 'storage', outcome: 'not_kept', error: 'idb_unavailable' }); }
+    fpRunSend_(item, true, false);
   });
 }
 
-// 1件を送る。fromModal＝投稿画面から（画面に状態を出す）／帯や自動送信から（出さない）
-function fpRunSend_(item, fromModal){
+// 1件を送る。fromModal＝投稿画面から／manual＝本人が「もう一度送る」を押した（つながっていないと判定されていても、必ず試す）
+function fpRunSend_(item, fromModal, manual){
   if(fpSending[item.id]) return Promise.resolve();
   fpSending[item.id] = true;
-  var isCur = function(){ return !!(fpCurrent && fpCurrent.id === item.id); };           // いま投稿画面が扱っている投稿か（画面から押した場合も、帯・自動送信の場合も同じ）
+  var isCur = function(){ return !!(fpCurrent && fpCurrent.id === item.id); };
   var inModal = function(){ return isCur() && fpModalOpen_(); };
   if(inModal()){ fpLockForm_(true); document.getElementById('fp_retry').style.display = 'none'; document.getElementById('fp_btn').style.display = 'none'; fpShowStat_('work', '送っています…', ''); }
   renderOutboxBanner_();
   return fpSendWithRetry_(item, function(){
-    if(inModal()) fpShowStat_('retry', '送っています…', '電波が弱いようです。自動でやり直しています');
-  }).then(function(r){
+    if(inModal()) fpShowStat_('retry', '送っています…', 'うまくいかないので、もう一度試しています');
+  }, !!manual).then(function(r){
     delete fpSending[item.id];
     var btn = document.getElementById('fp_btn');
     if(r.ok){
       obDel_(item.id); fpClearDraft_(item.id);
-      if(r.attempts > 1 && r.firstFail) fpLogError_(item, { stage: r.firstFail.stage, outcome: 'recovered', error: r.firstFail.error, tries: r.attempts, ms: r.ms });
+      if(r.attempts > 1 && r.firstFail) fpLogError_(item, { stage: r.firstFail.stage, outcome: 'recovered', error: r.firstFail.error, tries: r.attempts, ms: r.ms, round: (item.rounds || 0) + 1 });
       if(isCur()){ fpBusy = false; fpCurrent = null; if(btn){ btn.disabled = false; btn.textContent = '投稿する'; } fpResetStat_(); if(fpModalOpen_()) closeFootprintModal(); }
       showToast('✓ 足跡を残しました！');
       FP = []; FP_EXTRA = []; loadFootprints(); renderOutboxBanner_();
       return;
     }
+    if(r.offline){
+      // つながっていないと確認できた：回数は使わず、つながったら自動で送る
+      item.lastState = 'offline'; obPut_(item);
+      if(isCur()){ fpBusy = false; if(fpModalOpen_()) fpShowFail_(item, 'offline', false); }
+      renderOutboxBanner_();
+      return;
+    }
     if(r.permanent){
       var code = r.fail.error, msg = fpPlainError_(code);
-      fpLogError_(item, { stage: 'server', outcome: 'rejected', error: code, tries: r.attempts, ms: r.ms });
+      fpLogError_(item, { stage: 'server', outcome: 'rejected', error: code, tries: r.attempts, ms: r.ms, online: 'yes' });
       if(isCur()){
         // 断られた：やり直しても通らないので、元の投稿画面に戻す（内容と写真は、そのまま残っている）
         obDel_(item.id); fpClearDraft_(item.id); fpBusy = false; fpCurrent = null;
@@ -3499,18 +3712,17 @@ function fpRunSend_(item, fromModal){
       renderOutboxBanner_();
       return;
     }
-    // 自動で何回かやり直しても、送れなかった：端末に残したまま、「もう一度送る」を出す
-    item.lastError = r.fail.error; item.lastStage = r.fail.stage; obPut_(item);
-    fpLogError_(item, { stage: r.fail.stage, outcome: 'gave_up', error: r.fail.error, tries: r.attempts, ms: r.ms });
+    // つながっているのに、自動で何回かやり直しても送れなかった：1まとまり失敗として数える。端末に残したまま「もう一度送る」を出す
+    item.rounds = (item.rounds || 0) + 1;
+    var state = item.rounds >= FP_MAX_AUTO_ROUNDS ? 'online3' : 'online1';
+    item.lastState = state; item.lastError = r.fail.error; item.lastStage = r.fail.stage; obPut_(item);
+    var logP = fpLogError_(item, { stage: r.fail.stage, outcome: 'gave_up', error: r.fail.error, tries: r.attempts, ms: r.ms, round: item.rounds, online: 'yes' });
     if(isCur()){
       fpBusy = false;
       if(fpModalOpen_()){
-        fpShowStat_('fail', 'まだ送れていません', item.stored === false
-          ? 'アプリを閉じなければ、書いた内容と写真は残っています。電波のよいところで、もう一度押してください'
-          : '書いた内容と写真は、このスマホに残してあります。電波のよいところで、もう一度押してください');
-        document.getElementById('fp_retry').style.display = 'block';
-        document.getElementById('fp_btn').style.display = 'none';
-        fpLockForm_(true);
+        fpShowFail_(item, state, false);
+        // 「管理者に自動で届いています」は、記録が実際に届いたあとだけ言う
+        if(state === 'online3') logP.then(function(ok){ if(ok && isCur() && fpModalOpen_() && !fpSending[item.id]) fpShowFail_(item, 'online3', true); });
       }
     }
     renderOutboxBanner_();
@@ -3519,7 +3731,7 @@ function fpRunSend_(item, fromModal){
 function fpRetryCurrent_(){
   if(!fpCurrent || fpSending[fpCurrent.id]) return;
   fpBusy = true;
-  fpRunSend_(fpCurrent, true);
+  fpRunSend_(fpCurrent, true, true);
 }
 
 // ---- 送れていない足跡の帯（足跡の一覧の上） ----
@@ -3536,7 +3748,11 @@ function renderOutboxBanner_(){
     var first = items[0];
     var sending = items.some(function(it){ return fpSending[it.id]; });
     var snippet = first.note ? first.note.slice(0, 30) : '（写真だけの足跡）';
-    var sub = (first.blocked && first.blockedDay === new Date().toDateString()) ? first.blocked : snippet;
+    var sub = snippet;
+    if(sending) sub = snippet;
+    else if(first.blocked && first.blockedDay === new Date().toDateString()) sub = first.blocked;
+    else if(first.lastState === 'offline') sub = 'つながると自動で送ります';
+    else if(first.lastState === 'online3') sub = 'しばらくしてからまたお試しください';
     el.style.display = 'block';
     el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px">'
       + '<div style="min-width:0"><div style="font-size:13px;font-weight:700;color:#7D4F00">' + (sending ? '送っています…' : '送れていない足跡が' + items.length + '件あります') + '</div>'
@@ -3546,24 +3762,52 @@ function renderOutboxBanner_(){
   });
 }
 function fpRetryOutbox_(){ fpFlushOutbox_(true); }
-// 送れていない投稿を、順番に送る。manual＝本人が押したとき（1日の上限で止まっている分も、もう一度試す）
+// 送れていない投稿を、順番に送る。manual＝本人が押したとき（回数の上限や、今日の上限で止まっている分も、もう一度試す）
 function fpFlushOutbox_(manual){
   if(FP_FLUSHING) return;
   var uid = getMyUid(); if(!uid) return;
+  if(!manual && navigator.onLine === false) return;   // つながっていないと確認できる間は、自動では送らない（つながったら 'online' で再開）
   FP_FLUSHING = true;
   obAll_().then(function(items){
     items = items.filter(function(it){
       if(!it || it.uid !== uid || fpSending[it.id]) return false;
-      if(!manual && it.blockedDay === new Date().toDateString()) return false; // 今日の上限で止まった分は、自動では送らない
+      if(!manual && it.blockedDay === new Date().toDateString()) return false;          // 今日の上限で止まった分は、自動では送らない
+      if(!manual && (it.rounds || 0) >= FP_MAX_AUTO_ROUNDS) return false;               // つながっているのに送れない状態が続いた分は、自動では止める
       return true;
     });
-    return items.reduce(function(p, it){ return p.then(function(){ return fpRunSend_(it, false); }); }, Promise.resolve());
+    return items.reduce(function(p, it){ return p.then(function(){ return fpRunSend_(it, false, !!manual); }); }, Promise.resolve());
   }).then(function(){ FP_FLUSHING = false; renderOutboxBanner_(); }, function(){ FP_FLUSHING = false; });
 }
-// 電波が戻ったとき・アプリを開き直したとき・起動時に、自動で送る／記録を送る
+// 電波が戻ったとき・アプリを開き直したとき・起動したときに、自動で送る／記録を送る
 window.addEventListener('online', function(){ fpFlushOutbox_(false); fpFlushLog_(); });
 document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ fpFlushOutbox_(false); fpFlushLog_(); } });
 function fpOnStart_(){ renderOutboxBanner_(); fpFlushOutbox_(false); fpFlushLog_(); }
+
+// ---- 新しい版が届いたら、安全なときに自動で読み込み直す（開きっぱなしのアプリが、古い版のまま残らないように） ----
+var FP_SW_HAD_CONTROLLER = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+var FP_SW_UPDATED = false;
+function fpSafeToReload_(){
+  if(document.querySelector('.modal-overlay.show')) return false;            // 入力画面を開いている間は、しない
+  if(fpLoading > 0 || fpBusy) return false;                                  // 写真の読み込み中・送信中は、しない
+  if(Object.keys(fpSending).length) return false;
+  var a = document.activeElement;
+  if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;         // 入力中は、しない
+  return true;
+}
+function fpMaybeReload_(){ if(FP_SW_UPDATED && fpSafeToReload_()){ location.reload(); } }
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(!FP_SW_HAD_CONTROLLER){ FP_SW_HAD_CONTROLLER = true; return; }       // 初めて入った時の切り替えでは、読み込み直さない
+    FP_SW_UPDATED = true; fpMaybeReload_();
+  });
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }).catch(function(){});
+      fpMaybeReload_();
+    }
+  });
+  setInterval(fpMaybeReload_, 20000);
+}
 
 var hash=window.location.hash;
 if(hash==="#board")go("b");
