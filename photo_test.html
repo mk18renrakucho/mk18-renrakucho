@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>写真の読み込み試験（北高 連絡帳 v1.2.30）</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;margin:0;padding:16px;background:#f7f5f0;color:#2b2b2b;line-height:1.6}
+  h1{font-size:18px;margin:0 0 4px}
+  .sub{font-size:12px;color:#666;margin:0 0 14px}
+  .box{background:#fff;border:1px solid #e3ded2;border-radius:10px;padding:12px;margin-bottom:12px}
+  .btn{display:inline-block;background:#c9a96e;color:#fff;font-weight:700;font-size:15px;padding:12px 18px;border-radius:24px;border:none;cursor:pointer;font-family:inherit}
+  .btn2{background:#fff;color:#7a6a45;border:1px solid #c9a96e}
+  input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  td{padding:3px 6px;border-bottom:1px solid #eee;vertical-align:top}
+  td:first-child{color:#777;white-space:nowrap;width:34%}
+  .ok{color:#1b7a3a;font-weight:700}.ng{color:#b3261e;font-weight:700}
+  img.out{max-width:100%;max-height:260px;border:1px solid #ddd;border-radius:6px;display:block;margin:8px 0}
+  .small{font-size:11px;color:#777}
+</style>
+</head>
+<body>
+<h1>写真の読み込み試験</h1>
+<p class="sub">足跡の投稿と同じ加工の処理で、写真を1枚ずつ試します。写真はどこにも送られません（この画面の中だけで処理します）。</p>
+
+<div class="box">
+  <label for="f" class="btn">写真を選ぶ（何枚でも）</label>
+  <input type="file" id="f" accept="image/*" multiple>
+  <p class="small" style="margin:8px 0 0">試験用の写真（高画素・パノラマ・向きつき・HEIC・壊れたファイル）を選ぶと、動きを確かめられます。</p>
+</div>
+
+<div class="box" id="env"></div>
+<div id="results"></div>
+
+<div class="box">
+  <button class="btn btn2" id="copy">結果をコピーする</button>
+  <p class="small" style="margin:8px 0 0">うまくいかない写真があったときは、コピーした結果を管理者に送ってください。</p>
+</div>
+
+<script>
+var GALLERY_THUMB_DIMENSION = 180, GALLERY_THUMB_QUALITY = 0.6;
+// ==== FP_IMG_BEGIN ====
+var FP_PHOTO_LEVELS = [[1600, 0.8], [1280, 0.7], [1024, 0.6], [800, 0.6]]; // 最初は今まで通り。書き出しに失敗したときだけ、順に小さくする
+var FP_BIG_PIXELS = 25000000;   // これより画素数の多い写真は、縮小しながら開く方法を先に試す
+var FP_PROBE_JPEG_B64 = '/9j/4AAQSkZJRgABAQAAAQABAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAYAAAAAAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7+/ZO/wCTWPg3/wBiZo3/AKQw0UUUAf/Z';   // 向き6の2×1画素のJPEG（端末の createImageBitmap が向きの情報をどう扱うかの確認用）
+var FP_BMP_PROBE = null;
+
+function fpReadBuf_(blob){
+  return new Promise(function(resolve, reject){
+    try{
+      var r = new FileReader();
+      r.onload = function(){ resolve(r.result); };
+      r.onerror = function(){ reject(r.error || new Error('read_failed')); };
+      r.readAsArrayBuffer(blob);
+    }catch(e){ reject(e); }
+  });
+}
+// 形式・縦横・向きを、ファイルの先頭から読む（画像は開かない）。読めなくても例外にしない
+function fpParseHead_(dv){
+  var len = dv.byteLength;
+  function u8(o){ return o >= 0 && o < len ? dv.getUint8(o) : 0; }
+  function str(o, n){ var s = ''; for(var i = 0; i < n; i++) s += String.fromCharCode(u8(o + i)); return s; }
+  if(len >= 4 && u8(0) === 0xFF && u8(1) === 0xD8){
+    var info = { type: 'jpeg', w: 0, h: 0, orient: 0 };
+    try{
+      var o = 2;
+      while(o + 4 <= len){
+        if(u8(o) !== 0xFF) break;
+        var m = u8(o + 1);
+        if(m === 0xFF){ o++; continue; }
+        if(m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)){ o += 2; continue; }
+        var segLen = dv.getUint16(o + 2);
+        if(m === 0xE1 && str(o + 4, 4) === 'Exif' && !info.orient){
+          var t = o + 10, le = (dv.getUint16(t) === 0x4949);
+          var ifd = t + dv.getUint32(t + 4, le);
+          var n = dv.getUint16(ifd, le);
+          for(var k = 0; k < n; k++){
+            var e = ifd + 2 + k * 12;
+            if(e + 12 > len) break;
+            if(dv.getUint16(e, le) === 0x0112){ var ov = dv.getUint16(e + 8, le); info.orient = (ov >= 1 && ov <= 8) ? ov : 0; break; }
+          }
+        }
+        if((m >= 0xC0 && m <= 0xC3) || (m >= 0xC5 && m <= 0xC7) || (m >= 0xC9 && m <= 0xCB) || (m >= 0xCD && m <= 0xCF)){
+          info.h = dv.getUint16(o + 5); info.w = dv.getUint16(o + 7); break;
+        }
+        o += 2 + segLen;
+      }
+    }catch(e){}
+    return info;
+  }
+  if(len >= 24 && u8(0) === 0x89 && str(1, 3) === 'PNG') return { type: 'png', w: dv.getUint32(16), h: dv.getUint32(20), orient: 0 };
+  if(len >= 10 && str(0, 4) === 'GIF8') return { type: 'gif', w: dv.getUint16(6, true), h: dv.getUint16(8, true), orient: 0 };
+  if(len >= 30 && str(0, 4) === 'RIFF' && str(8, 4) === 'WEBP'){
+    var ck = str(12, 4), w = 0, h = 0;
+    try{
+      if(ck === 'VP8 '){ w = dv.getUint16(26, true) & 0x3FFF; h = dv.getUint16(28, true) & 0x3FFF; }
+      else if(ck === 'VP8L'){ var bits = dv.getUint32(21, true); w = (bits & 0x3FFF) + 1; h = ((bits >> 14) & 0x3FFF) + 1; }
+      else if(ck === 'VP8X'){ w = 1 + (u8(24) | (u8(25) << 8) | (u8(26) << 16)); h = 1 + (u8(27) | (u8(28) << 8) | (u8(29) << 16)); }
+    }catch(e){}
+    return { type: 'webp', w: w, h: h, orient: 0 };
+  }
+  if(len >= 12 && str(4, 4) === 'ftyp'){
+    var br = str(8, 4);
+    if(br === 'avif' || br === 'avis') return { type: 'avif', w: 0, h: 0, orient: 0 };
+    if(['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'mif1', 'msf1'].indexOf(br) >= 0) return { type: 'heic', w: 0, h: 0, orient: 0 };
+  }
+  return { type: 'unknown', w: 0, h: 0, orient: 0 };
+}
+function fpSniff_(file){
+  return fpReadBuf_(file.slice(0, 262144)).then(function(buf){
+    try{ return fpParseHead_(new DataView(buf)); }catch(e){ return { type: 'unknown', w: 0, h: 0, orient: 0 }; }
+  }, function(){ return { type: 'unknown', w: 0, h: 0, orient: 0 }; });
+}
+
+// 方法A：画像として開く（これまでと同じ。ほとんどの写真はこれで開く）
+function fpLoadImage_(file){
+  return new Promise(function(resolve, reject){
+    var url;
+    try{ url = URL.createObjectURL(file); }catch(e){ reject(e); return; }
+    var img = new Image();
+    img.onload = function(){ resolve({ img: img, url: url }); };
+    img.onerror = function(){ try{ URL.revokeObjectURL(url); }catch(e){} reject(new Error('image_load_failed')); };
+    img.src = url;
+  });
+}
+function fpDraw_(img, maxDim, quality){
+  var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if(!w || !h) throw new Error('image_size_zero');
+  var scale = Math.min(1, maxDim / Math.max(w, h));
+  var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+  var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  var ctx = c.getContext('2d'); if(!ctx) throw new Error('no_canvas');
+  ctx.drawImage(img, 0, 0, cw, ch);
+  var url = c.toDataURL('image/jpeg', quality);
+  c.width = 0; c.height = 0; // 使い終わった領域を手放す
+  if(!/^data:image\/jpeg;base64,/.test(url) || url.length < 200) throw new Error('canvas_empty');
+  return url;
+}
+function fpOpenA_(file){
+  return fpLoadImage_(file).then(function(L){
+    return { path: 'A',
+      draw: function(m, q){ return fpDraw_(L.img, m, q); },
+      release: function(){ L.img.onload = L.img.onerror = null; try{ URL.revokeObjectURL(L.url); }catch(e){} L.img.src = ''; } };
+  });
+}
+
+// 方法B：縮小しながら開く（高画素の写真向け。大きいままメモリに広げない）。向きは、端末の動きを確かめてから決める
+function fpProbeBitmap_(){
+  if(FP_BMP_PROBE) return Promise.resolve(FP_BMP_PROBE);
+  if(typeof createImageBitmap !== 'function'){ FP_BMP_PROBE = 'unsupported'; return Promise.resolve(FP_BMP_PROBE); }
+  return new Promise(function(resolve){
+    var finish = function(v){ FP_BMP_PROBE = v; resolve(v); };
+    try{
+      var bin = atob(FP_PROBE_JPEG_B64), arr = new Uint8Array(bin.length);
+      for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      createImageBitmap(new Blob([arr], { type: 'image/jpeg' }), { imageOrientation: 'none' }).then(function(b){
+        var v = (b.width === 2 && b.height === 1) ? 'ignores' : ((b.width === 1 && b.height === 2) ? 'applies' : 'unsupported');
+        try{ b.close(); }catch(e){}
+        finish(v);
+      }, function(){ finish('unsupported'); });
+    }catch(e){ finish('unsupported'); }
+  });
+}
+function fpDrawBitmap_(bmp, orient, maxDim, quality){
+  var ow = orient >= 5 ? bmp.height : bmp.width, oh = orient >= 5 ? bmp.width : bmp.height;
+  var scale = Math.min(1, maxDim / Math.max(ow, oh));
+  var cw = Math.max(1, Math.round(ow * scale)), ch = Math.max(1, Math.round(oh * scale));
+  var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  var ctx = c.getContext('2d'); if(!ctx) throw new Error('no_canvas');
+  switch(orient){
+    case 2: ctx.transform(-1, 0, 0, 1, cw, 0); break;
+    case 3: ctx.transform(-1, 0, 0, -1, cw, ch); break;
+    case 4: ctx.transform(1, 0, 0, -1, 0, ch); break;
+    case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+    case 6: ctx.transform(0, 1, -1, 0, cw, 0); break;
+    case 7: ctx.transform(0, -1, -1, 0, cw, ch); break;
+    case 8: ctx.transform(0, -1, 1, 0, 0, ch); break;
+  }
+  ctx.drawImage(bmp, 0, 0, orient >= 5 ? ch : cw, orient >= 5 ? cw : ch);
+  var url = c.toDataURL('image/jpeg', quality);
+  c.width = 0; c.height = 0;
+  if(!/^data:image\/jpeg;base64,/.test(url) || url.length < 200) throw new Error('canvas_empty');
+  return url;
+}
+function fpOpenB_(file, info){
+  if(!info || !info.w || !info.h) return Promise.reject(new Error('dims_unknown'));
+  return fpProbeBitmap_().then(function(mode){
+    if(mode === 'unsupported') throw new Error('bitmap_unsupported');
+    var orient = info.orient || 1;
+    if(mode === 'applies' && orient > 1) throw new Error('orientation_unsure'); // 向きの扱いが確かでない組み合わせは、方法Aに任せる
+    var scale = Math.min(1, FP_PHOTO_LEVELS[0][0] / Math.max(info.w, info.h));
+    var rw = Math.max(1, Math.round(info.w * scale)), rh = Math.max(1, Math.round(info.h * scale));
+    return createImageBitmap(file, { imageOrientation: 'none', resizeWidth: rw, resizeHeight: rh, resizeQuality: 'medium' }).then(function(bmp){
+      if(bmp.width !== rw || bmp.height !== rh){ try{ bmp.close(); }catch(e){} throw new Error('resize_ignored'); } // 端末が縮小の指定を無視した
+      var useOrient = (mode === 'ignores') ? orient : 1;
+      return { path: 'B',
+        draw: function(m, q){ return fpDrawBitmap_(bmp, useOrient, m, q); },
+        release: function(){ try{ bmp.close(); }catch(e){} } };
+    });
+  });
+}
+function fpOpenFirst_(file, info, order, meta){
+  var errs = [];
+  return order.reduce(function(p, path){
+    return p.then(function(src){
+      if(src) return src;
+      return (path === 'B' ? fpOpenB_(file, info) : fpOpenA_(file)).then(function(s){ meta.path = s.path; return s; },
+        function(e){ errs.push(path + ':' + ((e && e.message) || e)); return null; });
+    });
+  }, Promise.resolve(null)).then(function(src){
+    if(src) return src;
+    meta.path = order.join('>');
+    var er = new Error(errs.join(' / ') || 'open_failed');
+    var known = info && (info.type === 'jpeg' || info.type === 'png' || info.type === 'webp' || info.type === 'gif');
+    er.fpStage = known ? 'load' : 'format';   // format＝形式が読めない（HEICなど）／load＝読める形式なのに開けない（大きすぎるなど）
+    throw er;
+  });
+}
+// 1枚を加工する。成功：{ image, thumbnail, meta }／失敗：Error（fpStage と fpMeta が付く）
+function fpPrepareOne_(file){
+  var t0 = Date.now();
+  var meta = { fileKB: Math.round(file.size / 1024), type: 'unknown', w: 0, h: 0, mp: 0, orient: 0, path: '', level: -1, outKB: 0, ms: 0 };
+  return fpSniff_(file).then(function(info){
+    meta.type = info.type; meta.w = info.w || 0; meta.h = info.h || 0; meta.orient = info.orient || 0;
+    var px = meta.w * meta.h;
+    meta.mp = px ? Math.round(px / 10000) / 100 : 0;
+    var order = px > FP_BIG_PIXELS ? ['B', 'A'] : (px > 8000000 ? ['A', 'B'] : ['A']);
+    return fpOpenFirst_(file, info, order, meta);
+  }).then(function(src){
+    var res = null, lastErr = null;
+    for(var i = 0; i < FP_PHOTO_LEVELS.length; i++){
+      try{
+        var full = src.draw(FP_PHOTO_LEVELS[i][0], FP_PHOTO_LEVELS[i][1]);
+        if(full.length > 3600000) throw new Error('too_big'); // サーバーの上限（3MB）の手前
+        var thumb = src.draw(GALLERY_THUMB_DIMENSION, GALLERY_THUMB_QUALITY);
+        res = { full: full, thumb: thumb, level: i };
+        break;
+      }catch(e){ lastErr = e; }
+    }
+    src.release();
+    if(!res){ var er = new Error('encode_failed:' + ((lastErr && lastErr.message) || '')); er.fpStage = 'encode'; throw er; }
+    meta.level = res.level; meta.outKB = Math.round(res.full.length * 0.75 / 1024); meta.ms = Date.now() - t0;
+    return { image: res.full, thumbnail: res.thumb, meta: meta };
+  }).then(null, function(e){
+    meta.ms = Date.now() - t0;
+    if(e && typeof e === 'object'){ e.fpMeta = meta; if(!e.fpStage) e.fpStage = 'load'; }
+    else { var er2 = new Error(String(e)); er2.fpMeta = meta; er2.fpStage = 'load'; throw er2; }
+    throw e;
+  });
+}
+// ==== FP_IMG_END ====
+
+var REPORT = [];
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function row(k, v, cls){ return '<tr><td>' + esc(k) + '</td><td' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(v) + '</td></tr>'; }
+
+(function(){
+  var envEl = document.getElementById('env');
+  fpProbeBitmap_().then(function(mode){
+    var rows = row('端末・ブラウザ', navigator.userAgent)
+      + row('つながっているか', navigator.onLine === false ? 'いいえ（オフライン）' : 'はい')
+      + row('縮小しながら開く機能', typeof createImageBitmap === 'function' ? 'あり' : 'なし')
+      + row('向きの情報の扱い', mode === 'ignores' ? '写真の向きを自分で直す（動作確認済み）' : (mode === 'applies' ? '端末が向きを直す（縦向きの大きい写真は、通常の開き方になります）' : '縮小しながら開く方法は使えません（通常の開き方になります）'))
+      + row('端末のメモリ（目安）', navigator.deviceMemory ? navigator.deviceMemory + ' GB以上' : '不明');
+    envEl.innerHTML = '<table>' + rows + '</table>';
+    REPORT.push({ env: { ua: navigator.userAgent, online: navigator.onLine, createImageBitmap: typeof createImageBitmap === 'function', probe: mode, deviceMemory: navigator.deviceMemory || null } });
+  });
+})();
+
+function showResult(file, r, err){
+  var m = (r && r.meta) || (err && err.fpMeta) || {};
+  var rows = row('ファイル', file.name + '（' + Math.round(file.size / 1024) + ' KB）')
+    + row('形式', m.type || '不明')
+    + row('画素数', m.mp ? m.mp + ' 百万画素（' + m.w + ' × ' + m.h + (m.orient ? '、向き ' + m.orient : '') + '）' : '先頭から読み取れませんでした')
+    + row('開いた方法', m.path === 'B' ? 'B：縮小しながら開いた' : (m.path === 'A' ? 'A：画像として開いた' : (m.path || '（開けませんでした）')))
+    + row('かかった時間', (m.ms || 0) + ' ミリ秒');
+  var html;
+  if(r){
+    rows += row('結果', '読み込めました', 'ok') + row('書き出し', '段階 ' + (m.level + 1) + ' / ' + FP_PHOTO_LEVELS.length + '（長辺 ' + FP_PHOTO_LEVELS[m.level][0] + ' px、約 ' + m.outKB + ' KB）');
+    html = '<div class="box"><table>' + rows + '</table><img class="out" src="' + r.image + '" alt="加工後の写真"><div class="small">↑ 加工後の写真です。向きや絵が元の写真どおりか確かめてください。</div></div>';
+  } else {
+    var why = err && err.fpStage === 'format' ? '形式が読めません（読み込めない形式の写真です）' : (err && err.fpStage === 'encode' ? '書き出しに失敗しました' : '開けませんでした（大きすぎる、または壊れている可能性があります）');
+    rows += row('結果', '読み込めませんでした', 'ng') + row('理由', why) + row('詳しい内容', err && err.message);
+    html = '<div class="box"><table>' + rows + '</table><div class="small" style="margin-top:6px">足跡の投稿画面では、この写真は「読めません」の枠になり、ほかの写真とひとことはそのまま投稿できます。</div></div>';
+  }
+  var d = document.createElement('div'); d.innerHTML = html; document.getElementById('results').appendChild(d);
+  REPORT.push({ file: file.name, sizeKB: Math.round(file.size / 1024), ok: !!r, meta: m, error: err ? String(err.message || err) : '', stage: err ? err.fpStage : '' });
+}
+
+document.getElementById('f').addEventListener('change', function(ev){
+  var files = Array.prototype.slice.call(ev.target.files || []);
+  ev.target.value = '';
+  files.reduce(function(p, f){
+    return p.then(function(){
+      var wait = document.createElement('div'); wait.className = 'box small'; wait.textContent = f.name + ' を読み込んでいます…';
+      document.getElementById('results').appendChild(wait);
+      return fpPrepareOne_(f).then(function(r){ wait.remove(); showResult(f, r, null); }, function(e){ wait.remove(); showResult(f, null, e); });
+    });
+  }, Promise.resolve());
+});
+document.getElementById('copy').addEventListener('click', function(){
+  var text = JSON.stringify(REPORT, null, 1);
+  var done = function(){ document.getElementById('copy').textContent = 'コピーしました'; };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, function(){ prompt('コピーして送ってください', text); }); }
+  else { prompt('コピーして送ってください', text); }
+});
+</script>
+</body>
+</html>
