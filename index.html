@@ -39,6 +39,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#F0F2F5;min-h
 .badge-plan{background:#FAEEDA;color:#813100}
 .badge-live{background:#F1EFE8;color:#444}
 input,select,textarea{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:16px;font-family:inherit;color:var(--text);background:var(--white)}
+/* v1.2.31：本人による退会（安心宣言【5】の「退会する」→ 本人確認 → 確認画面 → 処理中 → 完了）。退会ボタンは赤い細枠 */
 /* v1.2.28：入力欄を16px以上にして、iPhoneの自動ズーム（触ると拡大してそのまま戻らない）を起こさない。4桁の入力欄は18px（入力中だけ文字の間を空ける） */
 .pin-input{font-size:18px}
 .pin-input:not(:placeholder-shown){letter-spacing:.15em}
@@ -57,6 +58,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 /* v1.2.23：アプリ内の確認画面（標準のconfirmは、環境によって出ないことがあるため使わない） */
 .cf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:20px}
 .cf-overlay.show{display:flex}
+/* v1.2.31：本人による退会。退会ボタンは、書き込みボタン（金色）とは別に、白地・赤い細枠・小さめにする */
+.wd-btn{min-height:44px;padding:0 24px;background:var(--white);color:#a32d2d;border:1px solid #a32d2d;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;font-family:inherit}
+.wd-label{display:block;font-size:13px;color:var(--text-sub);margin:12px 0 4px}
 .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
 .search-wrap{position:relative;margin-bottom:10px}
 .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-ter);font-size:15px;pointer-events:none}
@@ -411,7 +415,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【2】住所・電話番号は聞きません</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">登録できる情報は「名前・期・部活・エリア・状態・ひとこと」だけです。住所・電話番号・メールアドレスは一切収集しません。なお、本人確認用にお伺いする4桁の数字は、誕生日、またはお好きな数字でご登録いただけます。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【3】管理者について正直にお伝えします</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムの管理者は佐々木宗明（33期）個人です。皆さんが登録した情報は管理者も確認できます。それが嫌な方は参加しないでください。</div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【4】写真アルバムについて</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">部室の写真アルバムは、各部活のOB幹事が自主管理するGoogleフォトです。管理者（佐々木）は写真データを管理しません。写真館（全体・期別の共有写真）は管理者が管理する非公開のGoogleドライブに保存されます。</div></div>
-  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合は下記のフォームより管理者にお問い合わせください。登録情報を即座に削除します。<br><a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="color:var(--blue-mid);font-weight:500">📋 お問い合わせフォームはこちら</a></div></div>
+  <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【5】データはいつでも消せます</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">退会したい場合は、このアプリからいつでも退会できます。退会すると、登録情報（名前・期・近況・足跡の写真など）を削除します。<br><br>あなたが書いたコメントやコルクボードの投稿は、名前を「退会したメンバー」に変えて残ります。<br><br>次のものは、すぐには消えません。<br>・誤操作に備えたコピー … 14日後に自動で消えます<br>・写真のゴミ箱 … 最長30日で消えます<br>・管理者のメール … 登録・近況更新のお知らせ（管理者だけが見られます）<div style="text-align:center;margin:14px 0 4px"><button class="wd-btn" onclick="openWithdrawModal()">退会する</button></div><div style="font-size:12px;margin-top:10px">アプリから退会できないときは → <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="color:var(--blue-mid);font-weight:500">📋 お問い合わせフォームはこちら</a></div></div></div>
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。</div></div>
   <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
     <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（松山北高校 33期）</div>
@@ -681,8 +685,43 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
   </div>
 </div>
+<!-- v1.2.31：本人による退会（本人確認 → 確認画面 → 処理中 → 完了）。流れは安心宣言【5】の「退会する」から -->
+<div class="modal-overlay" id="modal-withdraw" onclick="closeWithdrawModal()">
+  <div class="modal" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="wdTitle">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px" id="wdTitle">退会の本人確認</div>
+      <button class="x-btn" onclick="closeWithdrawModal()" aria-label="閉じる">&times;</button>
+    </div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text-sub)">退会するには、名前と4桁の数字の確認が必要です。</div>
+    <label class="wd-label" for="wdName">名前（本名またはニックネーム）</label>
+    <input type="text" id="wdName" autocomplete="off" placeholder="登録した名前">
+    <label class="wd-label" for="wdBd">4桁の数字</label>
+    <input class="pin-input" type="text" id="wdBd" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の数字">
+    <div id="wdPeriodRow" style="display:none"><label class="wd-label" for="wdPeriod">期</label><input type="text" id="wdPeriod" autocomplete="off" placeholder="例：33期"></div>
+    <div class="auth-gate-err" id="wdErr" role="alert"></div>
+    <button class="btn btn-primary" id="wdNextBtn" onclick="withdrawVerify()" style="width:100%;min-height:44px;margin-top:16px">次へ</button>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-ter);text-align:center">5回続けて間違えると、15分間は確認できません。</div>
+  </div>
+</div>
+<div class="cf-overlay" id="wdBusy" style="z-index:500;background:rgba(255,255,255,.92)" role="alert" aria-live="assertive">
+  <div style="text-align:center;max-width:320px">
+    <div class="spinner" style="margin:0 auto 14px"></div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:8px">退会の処理をしています…</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text-sub)">しばらくお待ちください。この画面は閉じないでください。</div>
+  </div>
+</div>
+<div class="auth-gate" id="wdDone" role="dialog" aria-modal="true" aria-labelledby="wdDoneTitle">
+  <div class="auth-gate-box">
+    <div class="header"><div><div class="header-title">北高 連絡帳</div><div class="header-sub">松山北高校 同窓会ネットワーク</div></div></div>
+    <div class="auth-gate-body">
+      <div id="wdDoneTitle" style="font-size:18px;font-weight:700;margin-bottom:10px">退会しました。</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text-sub)">登録情報を削除しました。ご利用ありがとうございました。<br>また使いたくなったら、新しいメンバーとして登録できます。</div>
+      <button class="btn btn-primary" onclick="location.href='welcome.html'" style="width:100%;min-height:48px;margin-top:24px;font-size:15px">閉じる</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
-<div class="footer">北高 連絡帳 v1.2.30　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">北高 連絡帳 v1.2.31　© 2026 佐々木宗明（33期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 </div>
 
@@ -3063,19 +3102,148 @@ function fpvLoad_(i){
 //  「やめる」を大きく、消すほうを赤・小さめにする。画面の外を押す／Escは「やめる」。
 // ===================================================
 var CONFIRM_CB = null;
-function askConfirm_(title, msg, okLabel, onOk){
+var CONFIRM_CANCEL = null;   // v1.2.31：「やめる」を押した時（画面の外・Escを含む）に動かす後始末（無くてもよい）
+function askConfirm_(title, msg, okLabel, onOk, onCancel){
   document.getElementById('cf_title').textContent = title;
   document.getElementById('cf_msg').textContent = msg;
   document.getElementById('cf_ok').textContent = okLabel;
   CONFIRM_CB = onOk;
+  CONFIRM_CANCEL = onCancel || null;
   document.getElementById('modal-confirm').classList.add('show');
 }
 function closeConfirm_(run){
   document.getElementById('modal-confirm').classList.remove('show');
   var cb = CONFIRM_CB; CONFIRM_CB = null;   // 先に空にして、2回押されても1回しか動かさない
+  var cc = CONFIRM_CANCEL; CONFIRM_CANCEL = null;
   if(run && cb) cb();
+  else if(!run && cc) cc();
 }
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && CONFIRM_CB) closeConfirm_(false); });
+
+// ===================================================
+// v1.2.31：本人による退会（安心宣言【5】の「退会する」）
+//  流れ：本人確認（名前＋4桁。verify）→ 確認画面 → 退会（POST withdrawSelf。サーバーでも、もう一度、名前＋4桁を確かめる）→ 端末の後始末 → 完了画面
+//  名前と4桁は、画面の中の変数（WD_CRED）にだけ持つ。端末には保存せず、やめた時・終わった時に消す。
+// ===================================================
+var WD_BUSY = false;   // 確認中・退会の処理中（この間は、閉じる・二重に押すことを受け付けない）
+var WD_DONE = false;   // 退会が終わった（自動の読み込み直しをしない）
+var WD_CRED = null;    // { name, bd, period }
+
+function wdEl_(id){ return document.getElementById(id); }
+function wdShowErr_(msg){
+  var e = wdEl_('wdErr');
+  if(!msg){ e.style.display = 'none'; e.textContent = ''; return; }
+  e.textContent = msg; e.style.display = 'block';
+}
+function wdShowModal_(){ wdEl_('modal-withdraw').classList.add('show'); }
+function wdCloseModal_(){ wdEl_('modal-withdraw').classList.remove('show'); }
+function openWithdrawModal(){
+  WD_CRED = null;
+  wdEl_('wdName').value = ''; wdEl_('wdBd').value = ''; wdEl_('wdPeriod').value = '';
+  wdEl_('wdPeriodRow').style.display = 'none';
+  wdShowErr_('');
+  wdShowModal_();
+}
+function closeWithdrawModal(){
+  if(WD_BUSY) return;
+  WD_CRED = null;
+  wdCloseModal_();
+}
+
+// 1. 本人確認（既存の verify を使う。5回間違えると15分ロック）
+function withdrawVerify(){
+  if(WD_BUSY) return;
+  wdShowErr_('');
+  var name = S(wdEl_('wdName').value).trim();
+  var bd = digitsVal('wdBd');
+  var period = S(wdEl_('wdPeriod').value).trim();
+  if(!name){ wdShowErr_('名前を入力してください。'); return; }
+  if(!/^[0-9]{4}$/.test(bd)){ wdShowErr_('4桁の数字で入力してください。'); return; }
+  WD_BUSY = true;
+  var btn = wdEl_('wdNextBtn'); var label = btn.textContent; btn.textContent = '確認しています…';
+  var qs = 'action=verify&name=' + encodeURIComponent(name) + '&birthday=' + encodeURIComponent(bd) + (period ? '&period=' + encodeURIComponent(period) : '');
+  apiFetch(qs).then(function(r){ return r.json(); }).then(function(res){
+    WD_BUSY = false; btn.textContent = label;
+    if(res && res.locked){ wdShowErr_(res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。'); return; }
+    if(!res || !res.found){ wdShowErr_('名前または4桁の数字が一致しません。'); return; }
+    if(res.multiple){ wdEl_('wdPeriodRow').style.display = 'block'; wdShowErr_('同じ名前・数字の方が複数います。期も入力してください。'); return; }
+    WD_CRED = { name: name, bd: bd, period: period };
+    wdCloseModal_();
+    wdAskFinal_();
+  }).catch(function(){
+    WD_BUSY = false; btn.textContent = label;
+    wdShowErr_('通信エラーが発生しました。もう一度お試しください。');
+  });
+}
+
+// 2. 確認画面（足跡を消す時と同じ作り。「やめる」を大きく、退会は赤・小さめ）
+function wdAskFinal_(){
+  askConfirm_('退会しますか？',
+    '名前・近況・足跡（写真も）・写真館の写真が、すぐに消えます。取り消せません。\n\n※退会したあとに登録し直すことはできますが、今までの内容は戻りません。新しいメンバーとして、最初からになります。',
+    '退会する',
+    function(){ doWithdraw_(); },
+    function(){ WD_CRED = null; });
+}
+
+// 3. 退会の実行（サーバーが、名前＋4桁をもう一度確かめてから消す）
+function doWithdraw_(){
+  if(!WD_CRED || WD_BUSY) return;
+  WD_BUSY = true;
+  var cred = WD_CRED;
+  wdEl_('wdBusy').classList.add('show');
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'withdrawSelf', name: cred.name, birthday: cred.bd, period: cred.period })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      WD_BUSY = false; wdEl_('wdBusy').classList.remove('show');
+      if(res && res.success){
+        WD_CRED = null; WD_DONE = true;
+        wdCleanDevice_().then(function(){
+          wdEl_('wdDone').style.display = 'block';
+          try{ window.scrollTo(0, 0); }catch(e){}
+        });
+        return;
+      }
+      WD_CRED = null;
+      var msg = '退会の処理が最後まで終わりませんでした。もう一度お試しください。';
+      if(res && res.locked && res.error) msg = res.error;
+      else if(res && res.multiple) msg = '同じ名前・数字の方が複数います。期も入力して、もう一度お試しください。';
+      else if(res && res.error && res.error !== 'withdraw_failed') msg = res.error;
+      if(res && res.multiple) wdEl_('wdPeriodRow').style.display = 'block';
+      wdShowErr_(msg); wdShowModal_();
+    })
+    .catch(function(){
+      WD_BUSY = false; wdEl_('wdBusy').classList.remove('show');
+      WD_CRED = null;
+      wdShowErr_('通信が途切れました。退会できたかどうかは、まだ分かりません。もう一度「次へ」を押して確認してください。「名前または4桁の数字が一致しません」と出たときは、すでに退会できています。');
+      wdShowModal_();
+    });
+}
+
+// 4. 端末の後始末（登録証・一覧の控え・書きかけの足跡・失敗の記録・送信待ちの投稿）
+function wdCleanDevice_(){
+  ['mk18_uid', 'mk18_members_cache', 'mk18_fp_draft', 'mk18_errlog'].forEach(function(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+  });
+  try{ FP_OB_MEM = {}; }catch(e){}
+  return new Promise(function(resolve){
+    var finished = false;
+    function fin(){ if(!finished){ finished = true; resolve(); } }
+    try{
+      if(!window.indexedDB){ fin(); return; }
+      var rq = indexedDB.deleteDatabase('mk18_outbox');
+      rq.onsuccess = fin; rq.onerror = fin; rq.onblocked = fin;
+      setTimeout(fin, 2000);
+    }catch(e){ fin(); }
+  });
+}
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target && (e.target.id === 'wdName' || e.target.id === 'wdBd' || e.target.id === 'wdPeriod')) withdrawVerify();
+});
+
 
 function deleteFootprint(postId){
   if(!postId) return;
@@ -3172,7 +3340,7 @@ function fpRemove(i){ fpPicked.splice(i, 1); fpRenderSlots(); fpUpdatePhotoNotic
 //  ・投稿ごとの番号（clientPostId）で、サーバーが二重投稿を防ぐ／送れなかった投稿は端末（IndexedDB）に残り、電波が戻ったとき・次に開いたときにも自動で送る（アプリを閉じている間は送れない）
 //  ・失敗の記録（機種・版数・失敗した場所・写真の大きさ）を、自動で管理用シートに送る（ひとことと写真の中身は送らない）
 // ===================================================
-var FP_APP_VERSION = 'v1.2.30';
+var FP_APP_VERSION = 'v1.2.31';
 var FP_RETRY_DELAYS = [2000, 6000, 15000];          // 自動でやり直すまでの待ち時間（最初の1回のあと、3回まで）
 var FP_SEND_TIMEOUT_MS = 60000;                      // 1回の送信を待つ上限
 var FP_MAX_AUTO_ROUNDS = 3;                          // つながっているのに送れない状態が続いたとき、自動で送るのは、この回数のまとまりまで
@@ -3788,6 +3956,7 @@ var FP_SW_HAD_CONTROLLER = !!(navigator.serviceWorker && navigator.serviceWorker
 var FP_SW_UPDATED = false;
 function fpSafeToReload_(){
   if(document.querySelector('.modal-overlay.show')) return false;            // 入力画面を開いている間は、しない
+  if(WD_BUSY || WD_DONE || CONFIRM_CB) return false;                         // v1.2.31：退会の確認・処理中・完了画面の間は、しない
   if(fpLoading > 0 || fpBusy) return false;                                  // 写真の読み込み中・送信中は、しない
   if(Object.keys(fpSending).length) return false;
   var a = document.activeElement;
